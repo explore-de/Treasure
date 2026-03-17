@@ -1,0 +1,9 @@
+{#include main.html}
+{#title}New Device{/title}
+<form method="post" action="/devices/create">
+    {#authenticityToken /}
+    <cds-text-input label="Device Name" name="deviceName"></cds-text-input>
+    <cds-text-input label="Status" name="status"></cds-text-input>
+    <button type="submit" class="cds-btn cds-btn-primary">Save</button>
+</form>
+{/include}
