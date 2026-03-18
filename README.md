@@ -1,4 +1,4 @@
-# Treasur
+# Treasure
 
 A device booking system for organizations.
 
