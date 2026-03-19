@@ -28,6 +28,7 @@ A device booking system for organizations.
 - [x] Claim button — lets a regular user instantly claim a device; if already claimed by someone else, button is disabled; if claimed by you, button unclaims it
 - [x] make it not possible to create an unnnamed Device
 - [x] Move buttons in order: claim - edit - delete
+- [ ] make a good UI design
 
 ---
 ## Requirements ⚙️
