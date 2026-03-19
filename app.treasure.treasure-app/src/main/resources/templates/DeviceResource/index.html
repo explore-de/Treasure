@@ -21,15 +21,15 @@
                     <cds-table-cell>{device.bookedName}</cds-table-cell>
                     <cds-table-cell>{device.formattedPickupTime}</cds-table-cell>
                     <cds-table-cell>
-                        <a href="/devices/{device.id}/edit">
-                            <button class="cds-btn">Edit</button>
-                        </a>
-                    </cds-table-cell>
-                    <cds-table-cell>
                         <form method="post" action="/devices/{device.id}/claim">
                                 {#authenticityToken /}
                             <button type="submit" class="cds-btn cds-btn-danger">Claim</button>
                         </form>
+                    </cds-table-cell>
+                    <cds-table-cell>
+                        <a href="/devices/{device.id}/edit">
+                            <button class="cds-btn">Edit</button>
+                        </a>
                     </cds-table-cell>
                     <cds-table-cell>
                         <form method="post" action="/devices/{device.id}/delete">
