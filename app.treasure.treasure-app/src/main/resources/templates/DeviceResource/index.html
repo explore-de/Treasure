@@ -26,8 +26,18 @@
               </a>
           </cds-table-cell>
     </cds-table-cell>
-    <cds-table-cell>                                                                                                                                                                                                                                
-        <form method="post" action="/devices/{device.id}/delete">                                                                                                                                                                                     
+    <cds-table-cell>
+      <cds-table-cell>
+        <form method="post" action="/devices/{device.id}/claim">
+            {#authenticityToken /}
+          <button type="submit" class="cds-btn cds-btn-danger">Claim</button>
+        </form>
+      </cds-table-cell>
+      <cds-table-cell>
+      <cds-button href="/devices/{device.id}/edit">Edit</cds-button>
+      </cds-table-cell>
+      <cds-table-cell>
+        <form method="post" action="/devices/{device.id}/delete">
             {#authenticityToken /}                                                                                                                                                                            
           <button type="submit" class="cds-btn cds-btn-danger">Delete</button>                                                                                                                                                                        
         </form>                                                                                                                                                                                                                                       

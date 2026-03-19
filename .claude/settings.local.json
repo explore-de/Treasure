@@ -101,7 +101,8 @@
       "Bash(2)",
       "Bash(git -C /home/oleh/Downloads/fuggs status --short)",
       "Bash(git -C /home/oleh/Downloads/Treasure log --oneline)",
-      "Bash(git -C /home/oleh/Downloads/Treasure log --all --oneline)"
+      "Bash(git -C /home/oleh/Downloads/Treasure log --all --oneline)",
+      "Bash(mvn:*)"
     ]
   }
 }
