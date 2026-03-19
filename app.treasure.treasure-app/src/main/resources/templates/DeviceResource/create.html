@@ -2,8 +2,9 @@
 {#title}New Device{/title}
 <form method="post" action="/devices/create">
     {#authenticityToken /}
+    <p style="color:#ffab00; font-weight: bold;">New Device:</p>
+    <p></p>
     <cds-text-input label="Device Name" name="deviceName"></cds-text-input>
-    <cds-text-input label="Status" name="status"></cds-text-input>
     <button type="submit" class="cds-btn cds-btn-primary">Save</button>
 </form>
 {/include}
