@@ -42,11 +42,16 @@ public class DeviceResource extends Controller
 	@CheckedTemplate
 	public static class Templates
 	{
-		private Templates() {}
+		private Templates()
+		{
+		}
 
 		public static native TemplateInstance index(List<Device> devices);
+
 		public static native TemplateInstance create();
+
 		public static native TemplateInstance editadmin(Device device);
+
 		public static native TemplateInstance editnormuser(Device device);
 	}
 
@@ -70,9 +75,12 @@ public class DeviceResource extends Controller
 	public TemplateInstance edit(@PathParam("id") Long id)
 	{
 		Device device = deviceRepository.findById(id);
-		if (identity.hasRole("admin") || identity.hasRole("SUPER_ADMIN")) {
+		if (identity.hasRole("admin") || identity.hasRole("SUPER_ADMIN"))
+		{
 			return Templates.editadmin(device);
-		} else {
+		}
+		else
+		{
 			return Templates.editnormuser(device);
 		}
 	}
@@ -82,7 +90,8 @@ public class DeviceResource extends Controller
 	@Transactional
 	public void save(@RestForm String deviceName, @RestForm String status)
 	{
-		if (deviceName.matches(".*[a-zA-Z0-9].*")) {
+		if (deviceName.matches(".*[a-zA-Z0-9].*"))
+		{
 			Device device = new Device();
 			device.setDeviceName(deviceName);
 			device.setStatus(status);
@@ -96,7 +105,8 @@ public class DeviceResource extends Controller
 	@Transactional
 	public void update(@PathParam("id") Long id, @RestForm String deviceName)
 	{
-		if (!deviceName.matches(".*[a-zA-Z0-9].*")) {
+		if (!deviceName.matches(".*[a-zA-Z0-9].*"))
+		{
 			redirect(DeviceResource.class).index();
 			return;
 		}
