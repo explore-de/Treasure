@@ -21,7 +21,7 @@ A device booking system for organizations.
 - [x] Rename project to treasure (remove all "fuggs" references)
 - [x] Update README
 - [x] Navigation menu — "Device" link in left sidebar → device list
-- [ ] Edit button — separate admin and user edit views (admin can edit "Booked by"; user cannot)
+- [x] Edit button — separate admin and user edit views (admin can edit "Booked by"; user cannot)
 - [ ] Auto status — device becomes unavailable when assigned, available when unassigned
 - [x] fix a "New device" button
 - [x] remove fluggs name from website
