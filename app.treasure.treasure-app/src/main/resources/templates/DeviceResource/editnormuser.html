@@ -2,9 +2,11 @@
     {#title}Edit Menu User{/title}
     <form method="post" action="/devices/{device.id}/update">
             {#authenticityToken /}
-        <p style="color:#ffab00; font-weight: bold;">Edit Device:</p>
-        <p>Current Device Name:</p>
-        <p>{device.deviceName}</p>
+        <p style="font-size: 16px; color:#ffab00; font-weight: bold;">Edit Device:<br></p>
+        <p><br></p>
+        <p style="font-size: 16px; color:#ffab00;">Current Device Name:</p>
+        <p style="font-size: 12px; letter-spacing: 0.32px;">{device.deviceName}<br></p>
+        <p><br></p>
         <cds-text-input label="New Device Name" name="deviceName" value="{device.deviceName}"></cds-text-input>
         <button type="submit" class="cds-btn cds-btn-primary">Save</button>
     </form>

@@ -59,9 +59,9 @@ public class DeviceResource extends Controller
 	{
 		Device device = deviceRepository.findById(id);
 		if (identity.hasRole("admin") || identity.hasRole("SUPER_ADMIN")) {
-			return Templates.editnormuser(device);
-		} else {
 			return Templates.editadmin(device);
+		} else {
+			return Templates.editnormuser(device);
 		}
 	}
 
