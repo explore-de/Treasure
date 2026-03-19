@@ -191,7 +191,7 @@ $RECYCLE.BIN/
 *.drawio.bkp
 
 # helm
-./charts/fuggs/charts
+./charts/treasure/charts
 
 # unencrypted secrets
 *decrypted.env

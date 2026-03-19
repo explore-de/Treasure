@@ -1,6 +1,6 @@
-# Contributing to Fuggs
+# Contributing to Treasure
 
-Thank you for your interest in contributing to Fuggs! This document provides guidelines and instructions for contributing to the project.
+Thank you for your interest in contributing to Treasure! This document provides guidelines and instructions for contributing to the project.
 
 ## Table of Contents
 
@@ -31,12 +31,12 @@ This project is committed to providing a welcoming and inclusive environment for
 1. Fork the repository on GitHub
 2. Clone your fork locally:
    ```bash
-   git clone https://github.com/YOUR-USERNAME/fuggs.git
-   cd fuggs
+   git clone https://github.com/YOUR-USERNAME/treasure.git
+   cd treasure
    ```
 3. Add the upstream repository:
    ```bash
-   git remote add upstream https://github.com/fuggs-app/fuggs.git
+   git remote add upstream https://github.com/treasure-app/treasure.git
    ```
 
 ## Development Setup
@@ -46,7 +46,7 @@ The project uses Quarkus DevServices, which automatically starts required servic
 ### Run in Development Mode
 
 ```bash
-cd app.fuggs.fuggs-app
+cd app.treasure.treasure-app
 ./mvnw quarkus:dev
 ```
 
@@ -81,13 +81,13 @@ This starts the application with:
 
 ## Project Structure
 
-Fuggs is a multi-module Maven project:
+Treasure is a multi-module Maven project:
 
 ```
-fuggs/
-├── app.fuggs.fuggs-app/       # Main web application (Quarkus + Renarde)
-├── app.fuggs.zugferd/         # ZugFerd e-invoice extraction service
-├── app.fuggs.az-document-ai/  # Azure Document Intelligence service
+treasure/
+├── app.treasure.treasure-app/    # Main web application (Quarkus + Renarde)
+├── app.treasure.zugferd/         # ZugFerd e-invoice extraction service
+├── app.treasure.az-document-ai/  # Azure Document Intelligence service
 └── formatter/                 # Java code formatter configuration
 ```
 
@@ -96,7 +96,7 @@ fuggs/
 Feature-based package organization:
 
 ```
-app.fuggs.<feature>/
+app.treasure.<feature>/
 ├── api/          # Renarde controllers (web endpoints)
 ├── domain/       # JPA entities
 ├── model/        # DTOs and input classes
@@ -151,7 +151,7 @@ LOG.debug("Debug info: {}", data);      // Detailed debugging
 Use role constants from `Roles.java`:
 
 ```java
-import app.fuggs.shared.security.Roles;
+import app.treasure.shared.security.Roles;
 
 if (securityIdentity.hasRole(Roles.ADMIN)) {
     // Admin-only logic
@@ -168,7 +168,7 @@ Available roles:
 - Use actual **Carbon Web Components**, not custom HTML/CSS
 - Use native `<button>` elements for form submissions
 - Use `<cds-button>` only for navigation links
-- Reference CSS variables: `var(--fuggs-primary)` instead of hardcoded colors
+- Reference CSS variables: `var(--treasure-primary)` instead of hardcoded colors
 - See `CLAUDE.md` for detailed Carbon component usage
 
 ## Testing
@@ -326,9 +326,9 @@ Explain the motivation and context.
 
 ### Getting Help
 
-- **Questions?** Open a [Discussion](https://github.com/fuggs-app/fuggs/discussions)
-- **Bug reports?** Open an [Issue](https://github.com/fuggs-app/fuggs/issues)
-- **Feature ideas?** Start a [Discussion](https://github.com/fuggs-app/fuggs/discussions)
+- **Questions?** Open a [Discussion](https://github.com/treasure-app/treasure/discussions)
+- **Bug reports?** Open an [Issue](https://github.com/treasure-app/treasure/issues)
+- **Feature ideas?** Start a [Discussion](https://github.com/treasure-app/treasure/discussions)
 
 ### Recognition
 
@@ -343,6 +343,6 @@ Contributors with merged code are automatically added to the README using [All C
 
 ---
 
-**Thank you for contributing to Fuggs!** 🎉
+**Thank you for contributing to Treasure!** 🎉
 
 Your contributions help make accounting easier for organizations worldwide.

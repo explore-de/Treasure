@@ -25,10 +25,10 @@ code in this repository.
 ./mvnw formatter:format
 
 # Start Temporal infrastructure (auto-starts with quarkus:dev, or manually)
-docker-compose -f app.fuggs.fuggs-app/compose-devservices.yml up -d
+docker-compose -f app.treasure.treasure-app/compose-devservices.yml up -d
 
 # Stop Temporal infrastructure
-docker-compose -f app.fuggs.fuggs-app/compose-devservices.yml down
+docker-compose -f app.treasure.treasure-app/compose-devservices.yml down
 
 # View Temporal UI
 open http://localhost:8088
@@ -57,7 +57,7 @@ rendering.
 Feature-based package structure:
 
 ```
-app.fuggs.<feature>/
+app.treasure.<feature>/
 ├── api/          - Renarde controllers (extend Controller)
 ├── domain/       - Entity classes (extend PanacheEntity)
 ├── model/        - DTOs/Input classes
@@ -65,7 +65,7 @@ app.fuggs.<feature>/
 ├── service/      - Business logic (e.g., StorageService)
 └── messaging/    - Message producers/consumers
 
-app.fuggs.shared/
+app.treasure.shared/
 ├── filter/       - HTTP filters
 ├── infrastructure/storage/  - Storage handlers
 ├── security/     - Security utilities
@@ -83,8 +83,8 @@ Current features:
 
 **Microservices:**
 
-- `app.fuggs.zugferd` - ZugFerd e-invoice extraction service (port 8103)
-- `app.fuggs.az-document-ai` - Azure Document Intelligence integration (port 8200)
+- `app.treasure.zugferd` - ZugFerd e-invoice extraction service (port 8103)
+- `app.treasure.az-document-ai` - Azure Document Intelligence integration (port 8200)
 
 Templates: `src/main/resources/templates/<ControllerName>/<method>.html`
 
@@ -153,7 +153,7 @@ Add reasonable logging for:
 **IMPORTANT:** Always use role constants from `Roles.java` instead of hardcoded strings.
 
 ```java
-import app.fuggs.shared.security.Roles;
+import app.treasure.shared.security.Roles;
 ```
 
 Available role constants:
@@ -195,7 +195,7 @@ void shouldAllowAdminAccess() {
 Configuration in `application.properties`:
 
 ```properties
-bucket.name=fuggs-documents
+bucket.name=treasure-documents
 quarkus.s3.path-style-access=true
 quarkus.s3.devservices.buckets=${bucket.name}
 ```
@@ -263,7 +263,7 @@ The `ExtractionSource` enum tracks how data was extracted:
 - `AI` - Data from Azure Document Intelligence
 - `MANUAL` - User-entered data
 
-**ZugFerd service (`app.fuggs.zugferd`):**
+**ZugFerd service (`app.treasure.zugferd`):**
 
 Uses Mustang Project library (`org.mustangproject`) to extract ZugFerd XML:
 
@@ -455,7 +455,7 @@ Carbon components are loaded via CDN in `main.html` using specific versions for 
 - `.cds-btn-secondary` - Secondary action
 - `.cds-btn-danger` - Destructive action (red)
 
-These styles are defined in `fuggs-components.css` and automatically styled to match Carbon Design System.
+These styles are defined in `treasure-components.css` and automatically styled to match Carbon Design System.
 
 **Notifications:**
 
@@ -543,10 +543,10 @@ function initTableSorting() {
 The application uses Carbon UI Shell components for header and side navigation:
 
 ```html
-<cds-header aria-label="Fuggs Buchhaltung">
+<cds-header aria-label="Treasure Buchhaltung">
   <cds-header-menu-button onclick="toggleSideNav()">
   </cds-header-menu-button>
-  <cds-header-name href="/" prefix="">fuggs</cds-header-name>
+  <cds-header-name href="/" prefix="">treasure</cds-header-name>
   <cds-header-global-bar>
     <cds-header-global-action aria-label="Profil">
       <svg slot="icon">...</svg>
@@ -654,7 +654,7 @@ Use [Chart.js v4.4.0](https://www.chartjs.org/) for data visualization:
           labels: ['Rechnungen', 'Quittungen', 'Sonstige'],
           datasets: [{
             data: [14, 7, 3],
-            backgroundColor: ['#FF521D', '#24a148', '#f1c21b'], // Fuggs orange, green, yellow
+            backgroundColor: ['#FF521D', '#24a148', '#f1c21b'], // Treasure orange, green, yellow
             borderWidth: 0
           }]
         },
@@ -676,11 +676,11 @@ Use [Chart.js v4.4.0](https://www.chartjs.org/) for data visualization:
 {/moreScripts}
 ```
 
-**Use Fuggs brand colors:**
-- **Fuggs Orange (Primary)**: `#FF521D` - Main brand color for buttons, links, interactive elements
-- **Fuggs Orange Hover**: `#E6491A` - Darker shade for hover states
-- **Fuggs Orange Active**: `#CC4017` - Even darker for active/pressed states
-- **Fuggs Orange Light**: `#FFE5DC` - Light orange for backgrounds and accents
+**Use Treasure brand colors:**
+- **Treasure Orange (Primary)**: `#FF521D` - Main brand color for buttons, links, interactive elements
+- **Treasure Orange Hover**: `#E6491A` - Darker shade for hover states
+- **Treasure Orange Active**: `#CC4017` - Even darker for active/pressed states
+- **Treasure Orange Light**: `#FFE5DC` - Light orange for backgrounds and accents
 - Green 60: `#24a148` - Success/positive states
 - Red 60: `#da1e28` - Error/danger states
 - Yellow 30: `#f1c21b` - Warning states
@@ -689,13 +689,13 @@ Use [Chart.js v4.4.0](https://www.chartjs.org/) for data visualization:
 The application uses CSS custom properties for theming. Always use these variables instead of hardcoding colors:
 
 ```css
-/* Fuggs Brand Colors (defined in fuggs-core.css) */
-var(--fuggs-primary)        /* #FF521D - Main orange */
-var(--fuggs-primary-hover)  /* #E6491A - Hover state */
-var(--fuggs-primary-active) /* #CC4017 - Active state */
-var(--fuggs-primary-light)  /* #FFE5DC - Light orange */
+/* Treasure Brand Colors (defined in treasure-core.css) */
+var(--treasure-primary)        /* #FF521D - Main orange */
+var(--treasure-primary-hover)  /* #E6491A - Hover state */
+var(--treasure-primary-active) /* #CC4017 - Active state */
+var(--treasure-primary-light)  /* #FFE5DC - Light orange */
 
-/* Carbon Design Tokens (mapped to Fuggs colors) */
+/* Carbon Design Tokens (mapped to Treasure colors) */
 var(--cds-interactive-01)      /* Primary interactive color */
 var(--cds-border-interactive)  /* Interactive borders */
 var(--cds-link-primary)        /* Link color */
@@ -704,7 +704,7 @@ var(--cds-ui-focus)           /* Focus indicators */
 ```
 
 **Chart.js colors:**
-When creating charts, use the Fuggs orange as the primary color:
+When creating charts, use the Treasure orange as the primary color:
 
 ```javascript
 backgroundColor: ['#FF521D', '#24a148', '#f1c21b'],  // Orange, Green, Yellow

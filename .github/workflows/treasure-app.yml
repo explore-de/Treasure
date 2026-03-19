@@ -1,0 +1,70 @@
+name: Build treasure-app
+
+on:
+  push:
+    branches: [ main, deploy ]
+    paths:
+      - 'app.treasure.treasure-app/**'
+      - '.github/workflows/treasure-app.yml'
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: app.treasure.treasure-app
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Build with Maven
+        run: ./mvnw -B verify
+
+      # TODO: Uncomment when SonarCloud project is set up
+      # - name: Cache SonarQube packages
+      #   uses: actions/cache@v5
+      #   with:
+      #     path: ~/.sonar/cache
+      #     key: ${{ runner.os }}-sonar
+      #     restore-keys: ${{ runner.os }}-sonar
+
+      # - name: SonarQube analysis
+      #   if: ${{ !startsWith(github.ref, 'refs/heads/dependabot') }}
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #   run: |
+      #     ./mvnw -B sonar:sonar \
+      #       -Dsonar.host.url=https://sonarcloud.io \
+      #       -Dsonar.organization=treasure-app \
+      #       -Dsonar.projectKey=treasure-app_treasure-app
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        if: ${{ success() }}
+        uses: docker/build-push-action@v6
+        with:
+          context: app.treasure.treasure-app
+          push: true
+          file: app.treasure.treasure-app/src/main/docker/Dockerfile.jvm
+          tags: |
+            ghcr.io/treasure-app/treasure-app:latest
+            ghcr.io/treasure-app/treasure-app:${{ github.run_number }}

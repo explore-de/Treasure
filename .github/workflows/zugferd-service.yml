@@ -4,13 +4,13 @@ on:
   push:
     branches: [ main, deploy ]
     paths:
-      - 'app.fuggs.zugferd/**'
+      - 'app.treasure.zugferd/**'
       - '.github/workflows/zugferd-service.yml'
   workflow_dispatch:
 
 defaults:
   run:
-    working-directory: app.fuggs.zugferd
+    working-directory: app.treasure.zugferd
 
 jobs:
   build:
@@ -48,8 +48,8 @@ jobs:
       #   run: |
       #     ./mvnw -B sonar:sonar \
       #       -Dsonar.host.url=https://sonarcloud.io \
-      #       -Dsonar.organization=fuggs-app \
-      #       -Dsonar.projectKey=fuggs-app_zugferd
+      #       -Dsonar.organization=treasure-app \
+      #       -Dsonar.projectKey=treasure-app_zugferd
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -62,9 +62,9 @@ jobs:
         if: ${{ success() }}
         uses: docker/build-push-action@v6
         with:
-          context: app.fuggs.zugferd
+          context: app.treasure.zugferd
           push: true
-          file: app.fuggs.zugferd/src/main/docker/Dockerfile.jvm
+          file: app.treasure.zugferd/src/main/docker/Dockerfile.jvm
           tags: |
-            ghcr.io/fuggs-app/zugferd-service:latest
-            ghcr.io/fuggs-app/zugferd-service:${{ github.run_number }}
+            ghcr.io/treasure-app/zugferd-service:latest
+            ghcr.io/treasure-app/zugferd-service:${{ github.run_number }}

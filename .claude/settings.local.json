@@ -83,7 +83,23 @@
       "Bash(./mvnw:*)",
       "Bash(git rebase:*)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\n🐛 \\(ci\\): Allow Dependabot to trigger Claude Code Review\n\nFix GitHub Actions workflow failure when Dependabot creates PRs. The\nclaude-code-action requires bots to be explicitly allowed. Added\nallowed_bots parameter with ''dependabot'' to enable automated code\nreview on dependency update PRs.\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "WebFetch(domain:ghostty.org)",
+      "WebFetch(domain:catskull.net)",
+      "WebFetch(domain:deepwiki.com)",
+      "Bash(apt-cache show:*)",
+      "Bash(snap list:*)",
+      "Read(//usr/bin/**)",
+      "Bash(git clone:*)",
+      "Bash(docker:*)",
+      "Bash(xargs sed:*)",
+      "Bash(CSS_DIR=\"/home/oleh/Downloads/fuggs/app.fuggs.fuggs-app/src/main/resources/META-INF/resources/css\")",
+      "Bash(mv \"$CSS_DIR/fuggs-core.css\" \"$CSS_DIR/treasure-core.css\")",
+      "Bash(mv \"$CSS_DIR/fuggs-components.css\" \"$CSS_DIR/treasure-components.css\")",
+      "Bash(mv \"$CSS_DIR/fuggs-pages.css\" \"$CSS_DIR/treasure-pages.css\")",
+      "Read(//home/oleh/Downloads/fuggs/**)",
+      "Bash(2)",
+      "Bash(git -C /home/oleh/Downloads/fuggs status --short)"
     ]
   }
 }
