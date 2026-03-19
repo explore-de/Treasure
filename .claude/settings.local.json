@@ -99,7 +99,9 @@
       "Bash(mv \"$CSS_DIR/fuggs-pages.css\" \"$CSS_DIR/treasure-pages.css\")",
       "Read(//home/oleh/Downloads/fuggs/**)",
       "Bash(2)",
-      "Bash(git -C /home/oleh/Downloads/fuggs status --short)"
+      "Bash(git -C /home/oleh/Downloads/fuggs status --short)",
+      "Bash(git -C /home/oleh/Downloads/Treasure log --oneline)",
+      "Bash(git -C /home/oleh/Downloads/Treasure log --all --oneline)"
     ]
   }
 }

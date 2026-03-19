@@ -6,6 +6,7 @@ import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
+import app.treasure.device.api.DeviceResource;
 
 @Authenticated
 @Path("/")
@@ -24,8 +25,8 @@ public class DashboardResource extends Controller
 
 	@GET
 	@Path("")
-	public TemplateInstance index()
+	public void index()
 	{
-		return Templates.index();
+		redirect(DeviceResource.class).index();
 	}
 }
