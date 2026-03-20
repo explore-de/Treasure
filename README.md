@@ -29,8 +29,9 @@ A device booking system for organizations.
 - [x] make it not possible to create an unnnamed Device
 - [x] Move buttons in order: claim - edit - delete
 - [ ] make a good UI design
-- [ ] maybe make a history of user bookings (who booked what and when) in edit menu
+- [x] maybe make a history of user bookings (who booked what and when) in edit menu
 - [x] add more informations about devices (when it was registered, who registered it, etc.)
+- [x] add delete protection (Users cant delete a device if it is older than 7 days or was used by multible users)
 
 ---
 ## Requirements ⚙️
