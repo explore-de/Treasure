@@ -1,5 +1,15 @@
 {#include main.html}
 {#title}Devices{/title}
+
+{#if errorMessage}
+<div style="background: #fa4d56; color: white; padding: 12px 20px; border-radius: 4px;
+            margin-bottom: 16px; font-size: 14px; display: flex; justify-content: space-between; align-items: center;">
+    <span>⚠ {errorMessage}</span>
+    <button type="button" onclick="this.parentElement.remove()"
+            style="background: none; border: none; color: white; cursor: pointer; font-size: 18px; line-height: 1;">✕</button>
+</div>
+{/if}
+
 <cds-button href="/devices/new">New device</cds-button>
 <cds-table>
     <cds-table-head>

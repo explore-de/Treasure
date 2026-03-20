@@ -1,69 +1,147 @@
 {#include main.html}
 {#title}Edit Device (Admin){/title}
 
+<style>
+    .form-section {
+        color: #ffab00;
+        font-weight: bold;
+        font-size: 13px;
+        margin: 16px 0 8px;
+        border-bottom: 1px solid #ffab00;
+        padding-bottom: 3px;
+    }
+    .field-wrap {
+        margin-bottom: 10px;
+    }
+    .field-label {
+        font-size: 11px;
+        color: #525252;
+        margin-bottom: 3px;
+    }
+    select.compact {
+        padding: 6px 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 100%;
+        font-size: 13px;
+        background: #f4f4f4;
+    }
+    .reg-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 1px solid #ffab00;
+    }
+
+    dialog::backdrop {
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(2px);
+    }
+    dialog {
+        border: none;
+        border-radius: 8px;
+        padding: 0;
+        width: 520px;
+        max-width: 90vw;
+        max-height: 80vh;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        background: #1c1c1c;
+        color: #f4f4f4;
+    }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        border-bottom: 1px solid #393939;
+    }
+    .modal-body {
+        padding: 16px 20px;
+        overflow-y: auto;
+        max-height: 60vh;
+    }
+    .history-entry {
+        display: grid;
+        grid-template-columns: 130px 100px 1fr;
+        gap: 8px;
+        padding: 8px 0;
+        border-bottom: 1px solid #2a2a2a;
+        font-size: 12px;
+        align-items: start;
+    }
+    .history-entry:last-child { border-bottom: none; }
+    .history-time { color: #8d8d8d; }
+    .history-action { font-weight: 600; }
+    .action-CREATED    { color: #42be65; }
+    .action-CLAIMED    { color: #ffab00; }
+    .action-UNCLAIMED  { color: #78a9ff; }
+    .action-EDITED     { color: #be95ff; }
+    .action-ASSIGNED   { color: #ff832b; }
+    .action-UNASSIGNED { color: #fa4d56; }
+    .close-btn {
+        background: none; border: none; color: #8d8d8d;
+        font-size: 18px; cursor: pointer; line-height: 1; padding: 0;
+    }
+    .close-btn:hover { color: #f4f4f4; }
+</style>
+
 <form method="post" action="/devices/{device.id}/update">
     {#authenticityToken /}
 
-    <p style="color:#ffab00; font-weight: bold; font-size: 18px; margin-bottom: 24px;">Edit Device (Admin Menu)</p>
+    <p style="color:#ffab00; font-weight: bold; font-size: 16px; margin-bottom: 4px;">Edit Device (Admin Menu)</p>
 
     <!-- Basic Info -->
-    <p style="color:#ffab00; font-weight: bold; font-size: 15px; margin-bottom: 16px; border-bottom: 1px solid #ffab00; padding-bottom: 4px;">Basic Info</p>
-
-    <div style="margin-bottom: 20px;">
+    <div class="form-section">Basic Info</div>
+    <div class="field-wrap">
         <cds-text-input label="Device Name" name="deviceName" value="{device.deviceName}"></cds-text-input>
     </div>
-    <div style="margin-bottom: 20px;">
+    <div class="field-wrap">
         <cds-text-input label="Brand" name="brand" value="{device.brand}" placeholder="e.g. Samsung, Apple"></cds-text-input>
     </div>
-    <div style="margin-bottom: 20px;">
+    <div class="field-wrap">
         <cds-text-input label="Model Number" name="modelNumber" value="{device.modelNumber}" placeholder="e.g. SM-S948B"></cds-text-input>
     </div>
-    <div style="margin-bottom: 20px;">
+    <div class="field-wrap">
         <cds-text-input label="Serial Number" name="serialNumber" value="{device.serialNumber}" placeholder="e.g. R58N123ABCD"></cds-text-input>
     </div>
 
     <!-- Further Details -->
-    <p style="color:#ffab00; font-weight: bold; font-size: 15px; margin-top: 32px; margin-bottom: 16px; border-bottom: 1px solid #ffab00; padding-bottom: 4px;">Further Details</p>
-
-    <div style="margin-bottom: 20px;">
-        <cds-text-input label="Operating System" name="operatingSystem" value="{device.operatingSystem}" placeholder="e.g. Android 15, iOS 18, Windows 11"></cds-text-input>
+    <div class="form-section">Further Details</div>
+    <div class="field-wrap">
+        <cds-text-input label="Operating System" name="operatingSystem" value="{device.operatingSystem}" placeholder="e.g. Android 15, iOS 18"></cds-text-input>
     </div>
-    <div style="margin-bottom: 20px;">
+    <div class="field-wrap">
         <cds-text-input label="Purchase Date" name="purchaseDate" value="{device.purchaseDate}" placeholder="e.g. 2024-03-20"></cds-text-input>
     </div>
-    <div style="margin-bottom: 20px;">
+    <div class="field-wrap">
         <cds-text-input label="Storage Location" name="storageLocation" value="{device.storageLocation}" placeholder="e.g. Cabinet A, Shelf 3"></cds-text-input>
     </div>
-
-    <div style="margin-bottom: 20px;">
-        <p style="font-size: 13px; color: #525252; margin-bottom: 8px;">Condition</p>
-        <select name="condition"
-                style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; font-size: 14px;">
+    <div class="field-wrap">
+        <p class="field-label">Condition</p>
+        <select name="condition" class="compact">
             <option value="very good"  {#if device.condition == "very good"}selected{/if}>Very good</option>
             <option value="good"       {#if device.condition == "good"}selected{/if}>Good</option>
             <option value="acceptable" {#if device.condition == "acceptable"}selected{/if}>Acceptable</option>
             <option value="defective"  {#if device.condition == "defective"}selected{/if}>Defective</option>
         </select>
     </div>
-
-    <div style="margin-bottom: 20px;">
-        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
-            <input type="checkbox" name="isUsed" {#if device.isUsed}checked{/if} style="width: 16px; height: 16px;">
+    <div class="field-wrap">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+            <input type="checkbox" name="isUsed" {#if device.isUsed}checked{/if} style="width: 14px; height: 14px;">
             Used device
         </label>
     </div>
-
-    <div style="margin-bottom: 20px;">
+    <div class="field-wrap">
         <cds-text-input label="Important to know" name="importantNotes" value="{device.importantNotes}" placeholder="e.g. Charger missing, screen cracked"></cds-text-input>
     </div>
 
     <!-- Assignment -->
-    <p style="color:#ffab00; font-weight: bold; font-size: 15px; margin-top: 32px; margin-bottom: 16px; border-bottom: 1px solid #ffab00; padding-bottom: 4px;">Assignment</p>
-
-    <div style="margin-bottom: 20px;">
-        <p style="font-size: 13px; color: #525252; margin-bottom: 8px;">Assign to user</p>
-        <select name="assignedToId"
-                style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; font-size: 14px;">
+    <div class="form-section">Assignment</div>
+    <div class="field-wrap">
+        <p class="field-label">Assign to user</p>
+        <select name="assignedToId" class="compact">
             <option value="" {#if device.bookedBy == null}selected{/if}>-- No assignment --</option>
             {#for member in members}
             <option value="{member.id}"
@@ -76,17 +154,55 @@
         </select>
     </div>
 
-    <!-- Registration Info (read-only) -->
-    <p style="color:#ffab00; font-weight: bold; font-size: 15px; margin-top: 32px; margin-bottom: 16px; border-bottom: 1px solid #ffab00; padding-bottom: 4px;">Registration Info</p>
-
-    <div style="margin-bottom: 8px;">
-        <p style="font-size: 13px; color: #525252;">Registered at: <span style="color: #161616;">{device.formattedRegisteredAt}</span></p>
+    <!-- Registration Info + Buttons -->
+    <div class="reg-bar">
+        <div style="font-size: 12px; color: #525252;">
+            Registered at: <span style="color:#161616;">{device.formattedRegisteredAt}</span>
+            &nbsp;·&nbsp;
+            Registered by: <span style="color:#161616;">{#if device.registeredBy}{device.registeredBy.displayName}{#else}—{/if}</span>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <button type="button"
+                    onclick="document.getElementById('historyModal').showModal()"
+                    style="padding: 8px 16px; background: #393939; color: #f4f4f4; border: none;
+               border-radius: 4px; cursor: pointer; font-size: 14px;">
+                📋 View History
+            </button>
+            <button type="submit" class="cds-btn cds-btn-primary" style="font-size: 13px;">
+                Save
+            </button>
+        </div>
     </div>
-    <div style="margin-bottom: 20px;">
-        <p style="font-size: 13px; color: #525252;">Registered by: <span style="color: #161616;">{#if device.registeredBy}{device.registeredBy.displayName}{#else}—{/if}</span></p>
-    </div>
-
-    <button type="submit" class="cds-btn cds-btn-primary" style="margin-top: 16px;">Save</button>
 </form>
+
+<!-- History Modal -->
+<dialog id="historyModal">
+    <div class="modal-header">
+        <span style="font-weight: bold; font-size: 14px; color: #ffab00;">Device History</span>
+        <button class="close-btn" type="button"
+                onclick="document.getElementById('historyModal').close()">✕</button>
+    </div>
+    <div class="modal-body">
+        {#if history.isEmpty}
+        <p style="color: #8d8d8d; font-size: 13px;">No history available.</p>
+        {#else}
+        {#for entry in history}
+        <div class="history-entry">
+            <span class="history-time">{entry.formattedTimestamp}</span>
+            <span class="history-action action-{entry.action}"
+                  {#if entry.details}
+                  title="{entry.details}"
+                  style="cursor: help; text-decoration: underline dotted;"
+                  {/if}>
+            {entry.action}
+            </span>
+            <span style="color: #8d8d8d;">
+                    {#if entry.performedBy}{entry.performedBy.displayName}{/if}
+                </span>
+        </div>
+        {/for}
+        {/if}
+    </div>
+</dialog>
 
 {/include}

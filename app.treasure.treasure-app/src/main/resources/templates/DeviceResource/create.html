@@ -1,69 +1,79 @@
 {#include main.html}
 {#title}New Device{/title}
 
+<style>
+    .form-section {
+        color: #ffab00;
+        font-weight: bold;
+        font-size: 13px;
+        margin: 16px 0 8px;
+        border-bottom: 1px solid #ffab00;
+        padding-bottom: 3px;
+    }
+    .field-wrap { margin-bottom: 10px; }
+    .field-label { font-size: 11px; color: #525252; margin-bottom: 3px; }
+    select.compact {
+        padding: 6px 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 100%;
+        font-size: 13px;
+        background: #f4f4f4;
+    }
+</style>
+
 <form method="post" action="/devices/create">
     {#authenticityToken /}
 
-    <p style="color:#ffab00; font-weight: bold; font-size: 18px; margin-bottom: 24px;">New Device</p>
+    <p style="color:#ffab00; font-weight: bold; font-size: 16px; margin-bottom: 4px;">New Device</p>
 
-    <!-- Basic Info -->
-    <p style="color:#ffab00; font-weight: bold; font-size: 15px; margin-bottom: 16px; border-bottom: 1px solid #ffab00; padding-bottom: 4px;">Basic Info</p>
-
-    <div style="margin-bottom: 20px;">
+    <div class="form-section">Basic Info</div>
+    <div class="field-wrap">
         <cds-text-input label="Device Name" name="deviceName" required></cds-text-input>
     </div>
-    <div style="margin-bottom: 20px;">
+    <div class="field-wrap">
         <cds-text-input label="Brand" name="brand" placeholder="e.g. Samsung, Apple"></cds-text-input>
     </div>
-    <div style="margin-bottom: 20px;">
+    <div class="field-wrap">
         <cds-text-input label="Model Number" name="modelNumber" placeholder="e.g. SM-S948B"></cds-text-input>
     </div>
-    <div style="margin-bottom: 20px;">
+    <div class="field-wrap">
         <cds-text-input label="Serial Number" name="serialNumber" placeholder="e.g. R58N123ABCD"></cds-text-input>
     </div>
 
-    <!-- Further Details -->
-    <p style="color:#ffab00; font-weight: bold; font-size: 15px; margin-top: 32px; margin-bottom: 16px; border-bottom: 1px solid #ffab00; padding-bottom: 4px;">Further Details</p>
-
-    <div style="margin-bottom: 20px;">
-        <cds-text-input label="Operating System" name="operatingSystem" placeholder="e.g. Android 15, iOS 18, Windows 11"></cds-text-input>
+    <div class="form-section">Further Details</div>
+    <div class="field-wrap">
+        <cds-text-input label="Operating System" name="operatingSystem" placeholder="e.g. Android 15, iOS 18"></cds-text-input>
     </div>
-    <div style="margin-bottom: 20px;">
+    <div class="field-wrap">
         <cds-text-input label="Purchase Date" name="purchaseDate" placeholder="e.g. 2024-03-20"></cds-text-input>
     </div>
-    <div style="margin-bottom: 20px;">
+    <div class="field-wrap">
         <cds-text-input label="Storage Location" name="storageLocation" placeholder="e.g. Cabinet A, Shelf 3"></cds-text-input>
     </div>
-
-    <div style="margin-bottom: 20px;">
-        <p style="font-size: 13px; color: #525252; margin-bottom: 8px;">Condition</p>
-        <select name="condition"
-                style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; font-size: 14px;">
+    <div class="field-wrap">
+        <p class="field-label">Condition</p>
+        <select name="condition" class="compact">
             <option value="very good">Very good</option>
             <option value="good">Good</option>
             <option value="acceptable">Acceptable</option>
             <option value="defective">Defective</option>
         </select>
     </div>
-
-    <div style="margin-bottom: 20px;">
-        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
-            <input type="checkbox" name="isUsed" style="width: 16px; height: 16px;">
+    <div class="field-wrap">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+            <input type="checkbox" name="isUsed" style="width: 14px; height: 14px;">
             Used device
         </label>
     </div>
-
-    <div style="margin-bottom: 20px;">
+    <div class="field-wrap">
         <cds-text-input label="Important to know" name="importantNotes" placeholder="e.g. Charger missing, screen cracked"></cds-text-input>
     </div>
 
-    <!-- Assign to user -->
-    <p style="color:#ffab00; font-weight: bold; font-size: 15px; margin-top: 32px; margin-bottom: 16px; border-bottom: 1px solid #ffab00; padding-bottom: 4px;">Assignment</p>
-
-    <div style="margin-bottom: 20px;">
-        <p style="font-size: 13px; color: #525252; margin-bottom: 8px;">Assign to user</p>
-        <select name="assignedToId"
-                style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; font-size: 14px;">
+    <div class="form-section">Assignment</div>
+    <div class="field-wrap">
+        <p class="field-label">Assign to user</p>
+        <select name="assignedToId" class="compact">
             <option value="">-- No assignment --</option>
             {#for member in members}
             <option value="{member.id}">{member.displayName}</option>
@@ -71,7 +81,9 @@
         </select>
     </div>
 
-    <button type="submit" class="cds-btn cds-btn-primary" style="margin-top: 16px;">Save</button>
+    <div style="margin-top: 16px;">
+        <button type="submit" class="cds-btn cds-btn-primary">Save</button>
+    </div>
 </form>
 
 {/include}

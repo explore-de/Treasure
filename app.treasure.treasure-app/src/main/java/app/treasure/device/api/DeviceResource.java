@@ -1,5 +1,7 @@
 package app.treasure.device.api;
 
+import app.treasure.device.domain.DeviceHistory;
+import app.treasure.device.repository.DeviceHistoryRepository;
 import app.treasure.member.domain.Member;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,6 +30,9 @@ public class DeviceResource extends Controller
 	DeviceRepository deviceRepository;
 
 	@Inject
+	DeviceHistoryRepository deviceHistoryRepository;
+
+	@Inject
 	SecurityIdentity securityIdentity;
 
 	@Inject
@@ -40,11 +45,12 @@ public class DeviceResource extends Controller
 		{
 		}
 
-		public static native TemplateInstance index(List<Device> devices);
+		public static native TemplateInstance index(List<Device> devices, String errorMessage);
 
 		public static native TemplateInstance create(List<Member> members);
 
-		public static native TemplateInstance editadmin(Device device, List<Member> members);
+		public static native TemplateInstance editadmin(Device device, List<Member> members,
+			List<DeviceHistory> history);
 
 		public static native TemplateInstance editnormuser(Device device);
 	}
@@ -52,8 +58,6 @@ public class DeviceResource extends Controller
 	/**
 	 * Resolves the currently logged-in member by Keycloak ID or username as
 	 * fallback.
-	 *
-	 * @return the current member, or null if not found
 	 */
 	private Member getCurrentMember()
 	{
@@ -67,6 +71,40 @@ public class DeviceResource extends Controller
 	}
 
 	/**
+	 * Logs a history event for a device.
+	 */
+	private void logHistory(Device device, String action, String details)
+	{
+		DeviceHistory entry = new DeviceHistory();
+		entry.setDevice(device);
+		entry.setPerformedBy(getCurrentMember());
+		entry.setTimestamp(LocalDateTime.now());
+		entry.setAction(action);
+		entry.setDetails(details);
+		deviceHistoryRepository.persist(entry);
+	}
+
+	/**
+	 * Returns true if the current user is allowed to delete the device. Admins
+	 * can always delete. Regular users can only delete if the device is newer
+	 * than 7 days and has only been touched by 1 user.
+	 */
+	private boolean canDelete(Device device)
+	{
+		if (securityIdentity.hasRole("admin") || securityIdentity.hasRole("SUPER_ADMIN"))
+		{
+			return true;
+		}
+
+		boolean isOld = device.getRegisteredAt() != null
+			&& device.getRegisteredAt().isBefore(LocalDateTime.now().minusDays(7));
+
+		long uniqueUsers = deviceHistoryRepository.countDistinctUsers(device);
+
+		return !isOld && uniqueUsers <= 1;
+	}
+
+	/**
 	 * Shows the list of all devices.
 	 */
 	@GET
@@ -74,7 +112,8 @@ public class DeviceResource extends Controller
 	public TemplateInstance index()
 	{
 		List<Device> devices = deviceRepository.listAllEager();
-		return Templates.index(devices);
+		String errorMessage = flash.get("error");
+		return Templates.index(devices, errorMessage);
 	}
 
 	/**
@@ -101,7 +140,8 @@ public class DeviceResource extends Controller
 		if (securityIdentity.hasRole("admin") || securityIdentity.hasRole("SUPER_ADMIN"))
 		{
 			List<Member> members = memberRepository.listAll();
-			return Templates.editadmin(device, members);
+			List<DeviceHistory> history = deviceHistoryRepository.findByDevice(device);
+			return Templates.editadmin(device, members, history);
 		}
 		else
 		{
@@ -144,15 +184,20 @@ public class DeviceResource extends Controller
 		device.setStorageLocation(storageLocation);
 		device.setCondition(condition);
 		device.setImportantNotes(importantNotes);
+		device.setRegisteredAt(LocalDateTime.now());
+		device.setRegisteredBy(getCurrentMember());
 
 		if (purchaseDate != null && !purchaseDate.isBlank())
 		{
-			device.setPurchaseDate(LocalDate.parse(purchaseDate));
+			try
+			{
+				device.setPurchaseDate(LocalDate.parse(purchaseDate));
+			}
+			catch (Exception e)
+			{
+				device.setPurchaseDate(null);
+			}
 		}
-
-		// Automatically set registration info
-		device.setRegisteredAt(LocalDateTime.now());
-		device.setRegisteredBy(getCurrentMember());
 
 		if (assignedToId != null && assignedToId > 0)
 		{
@@ -169,6 +214,8 @@ public class DeviceResource extends Controller
 		}
 
 		deviceRepository.persist(device);
+		logHistory(device, "CREATED", "Device \"" + deviceName + "\" created");
+
 		redirect(DeviceResource.class).index();
 	}
 
@@ -199,6 +246,47 @@ public class DeviceResource extends Controller
 		}
 
 		Device device = deviceRepository.findById(id);
+		Member previousBookedBy = device.getBookedBy();
+
+		// Track what changed
+		StringBuilder changes = new StringBuilder();
+
+		if (!eq(device.getDeviceName(), deviceName))
+			changes.append("Name: \"").append(device.getDeviceName()).append("\" → \"").append(deviceName).append("\"\n");
+		if (!eq(device.getBrand(), brand))
+			changes.append("Brand: \"").append(nvl(device.getBrand())).append("\" → \"").append(nvl(brand)).append("\"\n");
+		if (!eq(device.getModelNumber(), modelNumber))
+			changes.append("Model: \"").append(nvl(device.getModelNumber())).append("\" → \"").append(nvl(modelNumber)).append("\"\n");
+		if (!eq(device.getSerialNumber(), serialNumber))
+			changes.append("Serial: \"").append(nvl(device.getSerialNumber())).append("\" → \"").append(nvl(serialNumber)).append("\"\n");
+		if (!eq(device.getOperatingSystem(), operatingSystem))
+			changes.append("OS: \"").append(nvl(device.getOperatingSystem())).append("\" → \"").append(nvl(operatingSystem)).append("\"\n");
+		if (device.isUsed() != "on".equals(isUsed))
+			changes.append("Used: ").append(device.isUsed()).append(" → ").append("on".equals(isUsed)).append("\n");
+		if (!eq(device.getStorageLocation(), storageLocation))
+			changes.append("Location: \"").append(nvl(device.getStorageLocation())).append("\" → \"").append(nvl(storageLocation)).append("\"\n");
+		if (!eq(device.getCondition(), condition))
+			changes.append("Condition: \"").append(nvl(device.getCondition())).append("\" → \"").append(nvl(condition)).append("\"\n");
+		if (!eq(device.getImportantNotes(), importantNotes))
+			changes.append("Notes: \"").append(nvl(device.getImportantNotes())).append("\" → \"").append(nvl(importantNotes)).append("\"\n");
+
+		// Parse purchase date safely
+		LocalDate newPurchaseDate = null;
+		if (purchaseDate != null && !purchaseDate.isBlank())
+		{
+			try
+			{
+				newPurchaseDate = LocalDate.parse(purchaseDate);
+			}
+			catch (Exception e)
+			{
+				newPurchaseDate = null;
+			}
+		}
+		if (!eq(device.getPurchaseDate(), newPurchaseDate))
+			changes.append("Purchase date: \"").append(nvl(device.getPurchaseDate())).append("\" → \"").append(nvl(newPurchaseDate)).append("\"\n");
+
+		// Apply changes
 		device.setDeviceName(deviceName);
 		device.setBrand(brand);
 		device.setModelNumber(modelNumber);
@@ -208,15 +296,7 @@ public class DeviceResource extends Controller
 		device.setStorageLocation(storageLocation);
 		device.setCondition(condition);
 		device.setImportantNotes(importantNotes);
-
-		if (purchaseDate != null && !purchaseDate.isBlank())
-		{
-			device.setPurchaseDate(LocalDate.parse(purchaseDate));
-		}
-		else
-		{
-			device.setPurchaseDate(null);
-		}
+		device.setPurchaseDate(newPurchaseDate);
 
 		if (assignedToId != null && assignedToId > 0)
 		{
@@ -229,11 +309,62 @@ public class DeviceResource extends Controller
 		}
 
 		device.setStatus(device.getBookedBy() != null ? "not available" : "available");
+
+		// Log assignment change
+		boolean wasUnassigned = previousBookedBy == null && device.getBookedBy() != null;
+		boolean wasUnbooked = previousBookedBy != null && device.getBookedBy() == null;
+		boolean wasReassigned = previousBookedBy != null && device.getBookedBy() != null
+			&& !previousBookedBy.id.equals(device.getBookedBy().id);
+
+		if (wasUnassigned)
+		{
+			logHistory(device, "ASSIGNED",
+				"Assigned to " + device.getBookedBy().getDisplayName());
+		}
+		else if (wasUnbooked)
+		{
+			logHistory(device, "UNASSIGNED",
+				"Unassigned from " + previousBookedBy.getDisplayName());
+		}
+		else if (wasReassigned)
+		{
+			logHistory(device, "ASSIGNED", "Reassigned from "
+				+ previousBookedBy.getDisplayName() + " to "
+				+ device.getBookedBy().getDisplayName());
+		}
+
+		// Only log EDITED if something actually changed
+		if (changes.length() > 0)
+		{
+			logHistory(device, "EDITED", changes.toString().trim());
+		}
+
 		redirect(DeviceResource.class).index();
 	}
 
+	/** Null-safe equality check. */
+	private boolean eq(Object a, Object b)
+	{
+		if (a == null && b == null) return true;
+		if (a == null || b == null)
+		{
+			// Treat null and blank string as equal
+			String sa = a != null ? a.toString() : "";
+			String sb = b != null ? b.toString() : "";
+			return sa.equals(sb);
+		}
+		return a.equals(b);
+	}
+
+	/** Null-safe value to string. */
+	private String nvl(Object o)
+	{
+		return o != null ? o.toString() : "";
+	}
+
 	/**
-	 * Deletes a device by ID.
+	 * Deletes a device by ID. Regular users can only delete devices that are
+	 * newer than 7 days and have only been touched by one user.
 	 */
 	@POST
 	@Path("/{id}/delete")
@@ -241,6 +372,16 @@ public class DeviceResource extends Controller
 	public void delete(@PathParam("id") Long id)
 	{
 		Device device = deviceRepository.findById(id);
+
+		if (!canDelete(device))
+		{
+			flash("error",
+				"Only admins can delete devices that are older than 7 days or have been used by multiple users.");
+			redirect(DeviceResource.class).index();
+			return;
+		}
+
+		deviceHistoryRepository.delete("device", device);
 		device.delete();
 		redirect(DeviceResource.class).index();
 	}
@@ -265,17 +406,18 @@ public class DeviceResource extends Controller
 
 		if (device.getBookedBy() == null)
 		{
-			// Nobody has claimed it — claim it
 			device.setBookedBy(currentMember);
 			device.setStatus("not available");
+			logHistory(device, "CLAIMED",
+				currentMember.getDisplayName() + " claimed the device");
 		}
 		else if (device.getBookedBy().id.equals(currentMember.id))
 		{
-			// Same user — unclaim it
+			logHistory(device, "UNCLAIMED",
+				currentMember.getDisplayName() + " returned the device");
 			device.setBookedBy(null);
 			device.setStatus("available");
 		}
-		// Another user has claimed it — do nothing
 
 		redirect(DeviceResource.class).index();
 	}

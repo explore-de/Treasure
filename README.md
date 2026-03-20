@@ -30,7 +30,7 @@ A device booking system for organizations.
 - [x] Move buttons in order: claim - edit - delete
 - [ ] make a good UI design
 - [ ] maybe make a history of user bookings (who booked what and when) in edit menu
-- [ ] add more informations about devices (when it was registered, who registered it, etc.)
+- [x] add more informations about devices (when it was registered, who registered it, etc.)
 
 ---
 ## Requirements ⚙️
