@@ -66,5 +66,5 @@ jobs:
           push: true
           file: app.treasure.treasure-app/src/main/docker/Dockerfile.jvm
           tags: |
-            ghcr.io/explore-app/treasure-app:latest
-            ghcr.io/explore-app/treasure-app:${{ github.run_number }}
+            ghcr.io/${{ github.repository_owner }}/treasure-app:latest
+            ghcr.io/${{ github.repository_owner }}/treasure-app:${{ github.run_number }}
