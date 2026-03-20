@@ -2,9 +2,7 @@ package app.treasure.device.api;
 
 import app.treasure.member.domain.Member;
 import java.util.List;
-
 import org.jboss.resteasy.reactive.RestForm;
-
 import app.treasure.device.domain.Device;
 import app.treasure.device.repository.DeviceRepository;
 import app.treasure.member.repository.MemberRepository;
@@ -13,17 +11,12 @@ import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
-import jakarta.annotation.security.RolesAllowed;
-import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
-import app.treasure.device.domain.Device;
-import java.util.List;
-import org.jboss.resteasy.reactive.RestForm;
 
 @Authenticated
 @Path("/devices")
@@ -31,13 +24,12 @@ public class DeviceResource extends Controller
 {
 	@Inject
 	DeviceRepository deviceRepository;
-	@Inject
-	SecurityIdentity securityIdentity;
-	@Inject
-	MemberRepository memberRepository;
 
 	@Inject
-	SecurityIdentity identity;
+	SecurityIdentity securityIdentity;
+
+	@Inject
+	MemberRepository memberRepository;
 
 	@CheckedTemplate
 	public static class Templates
@@ -48,36 +40,66 @@ public class DeviceResource extends Controller
 
 		public static native TemplateInstance index(List<Device> devices);
 
-		public static native TemplateInstance create();
+		public static native TemplateInstance create(List<Member> members);
 
-		public static native TemplateInstance editadmin(Device device);
+		public static native TemplateInstance editadmin(Device device, List<Member> members);
 
 		public static native TemplateInstance editnormuser(Device device);
 	}
 
+	/**
+	 * Resolves the currently logged-in member by Keycloak ID or username as
+	 * fallback.
+	 *
+	 * @return the current member, or null if not found
+	 */
+	private Member getCurrentMember()
+	{
+		String keycloakId = securityIdentity.getPrincipal().getName();
+		Member member = memberRepository.findByKeycloakUserId(keycloakId);
+		if (member == null)
+		{
+			member = memberRepository.findByUsername(keycloakId);
+		}
+		return member;
+	}
+
+	/**
+	 * Shows the list of all devices.
+	 */
 	@GET
 	@Path("")
 	public TemplateInstance index()
 	{
-		List<Device> devices = deviceRepository.listAll();
+		List<Device> devices = deviceRepository.listAllEager();
 		return Templates.index(devices);
 	}
 
+	/**
+	 * Shows the form to create a new device.
+	 */
 	@GET
 	@Path("/new")
 	public TemplateInstance create()
 	{
-		return Templates.create();
+		List<Member> members = memberRepository.listAll();
+		return Templates.create(members);
 	}
 
+	/**
+	 * Shows the edit form. Admins see the admin view, regular users see the
+	 * restricted view.
+	 */
 	@GET
 	@Path("/{id}/edit")
 	public TemplateInstance edit(@PathParam("id") Long id)
 	{
 		Device device = deviceRepository.findById(id);
-		if (identity.hasRole("admin") || identity.hasRole("SUPER_ADMIN"))
+
+		if (securityIdentity.hasRole("admin") || securityIdentity.hasRole("SUPER_ADMIN"))
 		{
-			return Templates.editadmin(device);
+			List<Member> members = memberRepository.listAll();
+			return Templates.editadmin(device, members);
 		}
 		else
 		{
@@ -85,36 +107,78 @@ public class DeviceResource extends Controller
 		}
 	}
 
+	/**
+	 * Creates a new device. If a member is assigned, the device is set to not
+	 * available.
+	 */
 	@POST
 	@Path("/create")
 	@Transactional
-	public void save(@RestForm String deviceName, @RestForm String status)
-	{
-		if (deviceName.matches(".*[a-zA-Z0-9].*"))
-		{
-			Device device = new Device();
-			device.setDeviceName(deviceName);
-			device.setStatus(status);
-			deviceRepository.persist(device);
-		}
-		redirect(DeviceResource.class).index();
-	}
-
-	@POST
-	@Path("/{id}/update")
-	@Transactional
-	public void update(@PathParam("id") Long id, @RestForm String deviceName)
+	public void save(@RestForm String deviceName, @RestForm Long assignedToId)
 	{
 		if (!deviceName.matches(".*[a-zA-Z0-9].*"))
 		{
 			redirect(DeviceResource.class).index();
 			return;
 		}
-		Device device = deviceRepository.findById(id);
+
+		Device device = new Device();
 		device.setDeviceName(deviceName);
+
+		if (assignedToId != null && assignedToId > 0)
+		{
+			Member member = memberRepository.findById(assignedToId);
+			if (member != null)
+			{
+				device.setBookedBy(member);
+				device.setStatus("not available");
+			}
+		}
+		else
+		{
+			device.setStatus("available");
+		}
+
+		deviceRepository.persist(device);
 		redirect(DeviceResource.class).index();
 	}
 
+	/**
+	 * Updates an existing device. Status is derived from whether a member is
+	 * booked.
+	 */
+	@POST
+	@Path("/{id}/update")
+	@Transactional
+	public void update(@PathParam("id") Long id, @RestForm String deviceName,
+		@RestForm Long assignedToId)
+	{
+		if (!deviceName.matches(".*[a-zA-Z0-9].*"))
+		{
+			redirect(DeviceResource.class).index();
+			return;
+		}
+
+		Device device = deviceRepository.findById(id);
+		device.setDeviceName(deviceName);
+
+		if (assignedToId != null && assignedToId > 0)
+		{
+			Member member = memberRepository.findById(assignedToId);
+			device.setBookedBy(member != null ? member : null);
+		}
+		else
+		{
+			device.setBookedBy(null);
+		}
+
+		device.setStatus(device.getBookedBy() != null ? "not available" : "available");
+		redirect(DeviceResource.class).index();
+	}
+
+	/**
+	 * Deletes a device by ID.
+	 */
 	@POST
 	@Path("/{id}/delete")
 	@Transactional
@@ -125,25 +189,38 @@ public class DeviceResource extends Controller
 		redirect(DeviceResource.class).index();
 	}
 
+	/**
+	 * Toggles the claim on a device. Only the member who claimed it can unclaim
+	 * it. Other users cannot override an existing claim.
+	 */
 	@POST
 	@Path("/{id}/claim")
 	@Transactional
 	public void claim(@PathParam("id") Long id)
 	{
 		Device device = deviceRepository.findById(id);
-		String username = securityIdentity.getPrincipal().getName();
-		Member currentmember = memberRepository.findByUsername(username);
-		if (device.getBookedBy() != null && device.getBookedBy().equals(currentmember))
+		Member currentMember = getCurrentMember();
+
+		if (currentMember == null)
 		{
-			device.setStatus("available");
-			device.setBookedBy(null);
+			redirect(DeviceResource.class).index();
+			return;
 		}
-		else
+
+		if (device.getBookedBy() == null)
 		{
+			// Nobody has claimed it — claim it
+			device.setBookedBy(currentMember);
 			device.setStatus("not available");
-			device.setBookedBy(currentmember);
 		}
+		else if (device.getBookedBy().id.equals(currentMember.id))
+		{
+			// Same user — unclaim it
+			device.setBookedBy(null);
+			device.setStatus("available");
+		}
+		// Another user has claimed it — do nothing
+
 		redirect(DeviceResource.class).index();
 	}
-
 }

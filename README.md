@@ -22,13 +22,15 @@ A device booking system for organizations.
 - [x] Update README
 - [x] Navigation menu — "Device" link in left sidebar → device list
 - [x] Edit button — separate admin and user edit views (admin can edit "Booked by"; user cannot)
-- [ ] Auto status — device becomes unavailable when assigned, available when unassigned
+- [x] Auto status — device becomes unavailable when assigned, available when unassigned
 - [x] fix a "New device" button
 - [x] remove fluggs name from website
 - [x] Claim button — lets a regular user instantly claim a device; if already claimed by someone else, button is disabled; if claimed by you, button unclaims it
 - [x] make it not possible to create an unnnamed Device
 - [x] Move buttons in order: claim - edit - delete
 - [ ] make a good UI design
+- [ ] maybe make a history of user bookings (who booked what and when)
+- [ ] add more informations about devices (when it was registered, who registered it, etc.)
 
 ---
 ## Requirements ⚙️

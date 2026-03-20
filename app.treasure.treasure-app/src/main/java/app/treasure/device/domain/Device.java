@@ -2,24 +2,24 @@ package app.treasure.device.domain;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-
 import app.treasure.member.domain.Member;
 
 @Entity
 public class Device extends PanacheEntity
 {
-	private String deviceName; // fields
-
+	private String deviceName;
 	private String status;
-
 	private LocalDateTime pickupTime;
 
-	@ManyToOne
-	private Member bookedBy; // accessor methods
+	/** The member who has currently claimed this device. */
+	@ManyToOne(fetch = FetchType.EAGER)
+	private Member bookedBy;
+
+	// ===== deviceName =====
 
 	public String getDeviceName()
 	{
@@ -31,6 +31,8 @@ public class Device extends PanacheEntity
 		this.deviceName = deviceName;
 	}
 
+	// ===== status =====
+
 	public String getStatus()
 	{
 		return status;
@@ -41,15 +43,19 @@ public class Device extends PanacheEntity
 		this.status = status;
 	}
 
+	// ===== bookedBy =====
+
 	public Member getBookedBy()
 	{
 		return bookedBy;
 	}
 
-	public void setBookedBy(Member bookedby)
+	public void setBookedBy(Member bookedBy)
 	{
-		this.bookedBy = bookedby;
+		this.bookedBy = bookedBy;
 	}
+
+	// ===== pickupTime =====
 
 	public LocalDateTime getPickupTime()
 	{
@@ -61,26 +67,10 @@ public class Device extends PanacheEntity
 		this.pickupTime = pickupTime;
 	}
 
-	public String getBookedName() // null safe getter
-	{
-		if (bookedBy != null)
-		{
-			return bookedBy.getDisplayName();
-		}
-		return "";
-	}
-
-	private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"); // formates
-																										// a
-																										// datetime
-																										// value
-																										// to
-																										// string
+	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
 	public String getFormattedPickupTime()
 	{
-		return pickupTime != null ? pickupTime.format(formatter) : ""; // Ternary
-																		// operator
+		return pickupTime != null ? pickupTime.format(FORMATTER) : "";
 	}
-
 }

@@ -1,10 +1,26 @@
 {#include main.html}
 {#title}New Device{/title}
+
 <form method="post" action="/devices/create">
     {#authenticityToken /}
+
     <p style="color:#ffab00; font-weight: bold;">New Device:</p>
     <p></p>
-    <cds-text-input label="Device Name" name="deviceName"></cds-text-input>
+
+    <cds-text-input label="Device Name" name="deviceName" required></cds-text-input>
+
+    <p style="color:#ffab00; margin-top: 20px; font-weight: bold;">Assign to user:</p>
+    <select name="assignedToId"
+            style="padding: 8px; margin: 10px 0; border: 1px solid #ccc;
+                   border-radius: 4px; width: 100%; font-size: 14px;">
+        <option value="">-- No assignment --</option>
+        {#for member in members}
+        <option value="{member.id}">{member.displayName}</option>
+        {/for}
+    </select>
+
+    <p></p>
     <button type="submit" class="cds-btn cds-btn-primary">Save</button>
 </form>
+
 {/include}

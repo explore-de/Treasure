@@ -1,13 +1,45 @@
 {#include main.html}
-    {#title}Edit Menu Admin{/title}
-    <form method="post" action="/devices/{device.id}/update">
-            {#authenticityToken /}
-        <p style="font-size: 16px; color:#ffab00; font-weight: bold;">Edit Device (Admin Menu):<br></p>
-        <p><br></p>
-        <p style="font-size: 16px; color:#ffab00;">Current Device Name:</p>
-        <p style="font-size: 12px; letter-spacing: 0.32px;">{device.deviceName}<br></p>
-        <p><br></p>
-        <cds-text-input label="New Device Name" name="deviceName" value="{device.deviceName}"></cds-text-input>
-        <button type="submit" class="cds-btn cds-btn-primary">Save</button>
-    </form>
+{#title}Edit Device (Admin){/title}
+
+<form method="post" action="/devices/{device.id}/update">
+    {#authenticityToken /}
+
+    <p style="font-size: 16px; color:#ffab00; font-weight: bold;">Edit Device (Admin Menu):</p>
+    <p><br></p>
+
+    <p style="font-size: 16px; color:#ffab00;">Current Device Name:</p>
+    <p style="font-size: 12px; letter-spacing: 0.32px;">{device.deviceName}</p>
+    <p><br></p>
+
+    <cds-text-input
+            label="New Device Name"
+            name="deviceName"
+            value="{device.deviceName}">
+    </cds-text-input>
+
+    <p style="font-size: 16px; color:#ffab00; margin-top: 30px;">Assign to user:</p>
+
+    <select name="assignedToId"
+            style="padding: 8px; margin: 10px 0; border: 1px solid #ccc;
+                   border-radius: 4px; width: 100%; font-size: 14px;">
+
+        <option value=""
+                {#if device.bookedBy == null}selected{/if}>
+        -- No assignment --
+        </option>
+
+        {#for member in members}
+        <option value="{member.id}"
+                {#if device.bookedBy}
+                {#if device.bookedBy.id == member.id}selected{/if}
+        {/if}>
+        {member.displayName}
+        </option>
+        {/for}
+    </select>
+
+    <p><br></p>
+    <button type="submit" class="cds-btn cds-btn-primary">Save</button>
+</form>
+
 {/include}
