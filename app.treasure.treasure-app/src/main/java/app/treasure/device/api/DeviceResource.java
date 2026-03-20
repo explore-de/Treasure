@@ -1,6 +1,8 @@
 package app.treasure.device.api;
 
 import app.treasure.member.domain.Member;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.jboss.resteasy.reactive.RestForm;
 import app.treasure.device.domain.Device;
@@ -108,13 +110,23 @@ public class DeviceResource extends Controller
 	}
 
 	/**
-	 * Creates a new device. If a member is assigned, the device is set to not
-	 * available.
+	 * Creates a new device. Automatically sets registration date and author.
 	 */
 	@POST
 	@Path("/create")
 	@Transactional
-	public void save(@RestForm String deviceName, @RestForm Long assignedToId)
+	public void save(
+		@RestForm String deviceName,
+		@RestForm String brand,
+		@RestForm String modelNumber,
+		@RestForm String serialNumber,
+		@RestForm String operatingSystem,
+		@RestForm String isUsed,
+		@RestForm String purchaseDate,
+		@RestForm String storageLocation,
+		@RestForm String condition,
+		@RestForm String importantNotes,
+		@RestForm Long assignedToId)
 	{
 		if (!deviceName.matches(".*[a-zA-Z0-9].*"))
 		{
@@ -124,6 +136,23 @@ public class DeviceResource extends Controller
 
 		Device device = new Device();
 		device.setDeviceName(deviceName);
+		device.setBrand(brand);
+		device.setModelNumber(modelNumber);
+		device.setSerialNumber(serialNumber);
+		device.setOperatingSystem(operatingSystem);
+		device.setUsed("on".equals(isUsed));
+		device.setStorageLocation(storageLocation);
+		device.setCondition(condition);
+		device.setImportantNotes(importantNotes);
+
+		if (purchaseDate != null && !purchaseDate.isBlank())
+		{
+			device.setPurchaseDate(LocalDate.parse(purchaseDate));
+		}
+
+		// Automatically set registration info
+		device.setRegisteredAt(LocalDateTime.now());
+		device.setRegisteredBy(getCurrentMember());
 
 		if (assignedToId != null && assignedToId > 0)
 		{
@@ -144,13 +173,23 @@ public class DeviceResource extends Controller
 	}
 
 	/**
-	 * Updates an existing device. Status is derived from whether a member is
-	 * booked.
+	 * Updates an existing device.
 	 */
 	@POST
 	@Path("/{id}/update")
 	@Transactional
-	public void update(@PathParam("id") Long id, @RestForm String deviceName,
+	public void update(
+		@PathParam("id") Long id,
+		@RestForm String deviceName,
+		@RestForm String brand,
+		@RestForm String modelNumber,
+		@RestForm String serialNumber,
+		@RestForm String operatingSystem,
+		@RestForm String isUsed,
+		@RestForm String purchaseDate,
+		@RestForm String storageLocation,
+		@RestForm String condition,
+		@RestForm String importantNotes,
 		@RestForm Long assignedToId)
 	{
 		if (!deviceName.matches(".*[a-zA-Z0-9].*"))
@@ -161,6 +200,23 @@ public class DeviceResource extends Controller
 
 		Device device = deviceRepository.findById(id);
 		device.setDeviceName(deviceName);
+		device.setBrand(brand);
+		device.setModelNumber(modelNumber);
+		device.setSerialNumber(serialNumber);
+		device.setOperatingSystem(operatingSystem);
+		device.setUsed("on".equals(isUsed));
+		device.setStorageLocation(storageLocation);
+		device.setCondition(condition);
+		device.setImportantNotes(importantNotes);
+
+		if (purchaseDate != null && !purchaseDate.isBlank())
+		{
+			device.setPurchaseDate(LocalDate.parse(purchaseDate));
+		}
+		else
+		{
+			device.setPurchaseDate(null);
+		}
 
 		if (assignedToId != null && assignedToId > 0)
 		{

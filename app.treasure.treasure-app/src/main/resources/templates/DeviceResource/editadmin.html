@@ -4,42 +4,89 @@
 <form method="post" action="/devices/{device.id}/update">
     {#authenticityToken /}
 
-    <p style="font-size: 16px; color:#ffab00; font-weight: bold;">Edit Device (Admin Menu):</p>
-    <p><br></p>
+    <p style="color:#ffab00; font-weight: bold; font-size: 18px; margin-bottom: 24px;">Edit Device (Admin Menu)</p>
 
-    <p style="font-size: 16px; color:#ffab00;">Current Device Name:</p>
-    <p style="font-size: 12px; letter-spacing: 0.32px;">{device.deviceName}</p>
-    <p><br></p>
+    <!-- Basic Info -->
+    <p style="color:#ffab00; font-weight: bold; font-size: 15px; margin-bottom: 16px; border-bottom: 1px solid #ffab00; padding-bottom: 4px;">Basic Info</p>
 
-    <cds-text-input
-            label="New Device Name"
-            name="deviceName"
-            value="{device.deviceName}">
-    </cds-text-input>
+    <div style="margin-bottom: 20px;">
+        <cds-text-input label="Device Name" name="deviceName" value="{device.deviceName}"></cds-text-input>
+    </div>
+    <div style="margin-bottom: 20px;">
+        <cds-text-input label="Brand" name="brand" value="{device.brand}" placeholder="e.g. Samsung, Apple"></cds-text-input>
+    </div>
+    <div style="margin-bottom: 20px;">
+        <cds-text-input label="Model Number" name="modelNumber" value="{device.modelNumber}" placeholder="e.g. SM-S948B"></cds-text-input>
+    </div>
+    <div style="margin-bottom: 20px;">
+        <cds-text-input label="Serial Number" name="serialNumber" value="{device.serialNumber}" placeholder="e.g. R58N123ABCD"></cds-text-input>
+    </div>
 
-    <p style="font-size: 16px; color:#ffab00; margin-top: 30px;">Assign to user:</p>
+    <!-- Further Details -->
+    <p style="color:#ffab00; font-weight: bold; font-size: 15px; margin-top: 32px; margin-bottom: 16px; border-bottom: 1px solid #ffab00; padding-bottom: 4px;">Further Details</p>
 
-    <select name="assignedToId"
-            style="padding: 8px; margin: 10px 0; border: 1px solid #ccc;
-                   border-radius: 4px; width: 100%; font-size: 14px;">
+    <div style="margin-bottom: 20px;">
+        <cds-text-input label="Operating System" name="operatingSystem" value="{device.operatingSystem}" placeholder="e.g. Android 15, iOS 18, Windows 11"></cds-text-input>
+    </div>
+    <div style="margin-bottom: 20px;">
+        <cds-text-input label="Purchase Date" name="purchaseDate" value="{device.purchaseDate}" placeholder="e.g. 2024-03-20"></cds-text-input>
+    </div>
+    <div style="margin-bottom: 20px;">
+        <cds-text-input label="Storage Location" name="storageLocation" value="{device.storageLocation}" placeholder="e.g. Cabinet A, Shelf 3"></cds-text-input>
+    </div>
 
-        <option value=""
-                {#if device.bookedBy == null}selected{/if}>
-        -- No assignment --
-        </option>
+    <div style="margin-bottom: 20px;">
+        <p style="font-size: 13px; color: #525252; margin-bottom: 8px;">Condition</p>
+        <select name="condition"
+                style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; font-size: 14px;">
+            <option value="very good"  {#if device.condition == "very good"}selected{/if}>Very good</option>
+            <option value="good"       {#if device.condition == "good"}selected{/if}>Good</option>
+            <option value="acceptable" {#if device.condition == "acceptable"}selected{/if}>Acceptable</option>
+            <option value="defective"  {#if device.condition == "defective"}selected{/if}>Defective</option>
+        </select>
+    </div>
 
-        {#for member in members}
-        <option value="{member.id}"
-                {#if device.bookedBy}
-                {#if device.bookedBy.id == member.id}selected{/if}
-        {/if}>
-        {member.displayName}
-        </option>
-        {/for}
-    </select>
+    <div style="margin-bottom: 20px;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
+            <input type="checkbox" name="isUsed" {#if device.isUsed}checked{/if} style="width: 16px; height: 16px;">
+            Used device
+        </label>
+    </div>
 
-    <p><br></p>
-    <button type="submit" class="cds-btn cds-btn-primary">Save</button>
+    <div style="margin-bottom: 20px;">
+        <cds-text-input label="Important to know" name="importantNotes" value="{device.importantNotes}" placeholder="e.g. Charger missing, screen cracked"></cds-text-input>
+    </div>
+
+    <!-- Assignment -->
+    <p style="color:#ffab00; font-weight: bold; font-size: 15px; margin-top: 32px; margin-bottom: 16px; border-bottom: 1px solid #ffab00; padding-bottom: 4px;">Assignment</p>
+
+    <div style="margin-bottom: 20px;">
+        <p style="font-size: 13px; color: #525252; margin-bottom: 8px;">Assign to user</p>
+        <select name="assignedToId"
+                style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; font-size: 14px;">
+            <option value="" {#if device.bookedBy == null}selected{/if}>-- No assignment --</option>
+            {#for member in members}
+            <option value="{member.id}"
+                    {#if device.bookedBy}
+                    {#if device.bookedBy.id == member.id}selected{/if}
+            {/if}>
+            {member.displayName}
+            </option>
+            {/for}
+        </select>
+    </div>
+
+    <!-- Registration Info (read-only) -->
+    <p style="color:#ffab00; font-weight: bold; font-size: 15px; margin-top: 32px; margin-bottom: 16px; border-bottom: 1px solid #ffab00; padding-bottom: 4px;">Registration Info</p>
+
+    <div style="margin-bottom: 8px;">
+        <p style="font-size: 13px; color: #525252;">Registered at: <span style="color: #161616;">{device.formattedRegisteredAt}</span></p>
+    </div>
+    <div style="margin-bottom: 20px;">
+        <p style="font-size: 13px; color: #525252;">Registered by: <span style="color: #161616;">{#if device.registeredBy}{device.registeredBy.displayName}{#else}—{/if}</span></p>
+    </div>
+
+    <button type="submit" class="cds-btn cds-btn-primary" style="margin-top: 16px;">Save</button>
 </form>
 
 {/include}

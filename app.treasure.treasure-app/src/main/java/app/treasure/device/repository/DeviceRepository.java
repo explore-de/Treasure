@@ -15,6 +15,6 @@ public class DeviceRepository implements PanacheRepository<Device>
 	public List<Device> listAllEager()
 	{
 		return list(
-			"SELECT d FROM Device d LEFT JOIN FETCH d.bookedBy");
+			"SELECT d FROM Device d LEFT JOIN FETCH d.bookedBy LEFT JOIN FETCH d.registeredBy");
 	}
 }
