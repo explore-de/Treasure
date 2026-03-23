@@ -22,12 +22,15 @@ A device booking system for organizations.
 - [x] Update README
 - [x] Navigation menu — "Device" link in left sidebar → device list
 - [x] Edit button — separate admin and user edit views (admin can edit "Booked by"; user cannot)
-- [ ] Auto status — device becomes unavailable when assigned, available when unassigned
+- [x] Auto status — device becomes unavailable when assigned, available when unassigned
 - [x] fix a "New device" button
 - [x] remove fluggs name from website
-- [ ] Claim button — lets a regular user instantly claim a device; if already claimed by someone else, button is disabled; if claimed by you, button unclaims it
+- [x] Claim button — lets a regular user instantly claim a device; if already claimed by someone else, button is disabled; if claimed by you, button unclaims it
 - [x] make it not possible to create an unnnamed Device
-- [ ] Move buttons in order: claim - edit - delete
+- [x] Move buttons in order: claim - edit - delete
+- [ ] Make a good looking UI
+- [ ] Fix pickupTime
+- [x] Fix claim button — show Claim if free, Unclaim if claimed by current user, disabled Claimed if taken by someone else
 
 ---
 ## Requirements ⚙️
