@@ -46,7 +46,7 @@ public class DeviceResource extends Controller
 		{
 		}
 
-		public static native TemplateInstance index(List<Device> devices);
+		public static native TemplateInstance index(List<Device> devices, Member currentmember);
 
 		public static native TemplateInstance create();
 
@@ -60,7 +60,9 @@ public class DeviceResource extends Controller
 	public TemplateInstance index()
 	{
 		List<Device> devices = deviceRepository.listAll();
-		return Templates.index(devices);
+		String username = securityIdentity.getPrincipal().getName();
+		Member currentmember = memberRepository.findByUsername(username);
+		return Templates.index(devices, currentmember);
 	}
 
 	@GET
