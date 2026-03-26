@@ -20,17 +20,6 @@
   --cds-spacing-07: 2rem;
   --cds-spacing-09: 3rem;
 
-  /* Carbon color tokens */
-  --cds-layer-01: #f4f4f4;
-  --cds-layer-02: #ffffff;
-  --cds-border-subtle-01: #e0e0e0;
-  --cds-text-primary: #161616;
-  --cds-text-secondary: #525252;
-  --cds-text-disabled: #c6c6c6;
-  --cds-icon-primary: #161616;
-  --cds-background-hover: rgba(141, 141, 141, 0.12);
-  --cds-background-active: rgba(141, 141, 141, 0.5);
-
   /* Carbon interactive colors - mapped to Treasure brand */
   --cds-interactive-01: #FF521D !important;      /* Primary interactive color */
   --cds-interactive-02: #393939 !important;      /* Secondary interactive (keep gray) */
@@ -53,7 +42,7 @@ html, body {
   margin: 0;
   padding: 0;
   overflow-x: hidden; /* Prevent horizontal scrolling */
-  background-color: #f4f4f4; /* Match --cds-layer-01 to prevent white flash on reload */
+  background-color: var(--cds-background, #f4f4f4);
 }
 
 body {
@@ -141,19 +130,19 @@ body.side-nav-expanded .app-container {
 
 /* Fix Carbon dropdown transparent background */
 cds-dropdown::part(menu-body) {
-  background-color: #ffffff;
+  background-color: var(--cds-layer-02);
 }
 
 .cds--list-box__menu {
-  background-color: #ffffff !important;
+  background-color: var(--cds-layer-02) !important;
 }
 
 .cds--list-box__menu-item {
-  background-color: #ffffff;
+  background-color: var(--cds-layer-02);
 }
 
 .cds--list-box__menu-item:hover {
-  background-color: #e8e8e8;
+  background-color: var(--cds-layer-hover-02, #e8e8e8);
 }
 
 /* Flash Notifications */
@@ -357,4 +346,55 @@ cds-button[kind="primary"]:active {
   color: var(--cds-link-primary);
   text-decoration: none;
   font-weight: 600;
+}
+
+/* ========== Dark Theme Overrides (cds--g100) ========== */
+
+/* Page text color in dark mode */
+body.cds--g100 {
+  color: var(--cds-text-primary);
+}
+
+/* Form card dark overrides */
+body.cds--g100 .form-card-header,
+body.cds--g100 .form-actions {
+  background: #2d2d2d;
+}
+
+/* Template CSS variable remapping for dark mode */
+body.cds--g100 {
+  --white: #262626;
+  --bg: #2d2d2d;
+  --text: #f4f4f4;
+  --border: #525252;
+  --muted: #a8a8a8;
+  --yellow-light: #2c2100;
+  --bg-fafafa: #2d2d2d;
+}
+
+/* Admin section dark */
+body.cds--g100 .field-admin {
+  background: #2a2000;
+  border-color: rgba(245, 197, 24, 0.2);
+}
+
+/* Danger zone dark */
+body.cds--g100 .danger-zone {
+  background: #2d0a0a;
+}
+
+/* Task priority badges dark */
+body.cds--g100 .task-priority.high {
+  background: #520408;
+  color: #ffb3b8;
+}
+
+body.cds--g100 .task-priority.medium {
+  background: #302200;
+  color: #f1c21b;
+}
+
+body.cds--g100 .task-priority.low {
+  background: #071e0d;
+  color: #42be65;
 }

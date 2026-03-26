@@ -104,7 +104,9 @@
       "Bash(git -C /home/oleh/Downloads/Treasure log --all --oneline)",
       "Bash(mvn:*)",
       "Bash(docker-compose:*)",
-      "Bash(fuser -k 8080/tcp)"
+      "Bash(fuser -k 8080/tcp)",
+      "WebFetch(domain:app.unpkg.com)",
+      "Bash(python3:*)"
     ]
   }
 }

@@ -63,7 +63,7 @@
   .btn-edit {
     background: transparent;
     color: var(--text);
-    border: 1px solid var(--border);
+    border: 2px solid var(--border);
     padding: 12px 21.5px;
     border-radius: 6px;
     font-family: 'DM Sans', sans-serif;
@@ -82,7 +82,7 @@
   .btn-delete {
     background: transparent;
     color: var(--red);
-    border: 1px solid rgba(230,57,70,0.25);
+    border: 2px solid rgba(230,57,70,0.25);
     padding: 12px 21.5px;
     border-radius: 6px;
     font-family: 'DM Sans', sans-serif;
@@ -196,6 +196,48 @@
   }
   </style>
 
+  <style>
+    /* Dark mode overrides */
+    body.cds--g100 {
+      --white: #262626;
+      --bg: #2d2d2d;
+      --text: #f4f4f4;
+      --border: #525252;
+      --muted: #a8a8a8;
+      --yellow-light: #2c2100;
+      --red-light: #2d0a0a;
+    }
+
+    body.cds--g100 thead th {
+      background: #2d2d2d;
+      color: var(--muted);
+      border-bottom-color: var(--border);
+    }
+
+    body.cds--g100 tbody tr {
+      border-bottom-color: var(--border);
+    }
+
+    body.cds--g100 tbody tr:hover { background: #333333; }
+    body.cds--g100 tbody tr:nth-child(even) { background: #2a2a2a; }
+    body.cds--g100 tbody tr:nth-child(even):hover { background: #333333; }
+
+    body.cds--g100 td { color: var(--text); }
+
+    body.cds--g100 .badge-available {
+      background: #071e0d;
+      color: #42be65;
+    }
+    body.cds--g100 .badge-unavailable {
+      background: #2d2d2d;
+      color: #a8a8a8;
+    }
+    body.cds--g100 .badge-unavailable .badge-dot { background: #6f6f6f; }
+    body.cds--g100 .badge-maintenance {
+      background: #2c2100;
+      color: #f1c21b;
+    }
+  </style>
 {/moreStyles}
     {#title}Devices{/title}
     <a href="/devices/new">
@@ -252,7 +294,7 @@
                 <button disabled class="btn-unclaim">Claimed</button>
               {/if}
               <button class="btn-edit" onclick="window.location='/devices/{device.id}/edit'">
-                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
                 </svg>
                 Edit
@@ -260,7 +302,7 @@
               <form method="post" action="/devices/{device.id}/delete">
                 {#authenticityToken /}
                 <button type="submit" class="btn-delete">
-                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                   </svg>
                   Delete

@@ -99,7 +99,7 @@
 
   .field { display: flex; flex-direction: column; gap: 8px; }
 
-  .field-label { font-size: 14px; font-weight: 600; letter-spacing: 0.3px; color: #444; }
+  .field-label { font-size: 14px; font-weight: 600; letter-spacing: 0.3px; color: var(--text); }
   .field-label .required { color: var(--red); margin-left: 2px; }
   .field-hint { font-size: 13px; color: var(--muted); }
 
@@ -134,6 +134,17 @@
   }
 
   .btn-save-hint { margin-left: auto; font-size: 14px; color: var(--muted); }
+
+  /* Dark mode for field inputs */
+  body.cds--g100 .field-input {
+    background: #393939;
+    color: var(--text);
+    border-color: var(--border);
+  }
+  body.cds--g100 .field-input:focus {
+    border-color: #d4a90e;
+    box-shadow: 0 0 0 3px rgba(212,169,14,0.15);
+  }
 </style>
 {/moreStyles}
 {#title}New Device{/title}
