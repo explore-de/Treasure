@@ -46,7 +46,7 @@ public class DeviceResource extends Controller
 		{
 		}
 
-		public static native TemplateInstance index(List<Device> devices, Member currentmember);
+		public static native TemplateInstance index(List<Device> devices, Member currentmember, List<Member> members);
 
 		public static native TemplateInstance create();
 
@@ -61,7 +61,7 @@ public class DeviceResource extends Controller
 		List<Device> devices = deviceRepository.listAll();
 		String username = securityIdentity.getPrincipal().getName();
 		Member currentmember = memberRepository.findByUsername(username);
-		return Templates.index(devices, currentmember);
+		return Templates.index(devices, currentmember, memberRepository.listAll());
 	}
 
 	@GET
@@ -131,26 +131,17 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
-	@Path("/{id}/claim")
+	@Path("/{id}/assign")
 	@Transactional
-	public void claim(@PathParam("id") Long id)
+	public void assign(@PathParam("id") Long id, @RestForm String bookedBy)
 	{
 		Device device = deviceRepository.findById(id);
-		String username = securityIdentity.getPrincipal().getName();
-		Member currentmember = memberRepository.findByUsername(username);
-		if (device.getBookedBy() != null && device.getBookedBy().equals(currentmember))
-		{
-			device.setStatus("available");
-			device.setBookedBy(null);
-			device.setPickupTime(null);
-		}
-		else
-		{
+		Member member = memberRepository.findByUsername(bookedBy);
+		LOG.info("member found: {}", member);
+		LOG.info("bookedBy param: {}", bookedBy);  
+			device.setBookedBy(member);
 			device.setStatus("not available");
-			device.setBookedBy(currentmember);
 			device.setPickupTime(LocalDateTime.now());
-		}
-		redirect(DeviceResource.class).index();
+			redirect(DeviceResource.class).index();
 	}
-
 }
