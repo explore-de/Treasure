@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html lang="de">
   <head>
-    <script>                                                                                                                                                                                                                                           
-      if (localStorage.getItem('theme') === 'dark') {                                                                                                                                                                                                  
-        document.documentElement.classList.add('cds--g100');                                                                                                                                                                                           
-      }                                                                                                                                                                                                                                                
-    </script> 
+    <script>
+      if (localStorage.getItem('theme') === 'dark') {
+        document.documentElement.classList.add('cds--g100');
+        document.documentElement.style.backgroundColor = '#161616';
+      }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{#insert title/}</title>
 
-    <link rel="stylesheet" id="theme-light" href="https://unpkg.com/@carbon/styles@1.59.0/css/styles.min.css">
+    <link rel="stylesheet" id="theme-light" href="/css/carbon-styles.min.css">  
     <link rel="stylesheet" href="/css/treasure-core.css?v=18">
     <link rel="stylesheet" href="/css/treasure-components.css?v=18">
     <link rel="stylesheet" href="/css/treasure-pages.css?v=13">
@@ -38,6 +39,11 @@
     {#insert moreScripts /}
   </head>
   <body>
+    <script>
+      if (localStorage.getItem('theme') === 'dark') {
+        document.body.style.backgroundColor = '#161616';
+      }
+    </script>
     {#include tags/header.html /}
 
     <cds-side-nav aria-label="Hauptnavigation" collapse-mode="fixed" expanded>
