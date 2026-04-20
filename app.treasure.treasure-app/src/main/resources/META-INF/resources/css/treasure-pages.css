@@ -721,17 +721,20 @@ cds-table-row.needs-review {
   box-shadow: 0 4px 16px rgba(0,0,0,0.1);
   min-width: 160px;
   z-index: 10;
+  z-index: 9999
 }
 .assign-dropdown div {
   padding: 10px 16px;
   cursor: pointer;
   font-size: 15px;
   color: var(--text);
+  z-index: 9999
 }
 .assign-dropdown div:hover { background: var(--yellow-light); }
 body.cds--g100 .assign-dropdown {
   background: #393939;
   border-color: var(--border);
+  z-index: 9999
 }
 
 table {
@@ -770,8 +773,18 @@ td {
   background: var(--white);
   border-radius: 14px;
   border: 1px solid var(--border);
-  overflow: visible;
+
   box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.name-table{
+  border-top-left-radius: 14px;
+  border-bottom-left-radius: 14px;
+}
+
+.empty-table{
+  border-top-right-radius: 14px;
+  border-bottom-right-radius: 14px;
 }
 
 .badge {

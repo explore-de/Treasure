@@ -12,11 +12,11 @@
     <table>                                                                                                                                                                                                                                            
       <thead>                                                                                                                                                                                                                                          
         <tr>        
-          <th>Name</th>
+          <th class="name-table">Name</th>
           <th>Status</th>
           <th>Booked by</th>                                                                                                                                                                                                                           
           <th>Pickup time</th>
-          <th></th>                                                                                                                                                                                                                                    
+          <th class="empty-table"></th>                                                                                                                                                                                                                                    
         </tr>       
       </thead>
       <tbody>
@@ -86,10 +86,11 @@
       });
     }
   });
-  function toggleDropdown(id) { 
-    document.querySelectorAll('.assign-dropdown').forEach(function(d) { d.style.display = 'none'; });                                                                                                                                                                                                                     
-    var dropdown = document.getElementById(id);                                                                                                                                                                                                      
-    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';                                                                                                                                                                  
+  function toggleDropdown(id) {
+    var dropdown = document.getElementById(id);
+    var isOpen = dropdown.style.display === 'block';
+    document.querySelectorAll('.assign-dropdown').forEach(function(d) { d.style.display = 'none'; });
+    dropdown.style.display = isOpen ? 'none' : 'block';
   } 
   document.addEventListener('click', function(e) {
     if (!e.target.closest('.assign-wrap')) {
