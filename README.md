@@ -11,40 +11,6 @@
 A device booking system for organizations.
 
 ---
-## TODO 📋
-
-- [x] Device entity — pickupTime, bookedBy, getters/setters
-- [x] DeviceResource — repository injected, index() passes device list
-- [x] index.html — Carbon table + "New device" button
-- [x] create.html + POST endpoint — form saves to DB, redirects
-- [x] Delete endpoint — POST /devices/{id}/delete + delete button
-- [x] Rename project to treasure (remove all "fuggs" references)
-- [x] Update README
-- [x] Navigation menu — "Device" link in left sidebar → device list
-- [x] Edit button — separate admin and user edit views (admin can edit "Booked by"; user cannot)
-- [x] Auto status — device becomes unavailable when assigned, available when unassigned
-- [x] fix a "New device" button
-- [x] remove fluggs name from website
-- [x] Claim button — lets a regular user instantly claim a device; if already claimed by someone else, button is disabled; if claimed by you, button unclaims it
-- [x] make it not possible to create an unnnamed Device
-- [x] Move buttons in order: claim - edit - delete
-- [ ] Make a good looking UI
-- [ ] Fix pickupTime
-- [x] Fix claim button — show Claim if free, Unclaim if claimed by current user, disabled Claimed if taken by someone else
-
-### UI 🎨
-- [ ] Status badge — colored dot + text instead of plain text
-- [ ] Zebra stripes + row hover in table
-- [ ] Shrink action buttons (smaller padding)
-- [ ] Edit button — pencil icon
-- [ ] Delete button — trash icon
-- [ ] Claim/Unclaim button colors — yellow fill / yellow outline
-- [ ] Sidebar — icons + section labels (Menu / System)
-- [ ] Table toolbar — search input + record count
-- [ ] Pagination — "Showing 1–N of N" + page buttons
-- [ ] Fix "New device" button color (orange → yellow)
-
----
 ## Requirements ⚙️
 
 ### Functional
