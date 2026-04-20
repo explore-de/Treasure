@@ -1,47 +1,39 @@
-/* Treasure Core Styles - Global Layout, Navigation, and Utilities */
-
-/* Box sizing border-box for all elements */
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
-/* Carbon Design System Overrides (Gray 10 theme will be loaded via CDN) */
 :root {
-  /* Treasure Brand Colors */
-  --treasure-primary: #FF521D;           /* Main orange brand color */
-  --treasure-primary-hover: #E6491A;     /* Darker orange for hover states */
-  --treasure-primary-active: #CC4017;    /* Even darker for active states */
-  --treasure-primary-light: #FFE5DC;     /* Light orange for backgrounds */
+  --treasure-primary: #FF521D;
+  --treasure-primary-hover: #E6491A;
+  --treasure-primary-active: #CC4017;
+  --treasure-primary-light: #FFE5DC;
 
-  /* Carbon spacing tokens */
+  
   --cds-spacing-03: 0.5rem;
   --cds-spacing-04: 0.75rem;
   --cds-spacing-05: 1rem;
   --cds-spacing-07: 2rem;
   --cds-spacing-09: 3rem;
 
-  /* Carbon interactive colors - mapped to Treasure brand */
-  --cds-interactive-01: #FF521D !important;      /* Primary interactive color */
-  --cds-interactive-02: #393939 !important;      /* Secondary interactive (keep gray) */
-  --cds-interactive-03: #ffffff !important;      /* Tertiary interactive (keep white) */
-  --cds-interactive-04: #CC4017 !important;      /* Active state */
-  --cds-border-interactive: #FF521D !important;  /* Interactive borders */
-  --cds-link-primary: #FF521D !important;        /* Link color */
-  --cds-link-primary-hover: #E6491A !important;  /* Link hover */
-  --cds-ui-focus: #FF521D !important;           /* Focus indicators */
-  --cds-button-primary: #FF521D !important;      /* Primary button background */
-  --cds-button-primary-hover: #E6491A !important; /* Primary button hover */
-  --cds-button-primary-active: #CC4017 !important; /* Primary button active */
-  --cds-focus: #FF521D !important;              /* Focus color */
-
-  /* Layout */
+  --cds-interactive-01: #FF521D !important;
+  --cds-interactive-02: #393939 !important;
+  --cds-interactive-03: #ffffff !important;
+  --cds-interactive-04: #CC4017 !important;
+  --cds-border-interactive: #FF521D !important;
+  --cds-link-primary: #FF521D !important;
+  --cds-link-primary-hover: #E6491A !important;
+  --cds-ui-focus: #FF521D !important;
+  --cds-button-primary: #FF521D !important;
+  --cds-button-primary-hover: #E6491A !important;
+  --cds-button-primary-active: #CC4017 !important;
+  --cds-focus: #FF521D !important;
   --side-nav-width: 256px;
 }
 
 html, body {
   margin: 0;
   padding: 0;
-  overflow-x: hidden; /* Prevent horizontal scrolling */
+  overflow-x: hidden; 
   background-color: var(--cds-background, #f4f4f4);
 }
 
@@ -50,15 +42,10 @@ body {
   transition: opacity 0.15s ease-out;
 }
 
-/* Carbon UI Shell Layout Adjustments */
-/* Carbon side-nav is position: fixed, so we need to offset the content */
-
-/* Default: side nav in rail mode (collapsed, 48px wide) */
 .app-container {
-  margin-top: 48px; /* Height of cds-header */
-  margin-left: 48px; /* Width of collapsed rail side-nav */
-  /* No transition - keeps page loads instant */
-  width: calc(100vw - 48px); /* Constrain to viewport width minus side-nav */
+  margin-top: 48px;
+  margin-left: 48px;
+  width: calc(100vw - 48px);
   overflow-x: hidden;
 }
 
@@ -69,20 +56,11 @@ body {
   overflow-x: hidden;
 }
 
-/* When side nav is expanded (256px wide) - handled by JS */
 body.side-nav-expanded .app-container {
   margin-left: 256px;
-  width: calc(100vw - 256px); /* Constrain to viewport width minus expanded side-nav */
+  width: calc(100vw - 256px);
 }
 
-/* Responsive: side nav overlays content on mobile */
-@media (max-width: 1056px) {
-  .app-container {
-    margin-left: 0 !important;
-  }
-}
-
-/* Shared layout utilities */
 .box {
   background-color: var(--cds-layer-02);
   border: 1px solid var(--cds-border-subtle-01);
@@ -127,8 +105,10 @@ body.side-nav-expanded .app-container {
   align-items: center;
   gap: 0.75rem;
 }
+html.cds--g100 {                                                                                                                                                                                                                                   
+  background: #161616;                                                                                                                                                                                                                             
+} 
 
-/* Fix Carbon dropdown transparent background */
 cds-dropdown::part(menu-body) {
   background-color: var(--cds-layer-02);
 }
@@ -145,14 +125,12 @@ cds-dropdown::part(menu-body) {
   background-color: var(--cds-layer-hover-02, #e8e8e8);
 }
 
-/* Flash Notifications */
 .flash-notification {
   position: fixed;
   bottom: 1rem;
   right: 1rem;
 }
 
-/* Prevent navigation icon FOUC */
 cds-side-nav-link svg[slot="title-icon"],
 cds-header-global-action svg[slot="icon"] {
   width: 20px;
@@ -160,13 +138,11 @@ cds-header-global-action svg[slot="icon"] {
   flex-shrink: 0;
 }
 
-/* Hide navigation until Carbon components are defined */
 cds-side-nav:not(:defined),
 cds-header:not(:defined) {
   visibility: hidden;
 }
 
-/* Ensure header global bar is positioned on the right */
 cds-header-global-bar {
   display: flex;
   flex: 1;
@@ -176,7 +152,6 @@ cds-header-global-bar {
   margin-left: auto;
 }
 
-/* Carbon Button Overrides - Force purple theme */
 cds-button[kind="primary"] {
   --cds-button-primary: var(--treasure-primary) !important;
   --cds-button-primary-hover: var(--treasure-primary-hover) !important;
@@ -192,7 +167,6 @@ cds-button[kind="primary"]:active {
   background-color: var(--treasure-primary-active) !important;
 }
 
-/* Header Panels - Notifications & Profile */
 .header-panel {
   position: fixed;
   top: 48px;
@@ -348,20 +322,15 @@ cds-button[kind="primary"]:active {
   font-weight: 600;
 }
 
-/* ========== Dark Theme Overrides (cds--g100) ========== */
-
-/* Page text color in dark mode */
 body.cds--g100 {
   color: var(--cds-text-primary);
 }
 
-/* Form card dark overrides */
 body.cds--g100 .form-card-header,
 body.cds--g100 .form-actions {
   background: #2d2d2d;
 }
 
-/* Template CSS variable remapping for dark mode */
 body.cds--g100 {
   --white: #262626;
   --bg: #2d2d2d;
@@ -369,21 +338,19 @@ body.cds--g100 {
   --border: #525252;
   --muted: #a8a8a8;
   --yellow-light: #2c2100;
+  --red-light: #2d0a0a;
   --bg-fafafa: #2d2d2d;
 }
 
-/* Admin section dark */
 body.cds--g100 .field-admin {
   background: #2a2000;
   border-color: rgba(245, 197, 24, 0.2);
 }
 
-/* Danger zone dark */
 body.cds--g100 .danger-zone {
   background: #2d0a0a;
 }
 
-/* Task priority badges dark */
 body.cds--g100 .task-priority.high {
   background: #520408;
   color: #ffb3b8;

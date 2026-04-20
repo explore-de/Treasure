@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="de">
   <head>
+    <script>                                                                                                                                                                                                                                           
+      if (localStorage.getItem('theme') === 'dark') {                                                                                                                                                                                                  
+        document.documentElement.classList.add('cds--g100');                                                                                                                                                                                           
+      }                                                                                                                                                                                                                                                
+    </script> 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{#insert title/}</title>
 
-    <!-- Carbon Design System Gray 10 Theme -->
     <link rel="stylesheet" id="theme-light" href="https://unpkg.com/@carbon/styles@1.59.0/css/styles.min.css">
-
-    <!-- Treasure Custom Styles -->
     <link rel="stylesheet" href="/css/treasure-core.css?v=18">
     <link rel="stylesheet" href="/css/treasure-components.css?v=18">
     <link rel="stylesheet" href="/css/treasure-pages.css?v=13">
-
-    <!-- Carbon Web Components -->
     <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/ui-shell.min.js"></script>
     <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/button.min.js"></script>
     <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/text-input.min.js"></script>
@@ -32,7 +32,6 @@
     <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/file-uploader.min.js"></script>
     <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/loading.min.js"></script>
 
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     {#insert moreStyles /}
@@ -73,14 +72,13 @@
           localStorage.setItem('theme', isDark ? 'dark' : 'light');
         } 
 
-      // Handle side-nav expand/collapse for content layout
       document.addEventListener('DOMContentLoaded', function() {
         if (localStorage.getItem('theme') === 'dark') {
           document.body.classList.add('cds--g100');
+          document.documentElement.classList.remove('cds--g100');
         }
         var sideNav = document.querySelector('cds-side-nav');
         if (sideNav) {
-          // Set initial state
           function updateLayout() {
             if (sideNav.expanded) {
               document.body.classList.add('side-nav-expanded');
@@ -90,10 +88,8 @@
             
           }
 
-          // Update on initial load
           updateLayout();
 
-          // Watch for changes to the expanded attribute
           var observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
               if (mutation.attributeName === 'expanded') {
@@ -104,7 +100,6 @@
 
           observer.observe(sideNav, { attributes: true });
 
-          // Also listen for property changes (when set via JS)
           var originalExpanded = sideNav.expanded;
           Object.defineProperty(sideNav, '_expanded', {
             get: function() { return originalExpanded; },
@@ -116,7 +111,6 @@
         }
       });
 
-      // Shared tag handling functionality
       function initTagHandling() {
         var tagContainer = document.getElementById('tagContainer');
         var tagsInput = document.getElementById('tagsInput');
@@ -125,7 +119,6 @@
 
         if (!tagContainer || !tagsInput || !newTagInput || !addTagBtn) return;
 
-        // Handle filter tag close events
         tagContainer.addEventListener('cds-tag-closed', function(event) {
           var tag = event.target;
           var tagName = tag.dataset.tagName;
@@ -135,7 +128,6 @@
           }
         });
 
-        // Handle adding new tags
         function addNewTag() {
           var tagName = newTagInput.value.trim().toLowerCase();
           if (!tagName) return;

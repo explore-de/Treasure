@@ -12,6 +12,8 @@ import app.treasure.member.repository.MemberRepository;
 import io.quarkiverse.renarde.Controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import io.quarkus.panache.common.Sort;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
@@ -58,7 +60,7 @@ public class DeviceResource extends Controller
 	@Path("")
 	public TemplateInstance index()
 	{
-		List<Device> devices = deviceRepository.listAll();
+		List<Device> devices = deviceRepository.listAll(Sort.by("id").ascending());
 		String username = securityIdentity.getPrincipal().getName();
 		Member currentmember = memberRepository.findByUsername(username);
 		return Templates.index(devices, currentmember, memberRepository.listAll());
@@ -138,10 +140,10 @@ public class DeviceResource extends Controller
 		Device device = deviceRepository.findById(id);
 		Member member = memberRepository.findByUsername(bookedBy);
 		LOG.info("member found: {}", member);
-		LOG.info("bookedBy param: {}", bookedBy);  
-			device.setBookedBy(member);
-			device.setStatus("not available");
-			device.setPickupTime(LocalDateTime.now());
-			redirect(DeviceResource.class).index();
+		LOG.info("bookedBy param: {}", bookedBy);
+		device.setBookedBy(member);
+		device.setStatus("not available");
+		device.setPickupTime(LocalDateTime.now());
+		redirect(DeviceResource.class).index();
 	}
 }
