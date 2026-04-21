@@ -93,7 +93,7 @@ public class DeviceResource extends Controller
 	@Transactional
 	public void save(@RestForm String deviceName, @RestForm String status)
 	{
-		if (deviceName.matches(".*[a-zA-Z0-9].*"))
+		if (deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*"))
 		{
 			Device device = new Device();
 			device.setDeviceName(deviceName);
@@ -108,7 +108,7 @@ public class DeviceResource extends Controller
 	@Transactional
 	public void update(@PathParam("id") Long id, @RestForm String deviceName, @RestForm String bookedBy)
 	{
-		if (!deviceName.matches(".*[a-zA-Z0-9].*"))
+		if (!deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*"))
 		{
 			redirect(DeviceResource.class).index();
 			return;
