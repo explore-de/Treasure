@@ -139,11 +139,20 @@ public class DeviceResource extends Controller
 	{
 		Device device = deviceRepository.findById(id);
 		Member member = memberRepository.findByUsername(bookedBy);
-		LOG.info("member found: {}", member);
-		LOG.info("bookedBy param: {}", bookedBy);
-		device.setBookedBy(member);
-		device.setStatus("not available");
-		device.setPickupTime(LocalDateTime.now());
-		redirect(DeviceResource.class).index();
+		System.out.println(device.getBookedBy());
+		System.out.println(member);
+		if (device.getBookedBy() == member) {
+			device.setBookedBy(null);
+			device.setStatus("available");
+			device.setPickupTime(null);
+			redirect(DeviceResource.class).index();
+		} else {
+			LOG.info("member found: {}", member);
+			LOG.info("bookedBy param: {}", bookedBy);
+			device.setBookedBy(member);
+			device.setStatus("not available");
+			device.setPickupTime(LocalDateTime.now());
+			redirect(DeviceResource.class).index();
+		}
 	}
 }
