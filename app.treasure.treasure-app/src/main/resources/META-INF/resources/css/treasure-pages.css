@@ -589,6 +589,11 @@ cds-table-row.needs-review {
   font-size: 17px; color: var(--text); font-weight: 500;
 }
 
+.top-list-buttons{
+  display: flex;
+  gap: 10px;
+}
+
 .btn-primary {
   background: var(--yellow);
   color: #3d2800;
@@ -599,15 +604,66 @@ cds-table-row.needs-review {
   font-size: 17px;
   font-weight: 600;
   cursor: pointer;
-  display: flex;
   align-items: center;
   gap: 7px;
   transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 3px 10px rgba(245, 197, 24, 0.5);
+  box-shadow: 0 0 10px rgba(245, 197, 24, 0.5);
 }
 .btn-primary:hover {
-  box-shadow: 0 6px 20px rgba(245, 197, 24, 0.5);
+  box-shadow: 0 0 20px rgba(245, 197, 24, 0.5);
   transform: scale(1.05);
+}
+.search{
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 17px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0 20px;
+  height: 40px;
+  margin-top: 15px;
+  border: rgba(255, 255, 255, 0.5);
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  
+}
+
+.search:hover{
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.search:focus {                                                                                                                                                                                                                                                                            
+  outline: 2px solid rgba(113, 113, 113, 0.3); 
+}
+
+.search-wrap:hover {
+  transform: scale(1.02);
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-wrap{
+  display: flex;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+} 
+.search-clean {
+  display: flex;
+  position: absolute;
+  right: 0px;
+  width: 50px;
+  height: 40px;
+  top: 64%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  border-bottom-right-radius: 8px;
+  border-top-right-radius: 8px;
+  border: none;
+
+
+  transition: background 0.5s ease; 
+  background: white;
+}
+.search-clean:hover{
+  background:linear-gradient(to left, rgb(146, 146, 146), white);
 }
 
 .btn-save {
