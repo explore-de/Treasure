@@ -52,9 +52,7 @@ public class DeviceResource extends Controller
 
 		public static native TemplateInstance create();
 
-		public static native TemplateInstance editAdmin(Device device, List<Member> members);
-
-		public static native TemplateInstance editUser(Device device);
+		public static native TemplateInstance edit(Device device);
 	}
 	@GET
 	@Path("")
@@ -78,14 +76,7 @@ public class DeviceResource extends Controller
 	public TemplateInstance edit(@PathParam("id") Long id)
 	{
 		Device device = deviceRepository.findById(id);
-		if (identity.hasRole("admin") || identity.hasRole("SUPER_ADMIN"))
-		{
-			return Templates.editAdmin(device, memberRepository.listAll());
-		}
-		else
-		{
-			return Templates.editUser(device);
-		}
+		return Templates.edit(device);
 	}
 
 	@POST
@@ -141,12 +132,15 @@ public class DeviceResource extends Controller
 		Member member = memberRepository.findByUsername(bookedBy);
 		System.out.println(device.getBookedBy());
 		System.out.println(member);
-		if (device.getBookedBy() == member) {
+		if (device.getBookedBy() == member)
+		{
 			device.setBookedBy(null);
 			device.setStatus("available");
 			device.setPickupTime(null);
 			redirect(DeviceResource.class).index();
-		} else {
+		}
+		else
+		{
 			LOG.info("member found: {}", member);
 			LOG.info("bookedBy param: {}", bookedBy);
 			device.setBookedBy(member);
