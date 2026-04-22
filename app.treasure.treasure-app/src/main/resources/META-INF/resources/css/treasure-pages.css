@@ -597,7 +597,6 @@ cds-table-row.needs-review {
 .btn-primary {
   background: var(--yellow);
   color: #3d2800;
-  border: none;
   padding: 15px 25px;
   border-radius: 8px;
   font-family: 'DM Sans', sans-serif;
@@ -608,6 +607,7 @@ cds-table-row.needs-review {
   gap: 7px;
   transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
   box-shadow: 0 0 10px rgba(245, 197, 24, 0.5);
+  border: 0.5px solid var(--yellow);
 }
 .btn-primary:hover {
   box-shadow: 0 0 20px rgba(245, 197, 24, 0.5);
@@ -619,7 +619,7 @@ cds-table-row.needs-review {
   font-size: 17px;
   font-weight: 500;
   cursor: pointer;
-  padding: 0 20px;
+  padding: 0 70px;
   height: 40px;
   margin-top: 15px;
   border: rgba(255, 255, 255, 0.5);
@@ -651,19 +651,17 @@ cds-table-row.needs-review {
   right: 0px;
   width: 50px;
   height: 40px;
-  top: 64%;
+  top: 63%;
   transform: translateY(-50%);
   cursor: pointer;
   border-bottom-right-radius: 8px;
   border-top-right-radius: 8px;
   border: none;
-
-
   transition: background 0.5s ease; 
   background: white;
 }
 .search-clean:hover{
-  background:linear-gradient(to left, rgb(146, 146, 146), white);
+  background: rgb(197 197 197);
 }
 
 .btn-save {
