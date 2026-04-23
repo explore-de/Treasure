@@ -90,6 +90,7 @@ public class DeviceResource extends Controller
 			device.setDeviceName(deviceName);
 			device.setStatus("available");
 			deviceRepository.persist(device);
+			device.setCreatedOn(String.valueOf(LocalDateTime.now()));
 		}
 		redirect(DeviceResource.class).index();
 	}

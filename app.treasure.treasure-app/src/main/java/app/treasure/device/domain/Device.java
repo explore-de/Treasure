@@ -20,10 +20,21 @@ public class Device extends PanacheEntity
 
 	@ManyToOne
 	private Member bookedBy; // accessor methods
+	private String createdOn;
 
 	public String getDeviceName()
 	{
 		return deviceName;
+	}
+
+	public void setCreatedOn(String createdOn)
+	{
+		this.createdOn = createdOn;
+	}
+
+	public String getCreatedOn()
+	{
+		return createdOn;
 	}
 
 	public void setDeviceName(String deviceName)
