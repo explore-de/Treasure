@@ -82,12 +82,13 @@ public class DeviceResource extends Controller
 	@POST
 	@Path("/create")
 	@Transactional
-	public void save(@RestForm String deviceName, @RestForm String status)
+	public void save(@RestForm String deviceName, @RestForm String status, @RestForm String deviceSerialNumber)
 	{
 		if (deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*"))
 		{
 			Device device = new Device();
 			device.setDeviceName(deviceName);
+			device.setDeviceSerialNumber(deviceSerialNumber);
 			device.setStatus("available");
 			deviceRepository.persist(device);
 			device.setCreatedOn(String.valueOf(LocalDateTime.now()));
