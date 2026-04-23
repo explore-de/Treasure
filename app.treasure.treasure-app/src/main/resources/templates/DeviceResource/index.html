@@ -30,6 +30,7 @@
           <th>Status</th>
           <th>Booked by</th>                                                                                                                                                                                                                           
           <th>Pickup time</th>
+          <th>Serial Number</th>
           <th class="empty-table"></th>                                                                                                                                                                                                                                    
         </tr>       
       </thead>
@@ -51,7 +52,8 @@
           {/if}
         </td>
           <td>{device.bookedName}</td>
-          <td>{device.formattedPickupTime}</td>                                                                                                                                                                                                        
+          <td>{device.formattedPickupTime}</td>
+          <td>{device.deviceSerialNumber}</td>
           <td>
             <div class="actions">
               <div class="assign-wrap">
