@@ -99,7 +99,7 @@ public class DeviceResource extends Controller
 	@POST
 	@Path("/{id}/update")
 	@Transactional
-	public void update(@PathParam("id") Long id, @RestForm String deviceName, @RestForm String bookedBy)
+	public void update(@PathParam("id") Long id, @RestForm String deviceName, @RestForm String bookedBy, @RestForm String deviceSerialNumber)
 	{
 		if (!deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*"))
 		{
@@ -108,6 +108,7 @@ public class DeviceResource extends Controller
 		}
 		Device device = deviceRepository.findById(id);
 		device.setDeviceName(deviceName);
+		device.setDeviceSerialNumber(deviceSerialNumber);
 		Member member = memberRepository.findByUsername(bookedBy);
 		LOG.debug("bookedBy param: {}, member found: {}", bookedBy, member);
 		device.setBookedBy(member);

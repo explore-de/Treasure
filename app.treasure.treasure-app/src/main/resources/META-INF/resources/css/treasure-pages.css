@@ -540,7 +540,11 @@ cds-table-row.needs-review {
 .form-card-header-text h3 { font-size: 21px; font-weight: 600; }
 .form-card-header-text p { font-size: 17px; color: var(--muted); margin-top: 1px; }
 
-.form-body { padding: 36px; display: flex; flex-direction: column; gap: 28px; }
+.form-body-top { padding: 36px 36px 0px 36px; display: flex; flex-direction: column; gap: 28px; }
+
+.form-body-middle { padding: 36px 36px 0px 36px; display: flex; flex-direction: column; gap: 28px; }
+
+.form-body-bottom { padding: 36px; display: flex; flex-direction: column; gap: 28px; }
 
 .field { display: flex; flex-direction: column; gap: 8px; }
 

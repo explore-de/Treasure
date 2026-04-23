@@ -29,34 +29,20 @@
                   <p>Fill in the information</p>
                 </div>
               </div>
-        <div class="form-body">
+        <div class="form-body-top">
           <div class="field">
-            <div class="current-label">Current name</div>
-            <div class="current-value">
-              <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-              {device.deviceName}
-            </div>
-          </div>
-          <div class="field">
-            <label class="field-label">New Device Name <span class="required">*</span></label>
-            <input class="field-input" type="text" maxlength="50" name="deviceName" placeholder="e.g. MacBook Pro 14&quot;" id="nameInput" oninput="validate()" value="{device.deviceName}">
+            <label class="field-label">Device Name <span class="required">*</span></label>
+            <input class="field-input" type="text" maxlength="50" name="deviceName" placeholder="{device.deviceName}" id="nameInput" oninput="validate()" value="{device.deviceName}">
             <span class="field-error" id="nameError" style="display:none">
               <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 8v4m0 4h.01"/></svg>
               Device name cannot be empty
             </span>
           </div>
         </div>
-        <div class="form-body">
+        <div class="form-body-bottom">
             <div class="field">
-                <div class="current-label">Current Serial-Number</div>
-                <div class="current-value">
-                    <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-                    {device.deviceSerialNumber}
-                </div>
-            </div>
-            <div class="field">
-                <label class="field-label">New Device Serial-Number</label>
-                <input class="field-input" type="text" maxlength="50" name="deviceSerialNumber" placeholder="e.g. CNU1234567&quot;" value="{device.deviceSerialNumber}">
+                <label class="field-label">Device Serial-Number</label>
+                <input class="field-input" type="text" maxlength="50" name="deviceSerialNumber" placeholder="{device.deviceSerialNumber}" value="{device.deviceSerialNumber}">
             </div>
         </div>
         <div class="form-actions">
