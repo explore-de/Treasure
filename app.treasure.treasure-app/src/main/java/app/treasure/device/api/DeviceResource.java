@@ -4,15 +4,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.jboss.resteasy.reactive.RestForm;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import app.treasure.device.domain.Device;
 import app.treasure.device.repository.DeviceRepository;
 import app.treasure.member.domain.Member;
 import app.treasure.member.repository.MemberRepository;
 import io.quarkiverse.renarde.Controller;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.quarkus.panache.common.Sort;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
@@ -33,8 +32,10 @@ public class DeviceResource extends Controller
 
 	@Inject
 	DeviceRepository deviceRepository;
+
 	@Inject
 	SecurityIdentity securityIdentity;
+
 	@Inject
 	MemberRepository memberRepository;
 
@@ -50,10 +51,23 @@ public class DeviceResource extends Controller
 
 		public static native TemplateInstance index(List<Device> devices, Member currentmember, List<Member> members);
 
-		public static native TemplateInstance create();
+		// ✅ groups als Vorschlagsliste für das Group-Input
+		public static native TemplateInstance create(List<String> groups);
 
-		public static native TemplateInstance edit(Device device);
+		public static native TemplateInstance edit(Device device, List<String> groups);
 	}
+
+	// ✅ bekannte Gruppen aus existierenden Devices (distinct + sort)
+	private List<String> loadKnownGroups()
+	{
+		return deviceRepository.listAll().stream()
+			.map(Device::getGroup)
+			.filter(g -> g != null && !g.isBlank())
+			.distinct()
+			.sorted()
+			.toList();
+	}
+
 	@GET
 	@Path("")
 	public TemplateInstance index()
@@ -68,7 +82,7 @@ public class DeviceResource extends Controller
 	@Path("/new")
 	public TemplateInstance create()
 	{
-		return Templates.create();
+		return Templates.create(loadKnownGroups());
 	}
 
 	@GET
@@ -76,22 +90,40 @@ public class DeviceResource extends Controller
 	public TemplateInstance edit(@PathParam("id") Long id)
 	{
 		Device device = deviceRepository.findById(id);
-		return Templates.edit(device);
+		return Templates.edit(device, loadKnownGroups());
 	}
 
 	@POST
 	@Path("/create")
 	@Transactional
-	public void save(@RestForm String deviceName, @RestForm String status, @RestForm String deviceSerialNumber)
+	public void save(
+		@RestForm String deviceName,
+		@RestForm String deviceSerialNumber,
+
+		// ✅ neue Felder
+		@RestForm String group,
+		@RestForm String deviceModel,
+		@RestForm String extraInfo,
+		@RestForm String deviceDamage,
+		@RestForm String deviceAge)
 	{
-		if (deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*"))
+		if (deviceName != null && deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*"))
 		{
 			Device device = new Device();
 			device.setDeviceName(deviceName);
 			device.setDeviceSerialNumber(deviceSerialNumber);
+
 			device.setStatus("available");
-			deviceRepository.persist(device);
 			device.setCreatedOn(String.valueOf(LocalDateTime.now()));
+
+			// ✅ neue Felder setzen
+			device.setGroup(group);
+			device.setDeviceModel(deviceModel);
+			device.setExtraInfo(extraInfo);
+			device.setDeviceDamage(deviceDamage);
+			device.setDeviceAge(deviceAge);
+
+			deviceRepository.persist(device);
 		}
 		redirect(DeviceResource.class).index();
 	}
@@ -99,16 +131,36 @@ public class DeviceResource extends Controller
 	@POST
 	@Path("/{id}/update")
 	@Transactional
-	public void update(@PathParam("id") Long id, @RestForm String deviceName, @RestForm String deviceSerialNumber)
+	public void update(
+		@PathParam("id") Long id,
+		@RestForm String deviceName,
+		@RestForm String deviceSerialNumber,
+
+		// ✅ neue Felder
+		@RestForm String group,
+		@RestForm String deviceModel,
+		@RestForm String extraInfo,
+		@RestForm String deviceDamage,
+		@RestForm String deviceAge)
 	{
-		if (!deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*"))
+		if (deviceName == null || !deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*"))
 		{
 			redirect(DeviceResource.class).index();
 			return;
 		}
+
 		Device device = deviceRepository.findById(id);
+
 		device.setDeviceName(deviceName);
 		device.setDeviceSerialNumber(deviceSerialNumber);
+
+		// ✅ neue Felder updaten
+		device.setGroup(group);
+		device.setDeviceModel(deviceModel);
+		device.setExtraInfo(extraInfo);
+		device.setDeviceDamage(deviceDamage);
+		device.setDeviceAge(deviceAge);
+
 		redirect(DeviceResource.class).index();
 	}
 
@@ -117,7 +169,6 @@ public class DeviceResource extends Controller
 	@Transactional
 	public void delete(@PathParam("id") Long id)
 	{
-
 		Device device = deviceRepository.findById(id);
 		device.delete();
 		redirect(DeviceResource.class).index();
@@ -130,8 +181,7 @@ public class DeviceResource extends Controller
 	{
 		Device device = deviceRepository.findById(id);
 		Member member = memberRepository.findByUsername(bookedBy);
-		System.out.println(device.getBookedBy());
-		System.out.println(member);
+
 		if (device.getBookedBy() == member)
 		{
 			device.setBookedBy(null);
