@@ -18,12 +18,35 @@ public class Device extends PanacheEntity
 
 	private LocalDateTime pickupTime;
 
+	private String deviceSerialNumber;
+
 	@ManyToOne
 	private Member bookedBy; // accessor methods
+	private String createdOn;
 
 	public String getDeviceName()
 	{
 		return deviceName;
+	}
+
+	public void setCreatedOn(String createdOn)
+	{
+		this.createdOn = createdOn;
+	}
+
+	public String getCreatedOn()
+	{
+		return createdOn;
+	}
+
+	public void setDeviceSerialNumber(String deviceSerialNumber)
+	{
+		this.deviceSerialNumber = deviceSerialNumber;
+	}
+
+	public String getDeviceSerialNumber()
+	{
+		return deviceSerialNumber;
 	}
 
 	public void setDeviceName(String deviceName)

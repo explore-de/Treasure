@@ -49,9 +49,7 @@ public class DeviceResource extends Controller
 
 		public static native TemplateInstance create();
 
-		public static native TemplateInstance editAdmin(Device device, List<Member> members);
-
-		public static native TemplateInstance editUser(Device device);
+		public static native TemplateInstance edit(Device device);
 	}
 	@GET
 	@Path("")
@@ -75,27 +73,22 @@ public class DeviceResource extends Controller
 	public TemplateInstance edit(@PathParam("id") Long id)
 	{
 		Device device = deviceRepository.findById(id);
-		if (identity.hasRole("admin") || identity.hasRole("SUPER_ADMIN"))
-		{
-			return Templates.editAdmin(device, memberRepository.listAll());
-		}
-		else
-		{
-			return Templates.editUser(device);
-		}
+		return Templates.edit(device);
 	}
 
 	@POST
 	@Path("/create")
 	@Transactional
-	public void save(@RestForm String deviceName, @RestForm String status)
+	public void save(@RestForm String deviceName, @RestForm String status, @RestForm String deviceSerialNumber)
 	{
 		if (deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*"))
 		{
 			Device device = new Device();
 			device.setDeviceName(deviceName);
+			device.setDeviceSerialNumber(deviceSerialNumber);
 			device.setStatus("available");
 			deviceRepository.persist(device);
+			device.setCreatedOn(String.valueOf(LocalDateTime.now()));
 		}
 		redirect(DeviceResource.class).index(null);
 	}
@@ -136,11 +129,19 @@ public class DeviceResource extends Controller
 	{
 		Device device = deviceRepository.findById(id);
 		Member member = memberRepository.findByUsername(bookedBy);
-		LOG.info("member found: {}", member);
-		LOG.info("bookedBy param: {}", bookedBy);
-		device.setBookedBy(member);
-		device.setStatus("not available");
-		device.setPickupTime(LocalDateTime.now());
+		LOG.info("member found: {}, bookedBy param: {}", member, bookedBy);
+		if (device.getBookedBy() == member)
+		{
+			device.setBookedBy(null);
+			device.setStatus("available");
+			device.setPickupTime(null);
+		}
+		else
+		{
+			device.setBookedBy(member);
+			device.setStatus("not available");
+			device.setPickupTime(LocalDateTime.now());
+		}
 		redirect(DeviceResource.class).index(null);
 	}
 }
