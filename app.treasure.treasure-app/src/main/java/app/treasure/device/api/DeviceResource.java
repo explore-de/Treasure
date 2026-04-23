@@ -45,6 +45,7 @@ public class DeviceResource extends Controller
 		private Templates()
 		{
 		}
+
 		public static native TemplateInstance index(List<Device> devices, Member currentmember, List<Member> members, String query);
 
 		public static native TemplateInstance create();
@@ -55,7 +56,12 @@ public class DeviceResource extends Controller
 	@Path("")
 	public TemplateInstance index(@QueryParam("query") String query)
 	{
-		List<Device> devices = deviceRepository.searchByName(query); //  on link /device will heppen method searchByName
+		List<Device> devices = deviceRepository.searchByName(query); // on link
+																		// /device
+																		// will
+																		// heppen
+																		// method
+																		// searchByName
 		String username = securityIdentity.getPrincipal().getName();
 		Member currentmember = memberRepository.findByUsername(username);
 		return Templates.index(devices, currentmember, memberRepository.listAll(), query);

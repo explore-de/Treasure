@@ -106,7 +106,8 @@
       "Bash(docker-compose:*)",
       "Bash(fuser -k 8080/tcp)",
       "WebFetch(domain:app.unpkg.com)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(git *)"
     ]
   }
 }

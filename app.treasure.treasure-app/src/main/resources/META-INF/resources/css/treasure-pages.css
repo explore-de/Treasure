@@ -498,7 +498,7 @@ cds-table-row.needs-review {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 17px;
   color: var(--muted);
   margin-bottom: 28px;
 }
@@ -540,7 +540,7 @@ cds-table-row.needs-review {
 .form-card-header-text h3 { font-size: 21px; font-weight: 600; }
 .form-card-header-text p { font-size: 17px; color: var(--muted); margin-top: 1px; }
 
-.form-body { padding: 36px; display: flex; flex-direction: column; gap: 28px; }
+.form-body { padding: 15px; display: flex; flex-direction: column; gap: 28px; }
 
 .field { display: flex; flex-direction: column; gap: 8px; }
 
@@ -623,17 +623,16 @@ cds-table-row.needs-review {
   height: 40px;
   margin-top: 15px;
   border: rgba(255, 255, 255, 0.5);
+  outline: 2px solid rgba(113, 113, 113, 0.3);
   transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
   
 }
 
-.search:hover{
+.search:hover,
+.search:focus {
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-}
-
-.search:focus {                                                                                                                                                                                                                                                                            
-  outline: 2px solid rgba(113, 113, 113, 0.3); 
+  outline: 2px solid rgba(113, 113, 113, 0.3);
 }
 
 .search-wrap:hover {
@@ -658,10 +657,25 @@ cds-table-row.needs-review {
   border-top-right-radius: 8px;
   border: none;
   transition: background 0.5s ease; 
-  background: white;
+  background: none;
+
 }
 .search-clean:hover{
   background: rgb(197 197 197);
+}
+
+.search-filter{
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 17px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0 20px;
+  height: 40px;
+  margin-top: 15px;
+  background: white;
+  border: 2px solid rgba(113, 113, 113, 0.3);
+  color: #757575;
 }
 
 .btn-save {
@@ -824,7 +838,8 @@ td {
 
 .table-wrap {
   background: var(--white);
-  border-radius: 14px;
+  border-top-right-radius: 14px;
+  border-top-left-radius: 14px;
   border: 1px solid var(--border);
 
   box-shadow: 0 1px 4px rgba(0,0,0,0.04);
@@ -832,12 +847,11 @@ td {
 
 .name-table{
   border-top-left-radius: 14px;
-  border-bottom-left-radius: 14px;
+
 }
 
 .empty-table{
   border-top-right-radius: 14px;
-  border-bottom-right-radius: 14px;
 }
 
 .badge {
