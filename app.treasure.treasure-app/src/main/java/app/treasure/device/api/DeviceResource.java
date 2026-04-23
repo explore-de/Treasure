@@ -3,6 +3,7 @@ package app.treasure.device.api;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import jakarta.ws.rs.*;
 import org.jboss.resteasy.reactive.RestForm;
 
 import app.treasure.device.domain.Device;
@@ -20,10 +21,7 @@ import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.QueryParam;
 
 @Authenticated
 @Path("/devices")
@@ -47,8 +45,7 @@ public class DeviceResource extends Controller
 		private Templates()
 		{
 		}
-
-		public static native TemplateInstance index(List<Device> devices, Member currentmember, List<Member> members);
+		public static native TemplateInstance index(List<Device> devices, Member currentmember, List<Member> members, String query);
 
 		public static native TemplateInstance create();
 
@@ -58,12 +55,12 @@ public class DeviceResource extends Controller
 	}
 	@GET
 	@Path("")
-	public TemplateInstance index()
+	public TemplateInstance index(@QueryParam("query") String query)
 	{
-		List<Device> devices = deviceRepository.listAll(Sort.by("id").ascending());
+		List<Device> devices = deviceRepository.searchByName(query); //  on link /device will heppen method searchByName
 		String username = securityIdentity.getPrincipal().getName();
 		Member currentmember = memberRepository.findByUsername(username);
-		return Templates.index(devices, currentmember, memberRepository.listAll());
+		return Templates.index(devices, currentmember, memberRepository.listAll(), query);
 	}
 
 	@GET
@@ -100,7 +97,7 @@ public class DeviceResource extends Controller
 			device.setStatus("available");
 			deviceRepository.persist(device);
 		}
-		redirect(DeviceResource.class).index();
+		redirect(DeviceResource.class).index(null);
 	}
 
 	@POST
@@ -110,7 +107,7 @@ public class DeviceResource extends Controller
 	{
 		if (!deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*"))
 		{
-			redirect(DeviceResource.class).index();
+			redirect(DeviceResource.class).index(null);
 			return;
 		}
 		Device device = deviceRepository.findById(id);
@@ -118,7 +115,7 @@ public class DeviceResource extends Controller
 		Member member = memberRepository.findByUsername(bookedBy);
 		LOG.debug("bookedBy param: {}, member found: {}", bookedBy, member);
 		device.setBookedBy(member);
-		redirect(DeviceResource.class).index();
+		redirect(DeviceResource.class).index(null);
 	}
 
 	@POST
@@ -129,7 +126,7 @@ public class DeviceResource extends Controller
 
 		Device device = deviceRepository.findById(id);
 		device.delete();
-		redirect(DeviceResource.class).index();
+		redirect(DeviceResource.class).index(null);
 	}
 
 	@POST
@@ -144,6 +141,6 @@ public class DeviceResource extends Controller
 		device.setBookedBy(member);
 		device.setStatus("not available");
 		device.setPickupTime(LocalDateTime.now());
-		redirect(DeviceResource.class).index();
+		redirect(DeviceResource.class).index(null);
 	}
 }
