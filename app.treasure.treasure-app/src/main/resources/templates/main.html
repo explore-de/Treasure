@@ -50,7 +50,7 @@
     </script>
     {#include tags/header.html /}
 
-    <cds-side-nav aria-label="Hauptnavigation" collapse-mode="fixed" expanded>
+    <cds-side-nav aria-label="Hauptnavigation" collapse-mode="fixed">
       <cds-side-nav-items>
 
         <cds-side-nav-link href="/devices" {#if inject:vertxRequest.path.startsWith('/devices')}active{/if}>
@@ -189,6 +189,25 @@
       }
 
       document.addEventListener('DOMContentLoaded', initTagHandling);
+
+        (function responsiveSideNav() {
+        const BREAKPOINT = 1550;
+
+        function apply() {
+        const sideNav = document.querySelector('cds-side-nav');
+        if (!sideNav) return;
+
+        sideNav.expanded = window.innerWidth >= BREAKPOINT;
+      }
+
+        document.addEventListener('DOMContentLoaded', apply);
+
+        let t;
+        window.addEventListener('resize', () => {
+        clearTimeout(t);
+        t = setTimeout(apply, 1);
+      });
+      })();
     </script>
   </body>
 </html>
