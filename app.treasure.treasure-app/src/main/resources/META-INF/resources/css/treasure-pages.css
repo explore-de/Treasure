@@ -606,6 +606,7 @@ cds-table-row.needs-review {
   font-family: 'DM Sans', sans-serif;
   font-size: 17px;
   font-weight: 600;
+  width: 186px;
   cursor: pointer;
   align-items: center;
   gap: 7px;
