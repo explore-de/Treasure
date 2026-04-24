@@ -3,6 +3,7 @@ package app.treasure.device.api;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import io.quarkus.panache.common.Sort;
 import org.jboss.resteasy.reactive.RestForm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +13,6 @@ import app.treasure.device.repository.DeviceRepository;
 import app.treasure.member.domain.Member;
 import app.treasure.member.repository.MemberRepository;
 import io.quarkiverse.renarde.Controller;
-import io.quarkus.panache.common.Sort;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
@@ -23,6 +23,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.QueryParam;
 
 @Authenticated
 @Path("/devices")
@@ -70,11 +71,25 @@ public class DeviceResource extends Controller
 
 	@GET
 	@Path("")
-	public TemplateInstance index()
+	public TemplateInstance index(@QueryParam("searchName") String searchName)
 	{
 		List<Device> devices = deviceRepository.listAll(Sort.by("id").ascending());
+		String searchinName = (searchName == null) ? "" : searchName.trim().toLowerCase();
+		for (Device device : devices)
+		{
+			if (searchinName.isEmpty())
+			{
+				device.setVisible(true);
+			}
+			else
+			{
+				String name = device.getDeviceName();
+				device.setVisible(name != null && name.toLowerCase().contains(searchinName));
+			}
+		}
 		String username = securityIdentity.getPrincipal().getName();
 		Member currentmember = memberRepository.findByUsername(username);
+
 		return Templates.index(devices, currentmember, memberRepository.listAll());
 	}
 
@@ -85,12 +100,43 @@ public class DeviceResource extends Controller
 		return Templates.create(loadKnownGroups());
 	}
 
-	@GET
-	@Path("/{id}/edit")
-	public TemplateInstance edit(@PathParam("id") Long id)
+	@POST
+	@Path("/{id}/search")
+	@Transactional
+	public void search(
+		@PathParam("id") Long id,
+		@RestForm String searchName)
 	{
-		Device device = deviceRepository.findById(id);
-		return Templates.edit(device, loadKnownGroups());
+		{
+			String query = (searchName == null) ? "" : searchName.trim();
+			Device device = deviceRepository.findById(id);
+
+			if (query.isEmpty())
+			{
+				device.setVisible(true);
+			}
+			else
+			{
+				boolean visible = device.getVisible();
+				if (visible)
+				{
+					String name = device.getDeviceName();
+					if (name != null && name.toLowerCase().contains(query.toLowerCase()))
+					{
+						device.setVisible(true);
+					}
+					else
+					{
+						device.setVisible(false);
+					}
+				}
+				else
+				{
+					device.setVisible(false);
+				}
+			}
+		}
+
 	}
 
 	@POST
@@ -125,7 +171,7 @@ public class DeviceResource extends Controller
 
 			deviceRepository.persist(device);
 		}
-		redirect(DeviceResource.class).index();
+		redirect(DeviceResource.class).index(null);
 	}
 
 	@POST
@@ -145,7 +191,7 @@ public class DeviceResource extends Controller
 	{
 		if (deviceName == null || !deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*"))
 		{
-			redirect(DeviceResource.class).index();
+			redirect(DeviceResource.class).index(null);
 			return;
 		}
 
@@ -161,7 +207,7 @@ public class DeviceResource extends Controller
 		device.setDeviceDamage(deviceDamage);
 		device.setDeviceAge(deviceAge);
 
-		redirect(DeviceResource.class).index();
+		redirect(DeviceResource.class).index(null);
 	}
 
 	@POST
@@ -171,7 +217,7 @@ public class DeviceResource extends Controller
 	{
 		Device device = deviceRepository.findById(id);
 		device.delete();
-		redirect(DeviceResource.class).index();
+		redirect(DeviceResource.class).index(null);
 	}
 
 	@POST
@@ -187,7 +233,7 @@ public class DeviceResource extends Controller
 			device.setBookedBy(null);
 			device.setStatus("available");
 			device.setPickupTime(null);
-			redirect(DeviceResource.class).index();
+			redirect(DeviceResource.class).index(null);
 		}
 		else
 		{
@@ -196,7 +242,7 @@ public class DeviceResource extends Controller
 			device.setBookedBy(member);
 			device.setStatus("not available");
 			device.setPickupTime(LocalDateTime.now());
-			redirect(DeviceResource.class).index();
+			redirect(DeviceResource.class).index(null);
 		}
 	}
 }

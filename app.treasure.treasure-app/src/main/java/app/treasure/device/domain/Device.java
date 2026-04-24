@@ -14,6 +14,7 @@ public class Device extends PanacheEntity
 	private String status;
 	private LocalDateTime pickupTime;
 	private String deviceSerialNumber;
+	private Boolean visible;
 
 	@ManyToOne
 	private Member bookedBy;
@@ -46,6 +47,16 @@ public class Device extends PanacheEntity
 	public void setStatus(String status)
 	{
 		this.status = status;
+	}
+
+	public Boolean getVisible()
+	{
+		return visible;
+	}
+
+	public void setVisible(Boolean visible)
+	{
+		this.visible = visible;
 	}
 
 	public LocalDateTime getPickupTime()
