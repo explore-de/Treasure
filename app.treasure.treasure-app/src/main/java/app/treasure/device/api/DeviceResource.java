@@ -105,7 +105,8 @@ public class DeviceResource extends Controller
 	@Transactional
 	public void search(
 		@PathParam("id") Long id,
-		@RestForm String searchName)
+		@RestForm String searchName
+	)
 	{
 		{
 			String query = (searchName == null) ? "" : searchName.trim();

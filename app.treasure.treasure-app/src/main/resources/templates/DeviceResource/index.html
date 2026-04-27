@@ -41,7 +41,19 @@
 </div>
 <div class="advanced-search-row" id="advancedSearchRow" hidden>
     <div class="advanced-search-panel">
-        <a href="#">Link 1</a>
+        <div>Search for Name:</div>
+        <div class="search-wrap" style="position: relative;">
+            <form method="get" action="/devices">
+                <input type="text" class="search" name="searchName" id="searchNameAdvanced" placeholder="e.g. MacBook Air"
+                       style="padding-left: 40px;">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     style="position: absolute; left: 10px; bottom: 14%; pointer-events: none;" fill="none" width="22"
+                     height="22" viewBox="0 0 24 24" stroke-width="2" stroke="gray">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
+                </svg>
+            </form>
+        </div>
         <a href="#">Link 2</a>
         <a href="#">Link 3</a>
     </div>
