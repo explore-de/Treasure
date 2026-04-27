@@ -614,6 +614,7 @@ cds-table-row.needs-review {
   transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
   box-shadow: 0 0 10px rgba(245, 197, 24, 0.5);
   border: 0.5px solid var(--yellow);
+  height: 55px;
 }
 .dropdown-btn {
   background: var(--yellow);
@@ -630,13 +631,14 @@ cds-table-row.needs-review {
   transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
   box-shadow: 0 0 10px rgba(245, 197, 24, 0.5);
   border: 0.5px solid var(--yellow);
+  height: 55px;
 }
 .dropdown-container {
   display: none;
   margin-top: 8px;
   padding: 10px;
   min-width: 220px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
   border-radius: 10px;
   box-shadow: 0 8px 20px rgba(0,0,0,.08);
 }
@@ -693,9 +695,9 @@ cds-table-row.needs-review {
   gap: 8px;
   padding: 6px 10px;
   border-radius: 999px;
-  background: rgba(255,255,255,.10);
-  border: 1px solid rgba(255,255,255,.15);
-  color: #fff;
+  background: var(--white);
+  border: var(--border);
+  color: var(--muted);
   font-size: 13px;
 }
 .tag-type {
@@ -711,7 +713,48 @@ cds-table-row.needs-review {
   opacity: .8;
   font-size: 14px;
 }
-.tag button:hover { opacity: 1; }
+.tag button:hover {
+  opacity: 1;
+}
+.tag:hover {
+  transform: scale(1.05);
+}
+.tag-creator{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--white);
+  border: var(--border);
+  color: var(--muted);
+  font-size: 13px;
+}
+.tag-creator label {
+  font-size: 15px;
+}
+.tag-creator input {
+  border-radius: 5px;
+  border: 2px solid var(--border);
+}
+.tag-creator select {
+  border-radius: 5px;
+  border: 2px solid var(--border);
+}
+.tag-creator-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--yellow);
+  border: var(--border);
+  color: black;
+  font-size: 13px;
+}
+.tag-creator-add:hover {
+  transform: scale(1.05);
+}
 .btn-primary:hover {
   box-shadow: 0 0 20px rgba(245, 197, 24, 0.5);
   transform: scale(1.05);
@@ -720,15 +763,15 @@ cds-table-row.needs-review {
   box-shadow: 0 0 20px rgba(245, 197, 24, 0.5);
   transform: scale(1.05);
 }
+
 .search{
   border-radius: 8px;
   font-family: 'DM Sans', sans-serif;
   font-size: 17px;
   font-weight: 500;
   cursor: pointer;
-  padding: 0 70px;
-  height: 40px;
-  margin-top: 15px;
+  padding: 0;
+  height: 55px;
   border: rgba(255, 255, 255, 0.5);
   transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
@@ -751,14 +794,16 @@ cds-table-row.needs-review {
 .search-wrap{
   display: flex;
   transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  height: 55px;
 } 
 .search-clean {
   display: flex;
   position: absolute;
   right: 0px;
+  top: 50%;
   width: 50px;
-  height: 40px;
-  top: 63%;
+  height: 54px;
+  /*top: 63%;*/
   transform: translateY(-50%);
   cursor: pointer;
   border-bottom-right-radius: 8px;
@@ -911,7 +956,6 @@ thead th {
   text-transform: uppercase;
   color: var(--muted);
   background: #fafafa;
-  border-bottom: 1px solid var(--border);
 }
 
 tbody tr {
@@ -919,9 +963,9 @@ tbody tr {
   transition: background 0.12s;
 }
 tbody tr:last-child { border-bottom: none; }
-tbody tr:hover { background: #fafafa; }
-tbody tr:nth-child(even) { background: #fcfcfb; }
-tbody tr:nth-child(even):hover { background: #f5f5f3; }
+/*tbody tr:hover { background: #fafafa; }*/
+/*tbody tr:nth-child(even) { background: #fcfcfb; }*/
+/*tbody tr:nth-child(even):hover { background: #f5f5f3; }*/
 
 td {
   padding: 14px 25px;
@@ -998,9 +1042,9 @@ body.cds--g100 thead th {
   border-bottom-color: var(--border);
 }
 body.cds--g100 tbody tr { border-bottom-color: var(--border); }
-body.cds--g100 tbody tr:hover { background: #333333; }
-body.cds--g100 tbody tr:nth-child(even) { background: #2a2a2a; }
-body.cds--g100 tbody tr:nth-child(even):hover { background: #333333; }
+/*body.cds--g100 tbody tr:hover { background: #333333; }*/
+/*body.cds--g100 tbody tr:nth-child(even) { background: #2a2a2a; }*/
+/*body.cds--g100 tbody tr:nth-child(even):hover { background: #333333; }*/
 body.cds--g100 td { color: var(--text); }
 body.cds--g100 .badge-available { background: #071e0d; color: #42be65; }
 body.cds--g100 .badge-unavailable { background: #2d2d2d; color: #a8a8a8; }

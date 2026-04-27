@@ -70,18 +70,19 @@ public class DeviceResource extends Controller
 	@GET
 	@Path("")
 	public TemplateInstance index(
-			@QueryParam("searchName") String searchName,
-			@QueryParam("name") List<String> names,
-			@QueryParam("status") List<String> statuses,
-			@QueryParam("bookedBy") List<String> bookedBy,
-			@QueryParam("serial") List<String> serials,
-			@QueryParam("group") List<String> groups,
-			@QueryParam("model") List<String> models,
-			@QueryParam("damage") List<String> damages
-	) {
+		@QueryParam("searchName") String searchName,
+		@QueryParam("name") List<String> names,
+		@QueryParam("status") List<String> statuses,
+		@QueryParam("bookedBy") List<String> bookedBy,
+		@QueryParam("serial") List<String> serials,
+		@QueryParam("group") List<String> groups,
+		@QueryParam("model") List<String> models,
+		@QueryParam("damage") List<String> damages)
+	{
 
 		List<String> nameTerms = normalize(names);
-		if ((nameTerms == null || nameTerms.isEmpty()) && searchName != null && !searchName.isBlank()) {
+		if ((nameTerms == null || nameTerms.isEmpty()) && searchName != null && !searchName.isBlank())
+		{
 			nameTerms = List.of(searchName.trim());
 		}
 
@@ -143,7 +144,7 @@ public class DeviceResource extends Controller
 			models.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceModel(), t));
 
 		boolean damageOk = damages.isEmpty()
-				|| damages.stream().anyMatch(t -> equalsIgnoreCase(d.getDeviceDamage(), t));
+			|| damages.stream().anyMatch(t -> equalsIgnoreCase(d.getDeviceDamage(), t));
 
 		return nameOk && statusOk && bookedOk && serialOk && groupOk && modelOk && damageOk;
 	}
