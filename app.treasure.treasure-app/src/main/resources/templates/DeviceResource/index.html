@@ -24,16 +24,27 @@
                 </svg>
             </button>
             <svg xmlns="http://www.w3.org/2000/svg"
-                 style="position: absolute; left: 10px; bottom: 14%; pointer-events: none;"
-                 fill="none" width="22" height="22" viewBox="0 0 24 24" stroke-width="2" stroke="gray">
+                 style="position: absolute; left: 10px; bottom: 14%; pointer-events: none;" fill="none" width="22"
+                 height="22" viewBox="0 0 24 24" stroke-width="2" stroke="gray">
                 <path stroke-linecap="round" stroke-linejoin="round"
                       d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
             </svg>
         </form>
     </div>
+    <button type="button" class="dropdown-btn" id="advancedToggle"
+            aria-expanded="false" aria-controls="advancedSearchRow">
+        Advanced Search
+    </button>
     <cds-modal>
 
     </cds-modal>
+</div>
+<div class="advanced-search-row" id="advancedSearchRow" hidden>
+    <div class="advanced-search-panel">
+        <a href="#">Link 1</a>
+        <a href="#">Link 2</a>
+        <a href="#">Link 3</a>
+    </div>
 </div>
 <div class="table-wrap" style="margin-top: 10px;">
     <table>
@@ -146,6 +157,41 @@
         if (input) input.value = '';
         if (form) form.submit(); // lädt /devices ohne searchName
     }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const btn = document.getElementById("advancedToggle");
+        const row = document.getElementById("advancedSearchRow");
+        if (!btn || !row) return;
+
+        btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+
+            const isOpen = !row.hasAttribute("hidden");
+            if (isOpen) {
+                row.setAttribute("hidden", "");
+                btn.setAttribute("aria-expanded", "false");
+            } else {
+                row.removeAttribute("hidden");
+                btn.setAttribute("aria-expanded", "true");
+            }
+        });
+
+        // Klick außerhalb schließt
+        document.addEventListener("click", (e) => {
+            if (!e.target.closest("#advancedToggle") && !e.target.closest("#advancedSearchRow")) {
+                row.setAttribute("hidden", "");
+                btn.setAttribute("aria-expanded", "false");
+            }
+        });
+
+        // ESC schließt
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                row.setAttribute("hidden", "");
+                btn.setAttribute("aria-expanded", "false");
+            }
+        });
+    });
 
 
 </script>
