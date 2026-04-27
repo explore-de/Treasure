@@ -41,21 +41,53 @@
 </div>
 <div class="advanced-search-row" id="advancedSearchRow" hidden>
     <div class="advanced-search-panel">
-        <div>Search for Name:</div>
-        <div class="search-wrap" style="position: relative;">
-            <form method="get" action="/devices">
-                <input type="text" class="search" name="searchName" id="searchNameAdvanced" placeholder="e.g. MacBook Air"
-                       style="padding-left: 40px;">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     style="position: absolute; left: 10px; bottom: 14%; pointer-events: none;" fill="none" width="22"
-                     height="22" viewBox="0 0 24 24" stroke-width="2" stroke="gray">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
-                </svg>
-            </form>
+        <div class="adv-grid">
+            <div class="adv-field">
+                <label>Name</label>
+                <input type="text" id="advName" placeholder="e.g. MacBook" />
+                <button type="button" class="btn-secondary" id="addNameBtn">Add</button>
+            </div>
+            <div class="adv-field">
+                <label>Status</label>
+                <select id="advStatus">
+                    <option value="">--</option>
+                    <option value="available">available</option>
+                    <option value="not available">not available</option>
+                </select>
+                <button type="button" class="btn-secondary" id="addStatusBtn">Add</button>
+            </div>
+            <div class="adv-field">
+                <label>Booked by</label>
+                <input type="text" id="advBookedBy" placeholder="e.g. Max">
+                <button type="button" class="btn-secondary" id="addBookedByBtn">Add</button>
+            </div>
+            <div class="adv-field">
+                <label>Serial Number</label>
+                <input type="text" id="advSerial" placeholder="e.g. C02...">
+                <button type="button" class="btn-secondary" id="addSerialBtn">Add</button>
+            </div>
+            <div class="adv-field">
+                <label>Group</label>
+                <input type="text" id="advGroup" placeholder="e.g. Apple">
+                <button type="button" class="btn-secondary" id="addGroupBtn">Add</button>
+            </div>
+            <div class="adv-field">
+                <label>Model</label>
+                <input type="text" id="advModel" placeholder="e.g. Air">
+                <button type="button" class="btn-secondary" id="addModelBtn">Add</button>
+            </div>
+            <div class="adv-field">
+                <label>Damage</label>
+                <select id="advDamage">
+                    <option value="" selected>--</option>
+                    <option value="perfect">perfect</option>
+                    <option value="lightly damaged">lightly damaged</option>
+                    <option value="heavily damaged">heavily damaged</option>
+                    <option value="broken">broken</option>
+                </select>
+                <button type="button" class="btn-secondary" id="addDamageBtn">Add</button>
+            </div>
         </div>
-        <a href="#">Link 2</a>
-        <a href="#">Link 3</a>
     </div>
 </div>
 <div class="tagbar" id="tagbar" hidden>
@@ -142,138 +174,241 @@
 
 {#moreScripts}
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
+    function getParams() {
+        return new URLSearchParams(window.location.search);
+    }
+
+    function navigateWithParams(p) {
+        const qs = p.toString();
+        window.location.href = window.location.pathname + (qs ? "?" + qs : "");
+    }
+
+    function norm(v) {
+        return (v || "").trim();
+    }
+
+    function addParam(key, value) {
+        const v = norm(value);
+        if (!v) return;
+
+        const p = getParams();
+        const existing = p.getAll(key);
+
+        // optional: avoid duplicates
+        if (!existing.includes(v)) {
+            p.append(key, v);
+        }
+        p.delete("searchName");
+
+        navigateWithParams(p);
+    }
+
+    function removeOneParam(key, value) {
+        const p = getParams();
+        const all = p.getAll(key);
+        p.delete(key);
+
+        let removed = false;
+        for (const v of all) {
+            if (!removed && v === value) {
+                removed = true;
+                continue;
+            }
+            p.append(key, v);
+        }
+        navigateWithParams(p);
+    }
+
+    function makeTag(label, key, value) {
+        const el = document.createElement("div");
+        el.className = "tag";
+
+        const typeSpan = document.createElement("span");
+        typeSpan.className = "tag-type";
+        typeSpan.textContent = label + ":";
+
+        const valueSpan = document.createElement("span");
+        valueSpan.className = "tag-value";
+        valueSpan.textContent = value;
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.setAttribute("aria-label", "Remove");
+        btn.textContent = "×";
+        btn.addEventListener("click", () => removeOneParam(key, value));
+
+        el.appendChild(typeSpan);
+        el.appendChild(valueSpan);
+        el.appendChild(btn);
+        return el;
+    }
+
+    function renderTags() {
         const tagbar = document.getElementById("tagbar");
         const taglist = document.getElementById("taglist");
-        const clearBtn = document.getElementById("clearFiltersBtn");
+        if (!tagbar || !taglist) return;
 
-        function params() { return new URLSearchParams(window.location.search); }
-        function navigate(p) {
-            const qs = p.toString();
-            window.location.href = window.location.pathname + (qs ? "?" + qs : "");
+        const p = new URLSearchParams(window.location.search);
+
+        const entries = [
+            { key: "name",     label: "Name",   values: p.getAll("name") },
+            { key: "status",   label: "Status", values: p.getAll("status") },
+            { key: "bookedBy", label: "Booked", values: p.getAll("bookedBy") },
+            { key: "serial",   label: "Serial", values: p.getAll("serial") },
+            { key: "group",    label: "Group",  values: p.getAll("group") },
+            { key: "model",    label: "Model",  values: p.getAll("model") },
+            { key: "damage",   label: "Damage", values: p.getAll("damage") }
+        ];
+
+        taglist.innerHTML = "";
+
+        const total = entries.reduce((acc, e) => acc + e.values.length, 0);
+        if (total === 0) {
+            tagbar.hidden = true;
+            return;
         }
 
-        function render() {
-            const p = params();
-            const names = p.getAll("name");
-            const groups = p.getAll("group");
+        tagbar.hidden = false;
+        entries.forEach(e => e.values.forEach(v => taglist.appendChild(makeTag(e.label, e.key, v))));
+    }
 
-            taglist.innerHTML = "";
-            const total = names.length + groups.length;
+    function clearAllFilters() {
+        const p = getParams();
+        p.delete("name");
+        p.delete("status");
+        p.delete("bookedBy");
+        p.delete("serial");
+        p.delete("group");
+        p.delete("model");
+        p.delete("damage");
+        p.delete("searchName"); // legacy
+        navigateWithParams(p);
+    }
 
-            if (total === 0) { tagbar.hidden = true; return; }
-            tagbar.hidden = false;
+    function hookAdvancedAdders() {
+        const nameInp = document.getElementById("advName");
 
-            names.forEach(v => taglist.appendChild(makeTag("Name", "name", v)));
-            groups.forEach(v => taglist.appendChild(makeTag("Group", "group", v)));
-        }
+        const statusSel = document.getElementById("advStatus");
+        const bookedByInp = document.getElementById("advBookedBy");
+        const serialInp = document.getElementById("advSerial");
+        const groupInp = document.getElementById("advGroup");
+        const modelInp = document.getElementById("advModel");
+        const damageSel = document.getElementById("advDamage");
 
-        function makeTag(label, key, value) {
-            const el = document.createElement("div");
-            el.className = "tag";
+        const addNameBtn = document.getElementById("addNameBtn");
+        const addStatusBtn = document.getElementById("addStatusBtn");
+        const addBookedByBtn = document.getElementById("addBookedByBtn");
+        const addSerialBtn = document.getElementById("addSerialBtn");
+        const addGroupBtn = document.getElementById("addGroupBtn");
+        const addModelBtn = document.getElementById("addModelBtn");
+        const addDamageBtn = document.getElementById("addDamageBtn");
 
-            const typeSpan = document.createElement("span");
-            typeSpan.className = "tag-type";
-            typeSpan.textContent = label + ":";
-
-            const valueSpan = document.createElement("span");
-            valueSpan.className = "tag-value";
-            valueSpan.textContent = value;
-
-            const btn = document.createElement("button");
-            btn.type = "button";
-            btn.setAttribute("aria-label", "Remove");
-            btn.textContent = "×";
-            btn.addEventListener("click", () => removeOne(key, value));
-
-            el.appendChild(typeSpan);
-            el.appendChild(valueSpan);
-            el.appendChild(btn);
-            return el;
-        }
-
-        function removeOne(key, value) {
-            const p = params();
-            const all = p.getAll(key);
-            p.delete(key);
-
-            let removed = false;
-            for (const v of all) {
-                if (!removed && v === value) { removed = true; continue; }
-                p.append(key, v);
-            }
-            navigate(p);
-        }
-
-        if (clearBtn) {
-            clearBtn.addEventListener("click", () => {
-                const p = params();
-                p.delete("name");
-                p.delete("group");
-                p.delete("searchName");
-                navigate(p);
+        if (addNameBtn && nameInp) {
+            addNameBtn.addEventListener("click", function () {
+                addParam("name", nameInp.value);
             });
         }
 
-        render();
-    });
-    document.addEventListener("DOMContentLoaded", () => {
+        if (addStatusBtn && statusSel) {
+            addStatusBtn.addEventListener("click", function () {
+                addParam("status", statusSel.value);
+            });
+        }
+
+        if (addBookedByBtn && bookedByInp) {
+            addBookedByBtn.addEventListener("click", function () {
+                addParam("bookedBy", bookedByInp.value);
+            });
+        }
+
+        if (addSerialBtn && serialInp) {
+            addSerialBtn.addEventListener("click", function () {
+                addParam("serial", serialInp.value);
+            });
+        }
+
+        if (addGroupBtn && groupInp) {
+            addGroupBtn.addEventListener("click", function () {
+                addParam("group", groupInp.value);
+            });
+        }
+
+        if (addModelBtn && modelInp) {
+            addModelBtn.addEventListener("click", function () {
+                addParam("model", modelInp.value);
+            });
+        }
+
+        if (addDamageBtn && damageSel) {
+            addDamageBtn.addEventListener("click", function () {
+                addParam("damage", damageSel.value);
+            });
+        }
+
+        function bindEnter(input, key) {
+            if (!input) return;
+            input.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    addParam(key, input.value);
+                }
+            });
+        }
+
+        bindEnter(nameInp, "name");
+        bindEnter(bookedByInp, "bookedBy");
+        bindEnter(serialInp, "serial");
+        bindEnter(groupInp, "group");
+        bindEnter(modelInp, "model");
+    }
+
+    function hookQuickSearch() {
         const form = document.getElementById("quickSearchForm");
         const input = document.getElementById("quickSearchInput");
         if (!form || !input) return;
 
         form.addEventListener("submit", (e) => {
             e.preventDefault();
-            const v = (input.value || "").trim();
-            if (!v) return;
-
-            const p = new URLSearchParams(window.location.search);
-            // keine Duplikate (optional)
-            if (!p.getAll("name").includes(v)) p.append("name", v);
-
+            addParam("name", input.value);
             input.value = "";
-            window.location.href = window.location.pathname + "?" + p.toString();
         });
-    });
+    }
 
-    document.addEventListener('click', function (e) {
-        if (!e.target.closest('.assign-wrap')) {
-            document.querySelectorAll('.assign-dropdown').forEach(function (d) {
-                d.style.display = 'none';
+    document.addEventListener("click", function (e) {
+        if (!e.target.closest(".assign-wrap")) {
+            document.querySelectorAll(".assign-dropdown").forEach(function (d) {
+                d.style.display = "none";
             });
         }
     });
 
     function toggleDropdown(id) {
         var dropdown = document.getElementById(id);
-        var isOpen = dropdown.style.display === 'block';
-        document.querySelectorAll('.assign-dropdown').forEach(function (d) {
-            d.style.display = 'none';
+        var isOpen = dropdown.style.display === "block";
+        document.querySelectorAll(".assign-dropdown").forEach(function (d) {
+            d.style.display = "none";
         });
-        dropdown.style.display = isOpen ? 'none' : 'block';
+        dropdown.style.display = isOpen ? "none" : "block";
     }
 
     function confirmDelete(formEl) {
-        const name = formEl.dataset.deviceName || 'this device';
+        const name = formEl.dataset.deviceName || "this device";
         return confirm("Continue Deleting: " + name + "?");
     }
 
     function clearSearch() {
-        const input = document.querySelector('input[name="searchName"]');
-        const form = document.querySelector('form[action="/devices"]');
-
-        if (input) input.value = '';
-        if (form) form.submit(); // lädt /devices ohne searchName
+        const input = document.getElementById("quickSearchInput");
+        if (input) input.value = "";
+        clearAllFilters();
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
+    function hookAdvancedToggle() {
         const btn = document.getElementById("advancedToggle");
         const row = document.getElementById("advancedSearchRow");
         if (!btn || !row) return;
 
         btn.addEventListener("click", (e) => {
             e.stopPropagation();
-
             const isOpen = !row.hasAttribute("hidden");
             if (isOpen) {
                 row.setAttribute("hidden", "");
@@ -284,7 +419,6 @@
             }
         });
 
-        // Klick außerhalb schließt
         document.addEventListener("click", (e) => {
             if (!e.target.closest("#advancedToggle") && !e.target.closest("#advancedSearchRow")) {
                 row.setAttribute("hidden", "");
@@ -292,16 +426,25 @@
             }
         });
 
-        // ESC schließt
         document.addEventListener("keydown", (e) => {
             if (e.key === "Escape") {
                 row.setAttribute("hidden", "");
                 btn.setAttribute("aria-expanded", "false");
             }
         });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // tagbar clear button
+        const clearBtn = document.getElementById("clearFiltersBtn");
+        if (clearBtn) {
+            clearBtn.addEventListener("click", clearAllFilters);
+        }
+        hookQuickSearch();
+        hookAdvancedToggle();
+        hookAdvancedAdders();
+        renderTags();
     });
-
-
 </script>
 {/moreScripts}
 

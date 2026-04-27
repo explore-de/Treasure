@@ -72,27 +72,33 @@ public class DeviceResource extends Controller
 	@GET
 	@Path("")
 	public TemplateInstance index(
-		@QueryParam("searchName") String searchName,
-		@QueryParam("name") List<String> names,
-		@QueryParam("group") List<String> groups)
-	{
-		// 1) Fallback: altes searchName als Name-Tag behandeln (nur wenn keine
-		// name-Tags existieren)
-		if ((names == null || names.isEmpty()) && searchName != null && !searchName.trim().isBlank())
-		{
-			names = List.of(searchName.trim());
+			@QueryParam("searchName") String searchName,
+			@QueryParam("name") List<String> names,
+			@QueryParam("status") List<String> statuses,
+			@QueryParam("bookedBy") List<String> bookedBy,
+			@QueryParam("serial") List<String> serials,
+			@QueryParam("group") List<String> groups,
+			@QueryParam("model") List<String> models,
+			@QueryParam("damage") List<String> damages
+	) {
+
+		List<String> nameTerms = normalize(names);
+		if ((nameTerms == null || nameTerms.isEmpty()) && searchName != null && !searchName.isBlank()) {
+			nameTerms = List.of(searchName.trim());
 		}
 
-		// 2) Normalisieren (trim + empty raus)
-		List<String> nameTerms = (names == null) ? List.of() : names.stream().map(s -> s == null ? "" : s.trim()).filter(s -> !s.isBlank()).toList();
+		List<String> st = normalize(statuses);
+		List<String> bb = normalize(bookedBy);
+		List<String> se = normalize(serials);
+		List<String> gr = normalize(groups);
+		List<String> mo = normalize(models);
+		List<String> da = normalize(damages);
 
-		List<String> groupTerms = (groups == null) ? List.of() : groups.stream().map(s -> s == null ? "" : s.trim()).filter(s -> !s.isBlank()).toList();
-
-		// 3) Laden + filtern
 		List<Device> all = deviceRepository.listAll(Sort.by("id").ascending());
 
+		List<String> finalNameTerms = nameTerms;
 		List<Device> filtered = all.stream()
-			.filter(d -> matchesTerms(d, nameTerms, groupTerms))
+			.filter(d -> matches(d, finalNameTerms, st, bb, se, gr, mo, da))
 			.toList();
 
 		String username = securityIdentity.getPrincipal().getName();
@@ -101,11 +107,47 @@ public class DeviceResource extends Controller
 		return Templates.index(filtered, currentmember, memberRepository.listAll());
 	}
 
-	private boolean matchesTerms(Device d, List<String> names, List<String> groups)
+	private List<String> normalize(List<String> in)
 	{
-		boolean nameOk = names.isEmpty() || names.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceName(), t));
-		boolean groupOk = groups.isEmpty() || groups.stream().anyMatch(t -> containsIgnoreCase(d.getGroup(), t));
-		return nameOk && groupOk;
+		if (in == null) return List.of();
+		return in.stream()
+			.map(s -> s == null ? "" : s.trim())
+			.filter(s -> !s.isBlank())
+			.toList();
+	}
+
+	private boolean matches(Device d,
+		List<String> nameFallback,
+		List<String> statuses,
+		List<String> bookedBy,
+		List<String> serials,
+		List<String> groups,
+		List<String> models,
+		List<String> damages)
+	{
+
+		boolean nameOk = nameFallback.isEmpty() ||
+			nameFallback.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceName(), t));
+
+		boolean statusOk = statuses.isEmpty() ||
+			statuses.stream().anyMatch(t -> equalsIgnoreCase(d.getStatus(), t));
+
+		boolean bookedOk = bookedBy.isEmpty() ||
+			bookedBy.stream().anyMatch(t -> containsIgnoreCase(d.getBookedName(), t));
+
+		boolean serialOk = serials.isEmpty() ||
+			serials.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceSerialNumber(), t));
+
+		boolean groupOk = groups.isEmpty() ||
+			groups.stream().anyMatch(t -> containsIgnoreCase(d.getGroup(), t));
+
+		boolean modelOk = models.isEmpty() ||
+			models.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceModel(), t));
+
+		boolean damageOk = damages.isEmpty()
+				|| damages.stream().anyMatch(t -> equalsIgnoreCase(d.getDeviceDamage(), t));
+
+		return nameOk && statusOk && bookedOk && serialOk && groupOk && modelOk && damageOk;
 	}
 
 	private boolean containsIgnoreCase(String haystack, String needle)
@@ -114,11 +156,25 @@ public class DeviceResource extends Controller
 		return haystack.toLowerCase().contains(needle.toLowerCase());
 	}
 
+	private boolean equalsIgnoreCase(String a, String b)
+	{
+		if (a == null || b == null) return false;
+		return a.equalsIgnoreCase(b);
+	}
+
 	@GET
 	@Path("/new")
 	public TemplateInstance create()
 	{
 		return Templates.create(loadKnownGroups());
+	}
+
+	@GET
+	@Path("/{id}/edit")
+	public TemplateInstance edit(@PathParam("id") Long id)
+	{
+		Device device = deviceRepository.findById(id);
+		return Templates.edit(device, loadKnownGroups());
 	}
 
 	@POST
