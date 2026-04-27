@@ -14,15 +14,12 @@ public class Device extends PanacheEntity
 	private String status;
 	private LocalDateTime pickupTime;
 	private String deviceSerialNumber;
+	private Boolean visible;
 
 	@ManyToOne
 	private Member bookedBy;
-
 	private String createdOn;
-
-	// ✅ rename backing field to avoid JPQL keyword issues
 	private String deviceGroup;
-
 	private String extraInfo;
 	private String deviceModel;
 	private String deviceDamage;
@@ -46,6 +43,16 @@ public class Device extends PanacheEntity
 	public void setStatus(String status)
 	{
 		this.status = status;
+	}
+
+	public Boolean getVisible()
+	{
+		return visible;
+	}
+
+	public void setVisible(Boolean visible)
+	{
+		this.visible = visible;
 	}
 
 	public LocalDateTime getPickupTime()
@@ -88,7 +95,6 @@ public class Device extends PanacheEntity
 		return createdOn;
 	}
 
-	// ✅ keep public API as "group" (matches your forms/templates)
 	public void setGroup(String group)
 	{
 		this.deviceGroup = group;
@@ -104,7 +110,6 @@ public class Device extends PanacheEntity
 		this.extraInfo = extraInfo;
 	}
 
-	// ✅ FIX: correct JavaBean getter name
 	public String getExtraInfo()
 	{
 		return extraInfo;
