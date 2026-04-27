@@ -11,9 +11,9 @@
         </button>
     </a>
     <div class="search-wrap" style="position: relative;">
-        <form method="get" action="/devices">
-            <input type="text" class="search" name="searchName" id="searchName" placeholder="e.g. MacBook Air"
-                   style="padding-left: 40px;">
+
+        <form method="get" action="/devices" id="quickSearchForm">
+            <input type="text" class="search" id="quickSearchInput" placeholder="e.g. MacBook Air" style="padding-left: 40px;">
             <button type="button" class="search-clean" onclick="clearSearch()">
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
                      style="justify-content: center; align-items: center; padding-bottom: 0">
@@ -58,6 +58,10 @@
         <a href="#">Link 3</a>
     </div>
 </div>
+<div class="tagbar" id="tagbar" hidden>
+    <div class="taglist" id="taglist"></div>
+    <button type="button" class="btn-secondary" id="clearFiltersBtn">Clear</button>
+</div>
 <div class="table-wrap" style="margin-top: 10px;">
     <table>
         <thead>
@@ -72,7 +76,6 @@
         </thead>
         <tbody>
         {#for device in devices}
-        {#if device.visible}
         <tr>
             <td>{device.deviceName}</td>
             <td>
@@ -132,7 +135,6 @@
                 </div>
             </td>
         </tr>
-        {/if}
         {/for}
         </tbody>
     </table>
@@ -140,6 +142,100 @@
 
 {#moreScripts}
 <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const tagbar = document.getElementById("tagbar");
+        const taglist = document.getElementById("taglist");
+        const clearBtn = document.getElementById("clearFiltersBtn");
+
+        function params() { return new URLSearchParams(window.location.search); }
+        function navigate(p) {
+            const qs = p.toString();
+            window.location.href = window.location.pathname + (qs ? "?" + qs : "");
+        }
+
+        function render() {
+            const p = params();
+            const names = p.getAll("name");
+            const groups = p.getAll("group");
+
+            taglist.innerHTML = "";
+            const total = names.length + groups.length;
+
+            if (total === 0) { tagbar.hidden = true; return; }
+            tagbar.hidden = false;
+
+            names.forEach(v => taglist.appendChild(makeTag("Name", "name", v)));
+            groups.forEach(v => taglist.appendChild(makeTag("Group", "group", v)));
+        }
+
+        function makeTag(label, key, value) {
+            const el = document.createElement("div");
+            el.className = "tag";
+
+            const typeSpan = document.createElement("span");
+            typeSpan.className = "tag-type";
+            typeSpan.textContent = label + ":";
+
+            const valueSpan = document.createElement("span");
+            valueSpan.className = "tag-value";
+            valueSpan.textContent = value;
+
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.setAttribute("aria-label", "Remove");
+            btn.textContent = "×";
+            btn.addEventListener("click", () => removeOne(key, value));
+
+            el.appendChild(typeSpan);
+            el.appendChild(valueSpan);
+            el.appendChild(btn);
+            return el;
+        }
+
+        function removeOne(key, value) {
+            const p = params();
+            const all = p.getAll(key);
+            p.delete(key);
+
+            let removed = false;
+            for (const v of all) {
+                if (!removed && v === value) { removed = true; continue; }
+                p.append(key, v);
+            }
+            navigate(p);
+        }
+
+        if (clearBtn) {
+            clearBtn.addEventListener("click", () => {
+                const p = params();
+                p.delete("name");
+                p.delete("group");
+                p.delete("searchName");
+                navigate(p);
+            });
+        }
+
+        render();
+    });
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("quickSearchForm");
+        const input = document.getElementById("quickSearchInput");
+        if (!form || !input) return;
+
+        form.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const v = (input.value || "").trim();
+            if (!v) return;
+
+            const p = new URLSearchParams(window.location.search);
+            // keine Duplikate (optional)
+            if (!p.getAll("name").includes(v)) p.append("name", v);
+
+            input.value = "";
+            window.location.href = window.location.pathname + "?" + p.toString();
+        });
+    });
+
     document.addEventListener('click', function (e) {
         if (!e.target.closest('.assign-wrap')) {
             document.querySelectorAll('.assign-dropdown').forEach(function (d) {

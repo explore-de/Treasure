@@ -71,26 +71,47 @@ public class DeviceResource extends Controller
 
 	@GET
 	@Path("")
-	public TemplateInstance index(@QueryParam("searchName") String searchName)
+	public TemplateInstance index(
+		@QueryParam("searchName") String searchName,
+		@QueryParam("name") List<String> names,
+		@QueryParam("group") List<String> groups)
 	{
-		List<Device> devices = deviceRepository.listAll(Sort.by("id").ascending());
-		String searchinName = (searchName == null) ? "" : searchName.trim().toLowerCase();
-		for (Device device : devices)
+		// 1) Fallback: altes searchName als Name-Tag behandeln (nur wenn keine
+		// name-Tags existieren)
+		if ((names == null || names.isEmpty()) && searchName != null && !searchName.trim().isBlank())
 		{
-			if (searchinName.isEmpty())
-			{
-				device.setVisible(true);
-			}
-			else
-			{
-				String name = device.getDeviceName();
-				device.setVisible(name != null && name.toLowerCase().contains(searchinName));
-			}
+			names = List.of(searchName.trim());
 		}
+
+		// 2) Normalisieren (trim + empty raus)
+		List<String> nameTerms = (names == null) ? List.of() : names.stream().map(s -> s == null ? "" : s.trim()).filter(s -> !s.isBlank()).toList();
+
+		List<String> groupTerms = (groups == null) ? List.of() : groups.stream().map(s -> s == null ? "" : s.trim()).filter(s -> !s.isBlank()).toList();
+
+		// 3) Laden + filtern
+		List<Device> all = deviceRepository.listAll(Sort.by("id").ascending());
+
+		List<Device> filtered = all.stream()
+			.filter(d -> matchesTerms(d, nameTerms, groupTerms))
+			.toList();
+
 		String username = securityIdentity.getPrincipal().getName();
 		Member currentmember = memberRepository.findByUsername(username);
 
-		return Templates.index(devices, currentmember, memberRepository.listAll());
+		return Templates.index(filtered, currentmember, memberRepository.listAll());
+	}
+
+	private boolean matchesTerms(Device d, List<String> names, List<String> groups)
+	{
+		boolean nameOk = names.isEmpty() || names.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceName(), t));
+		boolean groupOk = groups.isEmpty() || groups.stream().anyMatch(t -> containsIgnoreCase(d.getGroup(), t));
+		return nameOk && groupOk;
+	}
+
+	private boolean containsIgnoreCase(String haystack, String needle)
+	{
+		if (haystack == null || needle == null) return false;
+		return haystack.toLowerCase().contains(needle.toLowerCase());
 	}
 
 	@GET
@@ -105,8 +126,7 @@ public class DeviceResource extends Controller
 	@Transactional
 	public void search(
 		@PathParam("id") Long id,
-		@RestForm String searchName
-	)
+		@RestForm String searchName)
 	{
 		{
 			String query = (searchName == null) ? "" : searchName.trim();
@@ -172,7 +192,7 @@ public class DeviceResource extends Controller
 
 			deviceRepository.persist(device);
 		}
-		redirect(DeviceResource.class).index(null);
+		seeOther("/devices");
 	}
 
 	@POST
@@ -192,7 +212,7 @@ public class DeviceResource extends Controller
 	{
 		if (deviceName == null || !deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*"))
 		{
-			redirect(DeviceResource.class).index(null);
+			seeOther("/devices");
 			return;
 		}
 
@@ -208,7 +228,7 @@ public class DeviceResource extends Controller
 		device.setDeviceDamage(deviceDamage);
 		device.setDeviceAge(deviceAge);
 
-		redirect(DeviceResource.class).index(null);
+		seeOther("/devices");
 	}
 
 	@POST
@@ -218,7 +238,7 @@ public class DeviceResource extends Controller
 	{
 		Device device = deviceRepository.findById(id);
 		device.delete();
-		redirect(DeviceResource.class).index(null);
+		seeOther("/devices");
 	}
 
 	@POST
@@ -234,7 +254,7 @@ public class DeviceResource extends Controller
 			device.setBookedBy(null);
 			device.setStatus("available");
 			device.setPickupTime(null);
-			redirect(DeviceResource.class).index(null);
+			seeOther("/devices");
 		}
 		else
 		{
@@ -243,7 +263,7 @@ public class DeviceResource extends Controller
 			device.setBookedBy(member);
 			device.setStatus("not available");
 			device.setPickupTime(LocalDateTime.now());
-			redirect(DeviceResource.class).index(null);
+			seeOther("/devices");
 		}
 	}
 }

@@ -27,6 +27,6 @@ public class DashboardResource extends Controller
 	@Path("")
 	public void index()
 	{
-		redirect(DeviceResource.class).index(null);
+		seeOther("/devices");
 	}
 }
