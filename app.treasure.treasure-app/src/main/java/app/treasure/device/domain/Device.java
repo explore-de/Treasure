@@ -18,12 +18,8 @@ public class Device extends PanacheEntity
 
 	@ManyToOne
 	private Member bookedBy;
-
 	private String createdOn;
-
-	// ✅ rename backing field to avoid JPQL keyword issues
 	private String deviceGroup;
-
 	private String extraInfo;
 	private String deviceModel;
 	private String deviceDamage;
@@ -99,7 +95,6 @@ public class Device extends PanacheEntity
 		return createdOn;
 	}
 
-	// ✅ keep public API as "group" (matches your forms/templates)
 	public void setGroup(String group)
 	{
 		this.deviceGroup = group;
@@ -115,7 +110,6 @@ public class Device extends PanacheEntity
 		this.extraInfo = extraInfo;
 	}
 
-	// ✅ FIX: correct JavaBean getter name
 	public String getExtraInfo()
 	{
 		return extraInfo;

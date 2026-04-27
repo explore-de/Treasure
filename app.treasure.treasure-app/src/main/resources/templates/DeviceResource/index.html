@@ -281,7 +281,7 @@
         p.delete("group");
         p.delete("model");
         p.delete("damage");
-        p.delete("searchName"); // legacy
+        p.delete("searchName");
         navigateWithParams(p);
     }
 
@@ -435,7 +435,6 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-        // tagbar clear button
         const clearBtn = document.getElementById("clearFiltersBtn");
         if (clearBtn) {
             clearBtn.addEventListener("click", clearAllFilters);

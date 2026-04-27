@@ -52,13 +52,11 @@ public class DeviceResource extends Controller
 
 		public static native TemplateInstance index(List<Device> devices, Member currentmember, List<Member> members);
 
-		// ✅ groups als Vorschlagsliste für das Group-Input
 		public static native TemplateInstance create(List<String> groups);
 
 		public static native TemplateInstance edit(Device device, List<String> groups);
 	}
 
-	// ✅ bekannte Gruppen aus existierenden Devices (distinct + sort)
 	private List<String> loadKnownGroups()
 	{
 		return deviceRepository.listAll().stream()
@@ -239,7 +237,6 @@ public class DeviceResource extends Controller
 			device.setStatus("available");
 			device.setCreatedOn(String.valueOf(LocalDateTime.now()));
 
-			// ✅ neue Felder setzen
 			device.setGroup(group);
 			device.setDeviceModel(deviceModel);
 			device.setExtraInfo(extraInfo);
@@ -259,7 +256,6 @@ public class DeviceResource extends Controller
 		@RestForm String deviceName,
 		@RestForm String deviceSerialNumber,
 
-		// ✅ neue Felder
 		@RestForm String group,
 		@RestForm String deviceModel,
 		@RestForm String extraInfo,
@@ -277,7 +273,6 @@ public class DeviceResource extends Controller
 		device.setDeviceName(deviceName);
 		device.setDeviceSerialNumber(deviceSerialNumber);
 
-		// ✅ neue Felder updaten
 		device.setGroup(group);
 		device.setDeviceModel(deviceModel);
 		device.setExtraInfo(extraInfo);

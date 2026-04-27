@@ -632,7 +632,7 @@ cds-table-row.needs-review {
   border: 0.5px solid var(--yellow);
 }
 .dropdown-container {
-  display: none;                /* default zu */
+  display: none;
   margin-top: 8px;
   padding: 10px;
   min-width: 220px;
