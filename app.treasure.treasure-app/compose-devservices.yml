@@ -1,6 +1,7 @@
 services:
   temporal-postgresql:
     image: postgres:17
+    restart: unless-stopped
     environment:
       POSTGRES_DB: temporal
       POSTGRES_USER: temporal
@@ -12,6 +13,7 @@ services:
 
   temporal-server:
     image: temporalio/auto-setup:1.24.2
+    restart: unless-stopped
     depends_on:
       - temporal-postgresql
     environment:
@@ -60,6 +62,7 @@ services:
 
   temporal-ui:
     image: temporalio/ui:2.24.0
+    restart: unless-stopped
     depends_on:
       temporal-server:
         condition: service_started

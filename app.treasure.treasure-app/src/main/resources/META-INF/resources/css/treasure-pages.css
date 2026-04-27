@@ -542,6 +542,12 @@ cds-table-row.needs-review {
 
 .form-body { padding: 15px; display: flex; flex-direction: column; gap: 28px; }
 
+.form-body-top { padding: 36px 36px 0px 36px; display: flex; flex-direction: column; gap: 28px; }
+
+.form-body-middle { padding: 36px 36px 0px 36px; display: flex; flex-direction: column; gap: 28px; }
+
+.form-body-bottom { padding: 36px; display: flex; flex-direction: column; gap: 28px; }
+
 .field { display: flex; flex-direction: column; gap: 8px; }
 
 .field-label { font-size: 14px; font-weight: 600; letter-spacing: 0.3px; color: var(--text); }
@@ -564,8 +570,13 @@ cds-table-row.needs-review {
   border-color: var(--yellow-dark);
   box-shadow: 0 0 0 3px rgba(245,197,24,0.15);
 }
-.field-input::placeholder { color: #bbb; }
+.field-input::placeholder { color: #bbb;}
 .field-input.error { border-color: var(--red); }
+
+textarea.field-input {
+  height: 45px;
+  padding-top: 10px;
+}
 
 .field-error { font-size: 13px; color: var(--red); display: flex; align-items: center; gap: 4px; }
 
@@ -912,6 +923,6 @@ body.cds--g100 .badge-available { background: #071e0d; color: #42be65; }
 body.cds--g100 .badge-unavailable { background: #2d2d2d; color: #a8a8a8; }
 body.cds--g100 .badge-unavailable .badge-dot { background: #6f6f6f; }
 body.cds--g100 .badge-maintenance { background: #2c2100; color: #f1c21b; }
-body.cds--g100 .field-input { background: #393939; color: var(--text); border-color: var(--border); }
+body.cds--g100 .field-input { background: #393939; color: var(--text); border-color: var(--border);}
 body.cds--g100 .field-input:focus { border-color: #d4a90e; box-shadow: 0 0 0 3px rgba(212,169,14,0.15); }
 body.cds--g100 .admin-only-tag { background: var(--yellow-light); color: #e8a000; }
