@@ -67,6 +67,10 @@ public class DeviceResource extends Controller
 			.toList();
 	}
 
+	private void redirectToIndex() {
+		redirect(DeviceResource.class).index(null, null, null, null, null, null, null);
+	}
+
 	@GET
 	@Path("")
 	public TemplateInstance index(
@@ -228,7 +232,7 @@ public class DeviceResource extends Controller
 
 			deviceRepository.persist(device);
 		}
-		redirect(DeviceResource.class).index(null);
+		redirectToIndex();
 	}
 
 	@POST
@@ -247,7 +251,7 @@ public class DeviceResource extends Controller
 	{
 		if (deviceName == null || !deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*"))
 		{
-			redirect(DeviceResource.class).index(null);
+			redirectToIndex();
 			return;
 		}
 
@@ -262,7 +266,7 @@ public class DeviceResource extends Controller
 		device.setDeviceDamage(deviceDamage);
 		device.setDeviceAge(deviceAge);
 
-		redirect(DeviceResource.class).index(null);
+		redirectToIndex();
 	}
 
 	@POST
@@ -272,8 +276,43 @@ public class DeviceResource extends Controller
 	{
 		Device device = deviceRepository.findById(id);
 		device.delete();
-		redirect(DeviceResource.class).index(null);
+		redirectToIndex();
 	}
+
+	@POST
+	@Path("/delete-many")
+	@Transactional
+	public void deleteMany(@RestForm List<Long> ids){
+		for (Long id : ids){
+			Device device = deviceRepository.findById(id);
+			device.delete();
+		};
+		redirectToIndex(); // this thing saves everything to index
+	}
+
+	@POST
+	@Path("/assign-many")
+	@Transactional
+	public void assignMany(@RestForm List<Long> ids, @RestForm String bookedBy){
+		Member member = memberRepository.findByUsername(bookedBy);
+		for (Long id : ids){
+			Device device = deviceRepository.findById(id);
+			if (device.getBookedBy() == member)
+			{
+				device.setBookedBy(null);
+				device.setStatus("available");
+				device.setPickupTime(null);
+				redirectToIndex();
+			}
+			else {
+				device.setBookedBy(member);
+				device.setStatus("not available");
+				device.setPickupTime(LocalDateTime.now());
+				redirectToIndex();
+			}
+		}
+	}
+
 
 	@POST
 	@Path("/{id}/assign")
@@ -288,7 +327,6 @@ public class DeviceResource extends Controller
 			device.setBookedBy(null);
 			device.setStatus("available");
 			device.setPickupTime(null);
-			redirect(DeviceResource.class).index(null);
 		}
 		else
 		{
@@ -297,7 +335,7 @@ public class DeviceResource extends Controller
 			device.setBookedBy(member);
 			device.setStatus("not available");
 			device.setPickupTime(LocalDateTime.now());
-			redirect(DeviceResource.class).index(null);
 		}
+		redirectToIndex();
 	}
 }

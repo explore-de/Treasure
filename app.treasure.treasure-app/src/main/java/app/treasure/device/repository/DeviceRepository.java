@@ -9,17 +9,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class DeviceRepository implements PanacheRepository<Device>
 {
-	public List<Device> findAllDevices()
+	public List<Device> findAllDevices() // Lists all devices
 	{
 		return listAll();
-	}
-
-	public List<Device> searchByName(String query)
-	{
-		if (query == null || query.isEmpty())
-		{
-			return listAll();
-		}
-		return list("lower(deviceName) like ?1", "%" + query.toLowerCase() + "%");
 	}
 }

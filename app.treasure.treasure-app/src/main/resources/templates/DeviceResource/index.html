@@ -98,6 +98,7 @@
     <table>
         <thead>
         <tr>
+            <th class="select"></th>
             <th class="name-table">Name</th>
             <th>Status</th>
             <th>Booked by</th>
@@ -109,7 +110,8 @@
         <tbody>
         {#for device in devices}
         <tr>
-            <td>{device.deviceName}</td>
+            <td class="select-checkbox"><input data-id="{device.id}" class="checkbox" type="checkbox"></td>
+            <td class="td-deviceName">{device.deviceName}</td>
             <td>
                 {#if device.status == "available"}
                 <span class="badge badge-available">
@@ -174,8 +176,27 @@
 
 {#moreScripts}
 <script>
+    // array of selected device ids
+    let selected = [];
+
     function getParams() {
         return new URLSearchParams(window.location.search);
+    }
+
+    function DOMContenLoaded(){
+        // find all classes checkbox and listen for changes
+        document.querySelectorAll('.checkbox')
+            .forEach(cb => cb.addEventListener("change", (e) => {
+                if (e.target.checked) {
+                    // checkbox checked — add id to array
+                    selected.push(e.target.dataset.id);
+                    console.log("added: ", selected);
+                } else {
+                    // checkbox unchecked — remove id from array
+                    selected = selected.filter(i => i !== e.target.dataset.id);
+                    console.log("removed: ", selected);
+                }
+            }));
     }
 
     function navigateWithParams(p) {
@@ -394,6 +415,11 @@
     function confirmDelete(formEl) {
         const name = formEl.dataset.deviceName || "this device";
         return confirm("Continue Deleting: " + name + "?");
+        if (selected.length > 1){
+            document.createElement("form")
+
+
+        };
     }
 
     function clearSearch() {
@@ -443,6 +469,7 @@
         hookAdvancedToggle();
         hookAdvancedAdders();
         renderTags();
+        DOMContenLoaded();
     });
 </script>
 {/moreScripts}

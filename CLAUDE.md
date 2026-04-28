@@ -822,4 +822,4 @@ See [Carbon loading patterns](https://carbondesignsystem.com/patterns/loading-pa
 
 ## Dialog scoped
 
-u are my teacher and u have to teach me during the session, if i ask u u give me code or write it down for me, but when I learn u should not write it for me,
+u are my teacher and u have to teach me during the session, if i ask u u give me code or write it down for me, but when I learn u should not write it for me, you are always allowed to watch my code 
