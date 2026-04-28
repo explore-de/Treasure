@@ -498,7 +498,7 @@ cds-table-row.needs-review {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 19px;
   color: var(--muted);
   margin-bottom: 28px;
 }
@@ -570,6 +570,11 @@ cds-table-row.needs-review {
 }
 .field-input::placeholder { color: #bbb; }
 .field-input.error { border-color: var(--red); }
+
+textarea.field-input {
+  height: 45px;
+  padding-top: 10px;
+}
 
 .field-error { font-size: 13px; color: var(--red); display: flex; align-items: center; gap: 4px; }
 
@@ -758,7 +763,7 @@ cds-table-row.needs-review {
   right: 0px;
   width: 50px;
   height: 40px;
-  top: 63%;
+  top: 64%;
   transform: translateY(-50%);
   cursor: pointer;
   border-bottom-right-radius: 8px;
