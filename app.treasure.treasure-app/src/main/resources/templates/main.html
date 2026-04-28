@@ -51,11 +51,11 @@
     {#include tags/header.html /}
 
     <cds-side-nav aria-label="Hauptnavigation" collapse-mode="fixed">
-      <cds-side-nav-items>
+      <cds-side-nav-items style="background-color: var(--white)">
 
         <cds-side-nav-link href="/devices" {#if inject:vertxRequest.path.startsWith('/devices')}active{/if}>
           Devices
-          <svg slot="title-icon" viewBox="0 0 32 32" width="20" height="20"><path d="M28 5H4a2 2 0 0 0-2 2v18a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Zm0 20H4V7h24ZM9 10h14v2H9zm0 5h14v2H9zm0 5h14v2H9z"/></svg>
+          <svg slot="title-icon" viewBox="0 0 32 32" width="20" height="20"><path d="M28 5H4a2 2 0 0 0-2 2v18a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Zm0 20H4V7h24ZM9 10h14v2H9zm0 5h14v2H9zm0 5h14v2H9z" fill="var(--text)"/></svg>
         </cds-side-nav-link>
       </cds-side-nav-items>                                                                                                                                                                                                          
     </cds-side-nav>   

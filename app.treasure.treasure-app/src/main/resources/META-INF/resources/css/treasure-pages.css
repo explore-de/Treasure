@@ -521,7 +521,7 @@ cds-table-row.needs-review {
 .form-card-header {
   padding: 28px 36px;
   border-bottom: 1px solid var(--border);
-  background: #fafafa;
+  background: var(--white);
   display: flex;
   align-items: center;
   gap: 16px;
