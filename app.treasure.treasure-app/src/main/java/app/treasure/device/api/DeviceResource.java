@@ -286,36 +286,46 @@ public class DeviceResource extends Controller
 	@POST
 	@Path("/{id}/delete")
 	@Transactional
-	public void delete(@PathParam("id") Long id)
-	{
+	public void delete(
+			@PathParam("id") Long id,
+			@RestForm String redirectUrl
+	) {
 		Device device = deviceRepository.findById(id);
 		device.delete();
-		seeOther("/devices");
+		seeOther(safeRedirect(redirectUrl));
 	}
 
 	@POST
 	@Path("/{id}/assign")
 	@Transactional
-	public void assign(@PathParam("id") Long id, @RestForm String bookedBy)
-	{
+	public void assign(
+			@PathParam("id") Long id,
+			@RestForm String bookedBy,
+			@RestForm String redirectUrl
+	) {
 		Device device = deviceRepository.findById(id);
 		Member member = memberRepository.findByUsername(bookedBy);
 
-		if (device.getBookedBy() == member)
-		{
+		if (device.getBookedBy() == member) {
 			device.setBookedBy(null);
 			device.setStatus("available");
 			device.setPickupTime(null);
-			seeOther("/devices");
-		}
-		else
-		{
-			LOG.info("member found: {}", member);
-			LOG.info("bookedBy param: {}", bookedBy);
+		} else {
 			device.setBookedBy(member);
 			device.setStatus("not available");
 			device.setPickupTime(LocalDateTime.now());
-			seeOther("/devices");
 		}
+
+		seeOther(safeRedirect(redirectUrl));
+	}
+
+	private String safeRedirect(String redirectUrl) {
+		if (redirectUrl == null || redirectUrl.isBlank()) {
+			return "/devices";
+		}
+		if (!redirectUrl.startsWith("/devices")) {
+			return "/devices";
+		}
+		return redirectUrl;
 	}
 }
