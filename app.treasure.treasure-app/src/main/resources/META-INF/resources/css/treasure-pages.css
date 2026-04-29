@@ -734,7 +734,7 @@ textarea.field-input {
   padding: 0 70px;
   height: 40px;
   margin-top: 15px;
-  border: rgba(255, 255, 255, 0.5);
+  border:1px solid rgb(177 177 177 / 0.5);
   transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 
@@ -771,6 +771,7 @@ textarea.field-input {
   border: none;
   transition: background 0.5s ease;
   background: white;
+  border:1px solid rgb(177 177 177 / 0.5);
 }
 .search-clean:hover{
   background: rgb(197 197 197);
@@ -916,7 +917,6 @@ thead th {
   text-transform: uppercase;
   color: var(--muted);
   background: #fafafa;
-  border-bottom: 1px solid var(--border);
 }
 
 tbody tr {
@@ -936,10 +936,10 @@ td {
 
 .table-wrap {
   background: var(--white);
-  border-radius: 14px;
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   min-width: 1250px;
-
+  border-top-right-radius: 14px;
+  border-top-left-radius: 14px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
 
@@ -950,8 +950,7 @@ td {
 }
 
 .name-table{
-  border-top-left-radius: 14px;
-  border-bottom-left-radius: 14px;
+
 }
 
 .checkbox{
@@ -964,6 +963,7 @@ td {
   padding-right: 0px;
   padding-left:5px;
   text-align: center;
+  border-bottom-right-radius: 14px;
 }
 
 .td-deviceName{
@@ -972,7 +972,6 @@ td {
 
 .empty-table{
   border-top-right-radius: 14px;
-  border-bottom-right-radius: 14px;
 }
 
 .badge {
