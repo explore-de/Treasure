@@ -83,7 +83,6 @@
                     <option value="{g}">
                         {/for}
                 </datalist>
-                <span class="field-hint">Choose existing or type a new group</span>
             </div>
         </div>
 
@@ -113,6 +112,84 @@
             </div>
         </div>
 
+        <!-- Reg Company -->
+        <div class="form-body-middle">
+            <div class="field">
+                <label class="field-label">Which Company has it? </label>
+                <input class="field-input"
+                       type="text"
+                       maxlength="30"
+                       name="regCompany"
+                       placeholder="{device.regCompany == null || device.regCompany.trim.isEmpty ? 'e.g. EXP Software' : device.regCompany}"
+                       value="{device.regCompany}">
+            </div>
+        </div>
+
+        <!-- Device Number -->
+        <div class="form-body-middle">
+            <div class="field">
+                <label class="field-label">Device Number: </label>
+                <input class="field-input"
+                       type="text"
+                       maxlength="30"
+                       name="deviceNumber"
+                       placeholder="{device.deviceNumber == null || device.deviceNumber.trim.isEmpty ? 'e.g. Idk what you want' : device.deviceNumber}"
+                       value="{device.deviceNumber}">
+            </div>
+        </div>
+
+        <!-- Device Prozessor -->
+        <div class="form-body-middle">
+            <div class="field">
+                <label class="field-label">Device Prozessor: </label>
+                <input class="field-input"
+                       type="text"
+                       maxlength="30"
+                       name="deviceProzessor"
+                       placeholder="{device.deviceProzessor == null || device.deviceProzessor.trim.isEmpty ? 'e.g. Apple M1 Pro' : device.deviceProzessor}"
+                       value="{device.deviceProzessor}">
+            </div>
+        </div>
+
+        <!-- Device HDD Storage -->
+        <div class="form-body-middle">
+            <div class="field">
+                <label class="field-label">Device HDD Storage: </label>
+                <input class="field-input"
+                       type="text"
+                       maxlength="30"
+                       name="deviceHDDStorage"
+                       placeholder="{device.deviceHDDStorage == null || device.deviceHDDStorage.trim.isEmpty ? 'e.g. 1024GB' : device.deviceHDDStorage}"
+                       value="{device.deviceHDDStorage}">
+            </div>
+        </div>
+
+        <!-- Device RAM -->
+        <div class="form-body-middle">
+            <div class="field">
+                <label class="field-label">Device RAM: </label>
+                <input class="field-input"
+                       type="text"
+                       maxlength="30"
+                       name="deviceRAM"
+                       placeholder="{device.deviceRAM == null || device.deviceRAM.trim.isEmpty ? 'e.g. 16GB' : device.deviceRAM}"
+                       value="{device.deviceRAM}">
+            </div>
+        </div>
+
+        <!-- Device Model Date -->
+        <div class="form-body-middle">
+            <div class="field">
+                <label class="field-label">Device Model Date: </label>
+                <input class="field-input"
+                       type="text"
+                       maxlength="30"
+                       name="deviceModelDate"
+                       placeholder="{device.deviceModelDate == null || device.deviceModelDate.trim.isEmpty ? 'e.g. 2021-10-18' : device.deviceModelDate}"
+                       value="{device.deviceModelDate}">
+            </div>
+        </div>
+
         <!-- Device Damage -->
         <div class="form-body-middle">
             <div class="field">
@@ -126,6 +203,18 @@
             </div>
         </div>
 
+        <!-- Device Location -->
+        <div class="form-body-middle">
+            <div class="field">
+                <label class="field-label">Where is/will the Device be stored:</label>
+                <textarea class="field-input"
+                          name="deviceLocation"
+                          maxlength="500"
+                          rows="3"
+                          placeholder="{device.deviceLocation == null || device.deviceLocation.trim.isEmpty ? 'Room 1, Locker 2' : device.deviceLocation}">{device.deviceLocation}</textarea>
+            </div>
+        </div>
+
         <!-- Extra Info -->
         <div class="form-body-bottom">
             <div class="field">
@@ -134,7 +223,7 @@
                           name="extraInfo"
                           maxlength="500"
                           rows="3"
-                          placeholder="Anything important...">{device.extraInfo}</textarea>
+                          placeholder="{device.extraInfo == null || device.extraInfo.trim.isEmpty ? 'Anything Important...' : device.extraInfo}">{device.extraInfo}</textarea>
             </div>
         </div>
 

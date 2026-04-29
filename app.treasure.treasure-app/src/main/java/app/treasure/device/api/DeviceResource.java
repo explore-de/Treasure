@@ -77,7 +77,15 @@ public class DeviceResource extends Controller
 		@QueryParam("serial") List<String> serials,
 		@QueryParam("group") List<String> groups,
 		@QueryParam("model") List<String> models,
-		@QueryParam("damage") List<String> damages)
+		@QueryParam("damage") List<String> damages,
+
+		@QueryParam("company") List<String> companys,
+		@QueryParam("number") List<String> numbers,
+		@QueryParam("prozessor") List<String> prozessors,
+		@QueryParam("hddStorage") List<String> hddStorages,
+		@QueryParam("ram") List<String> rams,
+		@QueryParam("modelDate") List<String> modelDates
+		)
 	{
 
 		List<String> nameTerms = normalize(names);
@@ -93,10 +101,17 @@ public class DeviceResource extends Controller
 		List<String> mo = normalize(models);
 		List<String> da = normalize(damages);
 
+		List<String> cp = normalize(companys);
+		List<String> nb = normalize(numbers);
+		List<String> pz = normalize(prozessors);
+		List<String> hd = normalize(hddStorages);
+		List<String> rm = normalize(rams);
+		List<String> md = normalize(modelDates);
+
 		List<Device> all = deviceRepository.listAll(Sort.by("id").ascending());
 		List<String> finalNameTerms = nameTerms;
 		List<Device> filtered = all.stream()
-			.filter(d -> matches(d, finalNameTerms, st, bb, se, gr, mo, da))
+			.filter(d -> matches(d, finalNameTerms, st, bb, se, gr, mo, da, cp, nb, pz, hd, rm, md))
 			.toList();
 
 		String username = securityIdentity.getPrincipal().getName();
@@ -121,7 +136,15 @@ public class DeviceResource extends Controller
 		List<String> serials,
 		List<String> groups,
 		List<String> models,
-		List<String> damages)
+		List<String> damages,
+		List<String> company,
+		List<String> number,
+		List<String> prozessor,
+		List<String> hddStorage,
+		List<String> ram,
+		List<String> modelDate
+
+	)
 	{
 
 		boolean nameOk = nameFallback.isEmpty() ||
@@ -138,7 +161,21 @@ public class DeviceResource extends Controller
 			models.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceModel(), t));
 		boolean damageOk = damages.isEmpty() ||
 			damages.stream().anyMatch(t -> equalsIgnoreCase(d.getDeviceDamage(), t));
-		return nameOk && statusOk && bookedOk && serialOk && groupOk && modelOk && damageOk;
+		boolean companyOk = company.isEmpty() ||
+			company.stream().anyMatch(t -> containsIgnoreCase(d.getRegCompany(), t));
+		boolean numberOk = number.isEmpty() ||
+			number.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceNumber(), t));
+		boolean prozessorOk = prozessor.isEmpty() ||
+			prozessor.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceProzessor(), t));
+		boolean hddStorageOk = hddStorage.isEmpty() ||
+			hddStorage.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceHDDStorage(), t));
+		boolean ramOk = ram.isEmpty() ||
+			ram.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceRAM(), t));
+		boolean modelDateOk = modelDate.isEmpty() ||
+			modelDate.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceModelDate(), t));
+
+
+		return nameOk && statusOk && bookedOk && serialOk && groupOk && modelOk && damageOk && companyOk && numberOk && prozessorOk && hddStorageOk && ramOk && modelDateOk;
 	}
 
 	private boolean containsIgnoreCase(String haystack, String needle)
@@ -218,7 +255,15 @@ public class DeviceResource extends Controller
 		@RestForm String deviceModel,
 		@RestForm String extraInfo,
 		@RestForm String deviceDamage,
-		@RestForm String deviceAge)
+		@RestForm String deviceAge,
+		@RestForm String regCompany,
+		@RestForm String deviceNumber,
+		@RestForm String deviceProzessor,
+		@RestForm String deviceHDDStorage,
+		@RestForm String deviceRAM,
+		@RestForm String deviceModelDate,
+		@RestForm String deviceLocation
+	)
 	{
 		if (deviceName != null && deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*"))
 		{
@@ -234,6 +279,13 @@ public class DeviceResource extends Controller
 			device.setExtraInfo(extraInfo);
 			device.setDeviceDamage(deviceDamage);
 			device.setDeviceAge(deviceAge);
+			device.setRegCompany(regCompany);
+			device.setDeviceNumber(deviceNumber);
+			device.setDeviceProzessor(deviceProzessor);
+			device.setDeviceHDDStorage(deviceHDDStorage);
+			device.setDeviceRAM(deviceRAM);
+			device.setDeviceModelDate(deviceModelDate);
+			device.setDeviceLocation(deviceLocation);
 
 			deviceRepository.persist(device);
 		}
@@ -252,7 +304,15 @@ public class DeviceResource extends Controller
 		@RestForm String deviceModel,
 		@RestForm String extraInfo,
 		@RestForm String deviceDamage,
-		@RestForm String deviceAge)
+		@RestForm String deviceAge,
+		@RestForm String regCompany,
+		@RestForm String deviceNumber,
+		@RestForm String deviceProzessor,
+		@RestForm String deviceHDDStorage,
+		@RestForm String deviceRAM,
+		@RestForm String deviceModelDate,
+		@RestForm String deviceLocation
+	)
 	{
 		if (deviceName == null || !deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*"))
 		{
@@ -270,6 +330,13 @@ public class DeviceResource extends Controller
 		device.setExtraInfo(extraInfo);
 		device.setDeviceDamage(deviceDamage);
 		device.setDeviceAge(deviceAge);
+		device.setRegCompany(regCompany);
+		device.setDeviceNumber(deviceNumber);
+		device.setDeviceProzessor(deviceProzessor);
+		device.setDeviceHDDStorage(deviceHDDStorage);
+		device.setDeviceRAM(deviceRAM);
+		device.setDeviceModelDate(deviceModelDate);
+		device.setDeviceLocation(deviceLocation);
 
 		seeOther("/devices");
 	}

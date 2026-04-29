@@ -88,6 +88,36 @@
                 </select>
                 <button type="button" class="tag-creator-add" id="addDamageBtn">Add</button>
             </div>
+            <div class="tag-creator">
+                <label>Company:</label>
+                <input type="text" id="advCompany" placeholder="e.g. EXP Software">
+                <button type="button" class="tag-creator-add" id="addCompanyBtn">Add</button>
+            </div>
+            <div class="tag-creator">
+                <label>Device Number:</label>
+                <input type="text" id="advDeviceNumber" placeholder="e.g. LG7HF3X2R0">
+                <button type="button" class="tag-creator-add" id="addDeviceNumberBtn">Add</button>
+            </div>
+            <div class="tag-creator">
+                <label>Device Prozessor:</label>
+                <input type="text" id="advDeviceProzessor" placeholder="e.g. Apple M1 Pro">
+                <button type="button" class="tag-creator-add" id="addDeviceProzessorBtn">Add</button>
+            </div>
+            <div class="tag-creator">
+                <label>Device HDD Storage:</label>
+                <input type="text" id="advDeviceHDDStorage" placeholder="e.g. 1024GB">
+                <button type="button" class="tag-creator-add" id="addDeviceHDDStorageBtn">Add</button>
+            </div>
+            <div class="tag-creator">
+                <label>Device RAM:</label>
+                <input type="text" id="advDeviceRAM" placeholder="e.g. 16GB">
+                <button type="button" class="tag-creator-add" id="addDeviceRAMBtn">Add</button>
+            </div>
+            <div class="tag-creator">
+                <label>Device Model Date:</label>
+                <input type="text" id="advDeviceModelDate" placeholder="e.g. 2021-10-18">
+                <button type="button" class="tag-creator-add" id="addDeviceModelDateBtn">Add</button>
+            </div>
         </div>
     </div>
 </div>
@@ -277,14 +307,20 @@
 
         const p = new URLSearchParams(window.location.search);
 
-        const entries = [                                                        // !!--IMPORTANT--!!
-            { key: "name", label: "Name", values: p.getAll("name")},             // AFTER REFORMATING IT WILL CAUSE AN ERROR
-            { key: "status", label: "Status", values: p.getAll("status")},       // TO FIX IT PUT A SPACE BETWEEN { AND key
-            { key: "bookedBy", label: "Booked", values: p.getAll("bookedBy")},   // FOR EXAMPLE:
-            { key: "serial", label: "Serial", values: p.getAll("serial")},       // { key: "name", label: "Name", values: p.getAll("name")}
-            { key: "group", label: "Group", values: p.getAll("group")},          // (I cant even put a wrong example here cause that will crash too)
-            { key: "model", label: "Model", values: p.getAll("model")},          //
-            { key: "damage", label: "Damage", values: p.getAll("damage")}        //
+        const entries = [                                                                                   // !!--IMPORTANT--!!
+            { key: "name", label: "Name", values: p.getAll("name")},                                        // AFTER REFORMATING IT WILL CAUSE AN ERROR
+            { key: "status", label: "Status", values: p.getAll("status")},                                  // TO FIX IT PUT A SPACE BETWEEN { AND key
+            { key: "bookedBy", label: "Booked", values: p.getAll("bookedBy")},                              // FOR EXAMPLE:
+            { key: "serial", label: "Serial", values: p.getAll("serial")},                                  // { key: "name", label: "Name", values: p.getAll("name")}
+            { key: "group", label: "Group", values: p.getAll("group")},                                     // (I cant even put a wrong example here cause that will crash too)
+            { key: "model", label: "Model", values: p.getAll("model")},                                     //
+            { key: "damage", label: "Damage", values: p.getAll("damage")},                                  //
+            { key: "company", label: "Company", values: p.getAll("company")},                               //
+            { key: "deviceNumber", label: "DeviceNumber", values: p.getAll("deviceNumber")},                //
+            { key: "deviceProzessor", label: "DeviceProzessor", values: p.getAll("deviceProzessor")},       //
+            { key: "deviceHDDStorage", label: "DeviceHDDStorage", values: p.getAll("deviceHDDStorage")},    //
+            { key: "deviceRAM", label: "DeviceRAM", values: p.getAll("deviceRAM")},                         //
+            { key: "deviceModelDate", label: "DeviceModelDate", values: p.getAll("deviceModelDate")}        //
         ];
 
         taglist.innerHTML = "";
@@ -309,6 +345,12 @@
         p.delete("model");
         p.delete("damage");
         p.delete("searchName");
+        p.delete("company");
+        p.delete("deviceNumber");
+        p.delete("deviceProzessor");
+        p.delete("deviceHDDStorage");
+        p.delete("deviceRAM");
+        p.delete("deviceModelDate")
         navigateWithParams(p);
     }
 
@@ -321,6 +363,12 @@
         const groupInp = document.getElementById("advGroup");
         const modelInp = document.getElementById("advModel");
         const damageSel = document.getElementById("advDamage");
+        const companyInp = document.getElementById("advCompany");
+        const deviceNumberInp = document.getElementById("advDeviceNumber");
+        const deviceProzessorInp = document.getElementById("advDeviceProzessor");
+        const deviceHDDStorageInp = document.getElementById("advDeviceHDDStorage");
+        const deviceRAMInp = document.getElementById("advDeviceRAM");
+        const deviceModelDateInp = document.getElementById("advDeviceModelDate");
 
         const addNameBtn = document.getElementById("addNameBtn");
         const addStatusBtn = document.getElementById("addStatusBtn");
@@ -329,6 +377,12 @@
         const addGroupBtn = document.getElementById("addGroupBtn");
         const addModelBtn = document.getElementById("addModelBtn");
         const addDamageBtn = document.getElementById("addDamageBtn");
+        const addCompanyBtn = document.getElementById("addCompanyBtn");
+        const addDeviceNumberBtn = document.getElementById("addDeviceNumberBtn");
+        const addDeviceProzessorBtn = document.getElementById("addDeviceProzessorBtn");
+        const addDeviceHDDStorageBtn = document.getElementById("addDeviceHDDStorageBtn");
+        const addDeviceRAMBtn = document.getElementById("addDeviceRAMBtn");
+        const addDeviceModelDateBtn = document.getElementById("addDeviceModelDateBtn");
 
         if (addNameBtn && nameInp) {
             addNameBtn.addEventListener("click", function () {
@@ -372,6 +426,43 @@
             });
         }
 
+        if (addCompanyBtn && companyInp) {
+            addCompanyBtn.addEventListener("click", function () {
+                addParam("company", companyInp.value);
+            });
+        }
+
+        if (addDeviceNumberBtn && deviceNumberInp) {
+            addDeviceNumberBtn.addEventListener("click", function () {
+                addParam("deviceNumber", deviceNumberInp.value);
+            });
+        }
+
+        if (addDeviceProzessorBtn && deviceProzessorInp) {
+            addDeviceProzessorBtn.addEventListener("click", function () {
+                addParam("deviceProzessor", deviceProzessorInp.value);
+            });
+        }
+
+        if (addDeviceHDDStorageBtn && deviceHDDStorageInp) {
+            addDeviceHDDStorageBtn.addEventListener("click", function () {
+                addParam("deviceHDDStorage", deviceHDDStorageInp.value);
+            });
+        }
+
+        if (addDeviceRAMBtn && deviceRAMInp) {
+            addDeviceRAMBtn.addEventListener("click", function () {
+                addParam("deviceRAM", deviceRAMInp.value);
+            });
+        }
+
+        if (addDeviceModelDateBtn && deviceModelDateInp) {
+            addDeviceModelDateBtn.addEventListener("click", function () {
+                addParam("deviceModelDate", deviceModelDateInp.value);
+            });
+        }
+
+
         function bindEnter(input, key) {
             if (!input) return;
             input.addEventListener("keydown", function (e) {
@@ -387,6 +478,12 @@
         bindEnter(serialInp, "serial");
         bindEnter(groupInp, "group");
         bindEnter(modelInp, "model");
+        bindEnter(companyInp, "company");
+        bindEnter(deviceNumberInp, "deviceNumber");
+        bindEnter(deviceProzessorInp, "deviceProzessor");
+        bindEnter(deviceHDDStorageInp, "deviceHDDStorage");
+        bindEnter(deviceRAMInp, "deviceRAM");
+        bindEnter(deviceModelDateInp, "deviceModelDate");
     }
 
     function hookQuickSearch() {

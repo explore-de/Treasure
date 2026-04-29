@@ -25,6 +25,84 @@ public class Device extends PanacheEntity
 	private String deviceDamage;
 	private String deviceAge;
 
+	private String regCompany;
+	private String deviceNumber;
+	private String deviceProzessor;
+	private String deviceHDDStorage;
+	private String deviceRAM;
+	private String deviceModelDate;
+	private String deviceLocation;
+
+	public String getDeviceLocation()
+	{
+		return deviceLocation;
+	}
+
+	public void setDeviceLocation(String deviceLocation)
+	{
+		this.deviceLocation = deviceLocation;
+	}
+
+	public String getDeviceModelDate()
+	{
+		return deviceModelDate;
+	}
+
+	public void setDeviceModelDate(String deviceModelDate)
+	{
+		this.deviceModelDate = deviceModelDate;
+	}
+
+	public String getDeviceRAM()
+	{
+		return deviceRAM;
+	}
+
+	public void setDeviceRAM(String deviceRAM)
+	{
+		this.deviceRAM = deviceRAM;
+	}
+
+	public String getDeviceHDDStorage()
+	{
+		return deviceHDDStorage;
+	}
+
+	public void setDeviceHDDStorage(String deviceHDDStorage)
+	{
+		this.deviceHDDStorage = deviceHDDStorage;
+	}
+
+	public String getDeviceProzessor()
+	{
+		return deviceProzessor;
+	}
+
+	public void setDeviceProzessor(String deviceProzessor)
+	{
+		this.deviceProzessor = deviceProzessor;
+	}
+
+	public String getDeviceNumber()
+	{
+		return deviceNumber;
+	}
+
+	public void setDeviceNumber(String deviceNumber)
+	{
+		this.deviceNumber = deviceNumber;
+	}
+
+	public void setRegCompany(String regCompany)
+	{
+		this.regCompany = regCompany;
+	}
+
+	public String getRegCompany()
+	{
+		return regCompany;
+	}
+
 	public String getDeviceName()
 	{
 		return deviceName;
