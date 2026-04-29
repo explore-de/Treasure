@@ -290,40 +290,41 @@ public class DeviceResource extends Controller
 	@Path("/delete-many")
 	@Transactional
 	public void deleteMany(
-            @PathParam("id") Long id,
-            @RestForm String redirectUrl){
-			Device device = deviceRepository.findById(id);
-			device.delete();
-            seeOther(safeRedirect(redirectUrl));
+		@PathParam("id") Long id,
+		@RestForm String redirectUrl)
+	{
+		Device device = deviceRepository.findById(id);
+		device.delete();
+		seeOther(safeRedirect(redirectUrl));
 	}
 
 	@POST
 	@Path("/assign-many")
 	@Transactional
 	public void assignMany(
-            @PathParam("id") Long id,
-            @RestForm String bookedBy,
-            @RestForm String redirectUrl)
-    {
+		@PathParam("id") Long id,
+		@RestForm String bookedBy,
+		@RestForm String redirectUrl)
+	{
 		Member member = memberRepository.findByUsername(bookedBy);
 
-			Device device = deviceRepository.findById(id);
-			if (device.getBookedBy() == member)
-			{
-				device.setBookedBy(null);
-				device.setStatus("available");
-				device.setPickupTime(null);
-                seeOther(safeRedirect(redirectUrl));
-			}
-			else {
-				device.setBookedBy(member);
-				device.setStatus("not available");
-				device.setPickupTime(LocalDateTime.now());
-                seeOther(safeRedirect(redirectUrl));
+		Device device = deviceRepository.findById(id);
+		if (device.getBookedBy() == member)
+		{
+			device.setBookedBy(null);
+			device.setStatus("available");
+			device.setPickupTime(null);
+			seeOther(safeRedirect(redirectUrl));
+		}
+		else
+		{
+			device.setBookedBy(member);
+			device.setStatus("not available");
+			device.setPickupTime(LocalDateTime.now());
+			seeOther(safeRedirect(redirectUrl));
 
 		}
 	}
-
 
 	@POST
 	@Path("/{id}/assign")

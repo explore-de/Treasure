@@ -987,13 +987,11 @@ td {
 
 .select{
   border-top-left-radius: 14px;
-  padding-right: 0px;
-  padding-left: 15px;
+  border-bottom-left-radius: 14px;
 }
 
 .name-table{
-  border-top-left-radius: 14px;
-  border-bottom-left-radius: 14px;
+
 }
 .checkbox{
   width: 25px;
