@@ -1,0 +1,111 @@
+* [33ma6381ac[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32moleh[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m fixed the align of search bar (I hope)
+* [33m09e479f[m init
+* [33m5d461b0[m corrected ui and added ability to write a device name on Russian
+* [33m7f3aa3f[m Refactor CSS and HTML for improved UI consistency
+* [33mddca8d7[m Add carbon styles CSS and enhance dark mode support in main HTML
+* [33m3a5ed8b[m Clean up README by removing TODO and UI sections
+* [33mcb2c4d3[m Enhance Assign dropdown to pre-select current user when editing device
+* [33mdf816fc[m devide css and html code in diffrent files. Fixed assign button
+* [33m5014587[m Add Assign dropdown to replace Claim button
+* [33md259adf[m Added Darkmode button
+* [33m15446ff[m Improve CSS design and UI, made different edit windows for user and admin
+* [33mee2465c[m Made UI better
+* [33mac09902[m Made some buttons with CSS design
+* [33mc8c48ba[m Before CSS edits
+* [33m68228ef[m Update README with new UI feature list
+* [33m9c08b85[m Tried to do some CSS design for buttons
+* [33m35c013f[m Fixed claim button, so different users see it defferently, fixed button order
+* [33ma807df1[m Update README with task completion status
+* [33mf750178[m - Fix
+* [33m5dec814[m - Improved visuals
+*   [33m9303900[m Merge remote-tracking branch 'origin/main'
+[32m|[m[33m\[m  
+[32m|[m * [33me35cc7f[m added claim and edit button, only claim works
+* [33m|[m [33m6d1e27d[m - Inverted Admin/User edit menu - Improved visuals of Edit menu
+* [33m|[m [33m3732393[m Mark edit button task as complete in README
+* [33m|[m   [33mede56f7[m Merge remote-tracking branch 'origin/main'
+[34m|[m[35m\[m [33m\[m  
+[34m|[m * [33m|[m [33m27bcaaf[m Update README to mark unnamed device creation as done
+* [35m|[m [33m|[m [33mad8f960[m Made an Edit option
+[35m|[m[35m/[m [33m/[m  
+* [33m|[m [33m74de298[m Made it so you cant add a device without a valid name
+* [33m|[m [33mabd0d1a[m Reorder button tasks in README checklist
+* [33m|[m [33mfff9bdd[m Update README.md
+* [33m|[m [33m27bf9bf[m Update task list in README for clarity
+* [33m|[m [33m9b0cf0d[m new device page changed
+* [33m|[m [33m17ebb6c[m Revise task list in README for project updates
+[33m|[m[33m/[m  
+*   [33m6addd62[m Merge: keep /devices href and updated logo
+[36m|[m[1;31m\[m  
+[36m|[m * [33m6a64743[m Changed Logo
+* [1;31m|[m [33m52163dd[m Refactor dashboard and device resources, update navigation links, and add logo image. Changed index method in DashboardResource to redirect to DeviceResource. Updated side navigation in main.html to include a link to Devices and modified header link to point to Devices. Added new logo image for branding.
+[1;31m|[m[1;31m/[m  
+* [33m99bf508[m Changed Banner.txt
+*   [33m6c998c9[m Merge branch 'main' of https://github.com/explore-de/Treasure
+[1;32m|[m[1;33m\[m  
+[1;32m|[m * [33mdcfec4e[m Fix 'New device' button in README checklist
+[1;32m|[m * [33m9f3aae8[m Fix 'New device' button in README checklist
+* [1;33m|[m [33m660e228[m changed the saving of device
+[1;33m|[m[1;33m/[m  
+* [33m22ae7fc[m changed all Fluggs names to Treasure
+* [33m2fa2c74[m Change project title and add ASCII art
+* [33m5b93667[m Enhance README with visuals and formatting
+* [33m6d216dc[m Update README to mark completion of README update
+* [33m6a76858[m Enhance README with requirements and user stories
+* [33m5421056[m Remove logo finding task from README checklist
+* [33m8b0c348[m Fix typo in project name from 'Treasur' to 'Treasure'
+* [33m2922aee[m Add project title and description to README
+* [33m1cf85eb[m Fix project name from 'Treasur' to 'treasure'
+* [33ma81ad65[m Add TODO section to README
+* [33mbd94348[m ✨ (device): Add device management with create, list and delete
+* [33mf91dafc[m ✨ (email): Make file writing additional to SMTP sending
+* [33m266d942[m 🐛 (tests): Fix foreign key constraint in MemberResourceTest
+* [33mb24d2a4[m ✨ (invitations): Add complete invitation system for user onboarding
+* [33m6c25778[m ✨ (temporal): Log Temporal UI URL on startup
+* [33mfb9ebcf[m ✨ (tables): Reduce flicker during table sorting
+* [33mde1323a[m 📝 (docs): Document Carbon sortable table race condition fix
+* [33me9a8ae5[m 🐛 (tables): Fix sorting animation and race condition issues
+* [33ma5f9d78[m ✨ (tables): Add sorting for all meaningful columns
+* [33me9c36f0[m ✨ (tables): Add server-side sorting to Documents and Transactions tables
+* [33m5c9aa64[m 🐛 (frontend): Revert Carbon Web Components to latest version
+* [33m2b8d47e[m 🐛 (ci): Skip Claude Code Review for Dependabot and fork PRs
+* [33mfa7be12[m Bump the maven-dependencies group across 1 directory with 2 updates
+* [33mc71e557[m Bump org.apache.maven.plugins:maven-compiler-plugin
+* [33m0853559[m Bump the maven-dependencies group across 1 directory with 2 updates
+* [33m03aad01[m ⬆️ (deps): Update Quarkus to 3.31.2 and Quarkiverse dependencies
+* [33mfe552ca[m 🎨 (frontend): Update Carbon Design System and Web Components to specific versions
+* [33mdddb600[m Bump the docker-images group across 1 directory with 2 updates
+* [33m420ca9c[m Bump the docker-images group across 1 directory with 2 updates
+* [33m79dc173[m 🐛 (ci): Allow Dependabot to trigger Claude Code Review
+* [33m1fd646a[m 🎨 (banners): Update ASCII banners for consistency across services
+* [33mdc92091[m 🚚 (landing): Move landing page to separate repository
+* [33m675086b[m Bump the github-actions group across 1 directory with 2 updates
+* [33m243b01d[m 🐛 (ci): Fix GitHub Actions workflow output step
+* [33m86e673e[m 🐳 (landing): Add Docker support and dev tooling
+* [33mc5e2299[m 🔗 (landing): Update GitHub links and remove Twitter
+* [33me59a687[m ✨ (landing): Add Closed Beta status and Public Beta newsletter signup
+* [33me05da70[m 🐛 (landing): Remove arrow connectors from "How it works" section
+* [33m4781ef3[m 🎨 (landing): Make layout symmetrical with 6 features and 8 technologies
+* [33m835c537[m ✨ (landing): Add modern landing page with Docker self-hosting focus
+* [33meff950f[m 🔧 (devservices): Consolidate Temporal as proper Quarkus Dev Service
+* [33m2e3e412[m 🔥 (workflow): Remove legacy workflow engine classes
+* [33m23ae09a[m 🐛 (ci): Fix Docker network race condition in CI tests
+* [33md115276[m "Claude Code Review workflow"
+* [33mc8b5d19[m "Claude PR Assistant workflow"
+* [33m30fbb5d[m 🔧 (workflow): Add integration test for Temporal search attributes and improve dev services setup
+* [33m84b90be[m 🔧 (workflow): Remove obsolete document workflow tasks and related classes
+* [33mb8176ae[m 🔧 (workflow): Remove obsolete document workflow tasks and related classes
+* [33m4e0dd4d[m 🔧 (zugferd): Bump Quarkus platform to 3.31.1 and update test dependencies
+* [33m60676c3[m 🔧 (zugferd): Remove `Dockerfile.legacy-jar` and update base images to UBI 9
+* [33m8919853[m 🔧 (app): Bump Quarkus platform to 3.31.1 and update test dependencies
+* [33m67294a7[m 🔧 (app): Remove unused `Dockerfile.legacy-jar` for simplification
+* [33m072db8d[m 🔧 (az): Bump Quarkus platform to 3.31.1 and update test dependencies
+* [33m7545339[m 🔧 (az): Remove legacy-jar Dockerfile and upgrade base images to UBI 9
+* [33m63cd54d[m 🌈 (design): Update Fuggs brand color palette to orange
+* [33m4551335[m 🔧 (config): Remove OpenAPI and Swagger UI always-include settings from application.properties
+* [33maa8fbdc[m 🖼️ (design): Update `logo.svg` with new name and color scheme
+* [33mf6aea4b[m 📝 (docs): Add `.env.example` templates and expand READMEs for az-document-ai and zugferd services
+* [33m01125d9[m 📝 (readme): Add build status badges for all services
+* [33meec1a72[m 🔧 (ci): Remove redundant deploy workflow triggers across all services
+* [33m902be16[m 🔧 (dependabot): Group dependency updates to reduce PR noise
+* [33mec3fcbf[m 🔧 (deps): Bump Quarkus platform to 3.30.7 and Quarkus Renarde t

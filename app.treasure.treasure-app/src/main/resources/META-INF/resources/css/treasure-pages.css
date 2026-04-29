@@ -571,6 +571,11 @@ cds-table-row.needs-review {
 .field-input::placeholder { color: #bbb; }
 .field-input.error { border-color: var(--red); }
 
+textarea.field-input {
+  height: 45px;
+  padding-top: 10px;
+}
+
 .field-error { font-size: 13px; color: var(--red); display: flex; align-items: center; gap: 4px; }
 
 .form-actions {
@@ -763,7 +768,6 @@ cds-table-row.needs-review {
   box-shadow: 0 0 20px rgba(245, 197, 24, 0.5);
   transform: scale(1.05);
 }
-
 .search{
   border-radius: 8px;
   font-family: 'DM Sans', sans-serif;
@@ -782,8 +786,8 @@ cds-table-row.needs-review {
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
-.search:focus {                                                                                                                                                                                                                                                                            
-  outline: 2px solid rgba(113, 113, 113, 0.3); 
+.search:focus {
+  outline: 2px solid rgba(113, 113, 113, 0.3);
 }
 
 .search-wrap:hover {
@@ -795,7 +799,7 @@ cds-table-row.needs-review {
   display: flex;
   transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   height: 55px;
-} 
+}
 .search-clean {
   display: flex;
   position: absolute;
@@ -803,13 +807,12 @@ cds-table-row.needs-review {
   top: 50%;
   width: 50px;
   height: 54px;
-  /*top: 63%;*/
   transform: translateY(-50%);
   cursor: pointer;
   border-bottom-right-radius: 8px;
   border-top-right-radius: 8px;
   border: none;
-  transition: background 0.5s ease; 
+  transition: background 0.5s ease;
   background: white;
 }
 .search-clean:hover{
@@ -982,11 +985,32 @@ td {
   box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
 
+.select{
+  border-top-left-radius: 14px;
+  padding-right: 0px;
+  padding-left: 15px;
+}
+
 .name-table{
   border-top-left-radius: 14px;
   border-bottom-left-radius: 14px;
 }
+.checkbox{
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+}
 
+.select-checkbox{
+  padding-right: 0px;
+  padding-left:5px;
+  text-align: center;
+  border-bottom-right-radius: 14px;
+}
+
+.td-deviceName{
+
+}
 .empty-table{
   border-top-right-radius: 14px;
   border-bottom-right-radius: 14px;

@@ -94,7 +94,6 @@ public class DeviceResource extends Controller
 		List<String> da = normalize(damages);
 
 		List<Device> all = deviceRepository.listAll(Sort.by("id").ascending());
-
 		List<String> finalNameTerms = nameTerms;
 		List<Device> filtered = all.stream()
 			.filter(d -> matches(d, finalNameTerms, st, bb, se, gr, mo, da))
@@ -127,25 +126,18 @@ public class DeviceResource extends Controller
 
 		boolean nameOk = nameFallback.isEmpty() ||
 			nameFallback.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceName(), t));
-
 		boolean statusOk = statuses.isEmpty() ||
 			statuses.stream().anyMatch(t -> equalsIgnoreCase(d.getStatus(), t));
-
 		boolean bookedOk = bookedBy.isEmpty() ||
 			bookedBy.stream().anyMatch(t -> containsIgnoreCase(d.getBookedName(), t));
-
 		boolean serialOk = serials.isEmpty() ||
 			serials.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceSerialNumber(), t));
-
 		boolean groupOk = groups.isEmpty() ||
 			groups.stream().anyMatch(t -> containsIgnoreCase(d.getGroup(), t));
-
 		boolean modelOk = models.isEmpty() ||
 			models.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceModel(), t));
-
-		boolean damageOk = damages.isEmpty()
-			|| damages.stream().anyMatch(t -> equalsIgnoreCase(d.getDeviceDamage(), t));
-
+		boolean damageOk = damages.isEmpty() ||
+			damages.stream().anyMatch(t -> equalsIgnoreCase(d.getDeviceDamage(), t));
 		return nameOk && statusOk && bookedOk && serialOk && groupOk && modelOk && damageOk;
 	}
 
@@ -293,6 +285,45 @@ public class DeviceResource extends Controller
 		device.delete();
 		seeOther(safeRedirect(redirectUrl));
 	}
+
+	@POST
+	@Path("/delete-many")
+	@Transactional
+	public void deleteMany(
+            @PathParam("id") Long id,
+            @RestForm String redirectUrl){
+			Device device = deviceRepository.findById(id);
+			device.delete();
+            seeOther(safeRedirect(redirectUrl));
+	}
+
+	@POST
+	@Path("/assign-many")
+	@Transactional
+	public void assignMany(
+            @PathParam("id") Long id,
+            @RestForm String bookedBy,
+            @RestForm String redirectUrl)
+    {
+		Member member = memberRepository.findByUsername(bookedBy);
+
+			Device device = deviceRepository.findById(id);
+			if (device.getBookedBy() == member)
+			{
+				device.setBookedBy(null);
+				device.setStatus("available");
+				device.setPickupTime(null);
+                seeOther(safeRedirect(redirectUrl));
+			}
+			else {
+				device.setBookedBy(member);
+				device.setStatus("not available");
+				device.setPickupTime(LocalDateTime.now());
+                seeOther(safeRedirect(redirectUrl));
+
+		}
+	}
+
 
 	@POST
 	@Path("/{id}/assign")

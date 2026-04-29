@@ -6,7 +6,6 @@ import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
-import app.treasure.device.api.DeviceResource;
 
 @Authenticated
 @Path("/")
