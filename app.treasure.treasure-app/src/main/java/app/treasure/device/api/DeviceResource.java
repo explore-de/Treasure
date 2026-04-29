@@ -222,7 +222,6 @@ public class DeviceResource extends Controller
 		@RestForm String deviceName,
 		@RestForm String deviceSerialNumber,
 
-		// ✅ neue Felder
 		@RestForm String group,
 		@RestForm String deviceModel,
 		@RestForm String extraInfo,
@@ -287,9 +286,9 @@ public class DeviceResource extends Controller
 	@Path("/{id}/delete")
 	@Transactional
 	public void delete(
-			@PathParam("id") Long id,
-			@RestForm String redirectUrl
-	) {
+		@PathParam("id") Long id,
+		@RestForm String redirectUrl)
+	{
 		Device device = deviceRepository.findById(id);
 		device.delete();
 		seeOther(safeRedirect(redirectUrl));
@@ -299,18 +298,21 @@ public class DeviceResource extends Controller
 	@Path("/{id}/assign")
 	@Transactional
 	public void assign(
-			@PathParam("id") Long id,
-			@RestForm String bookedBy,
-			@RestForm String redirectUrl
-	) {
+		@PathParam("id") Long id,
+		@RestForm String bookedBy,
+		@RestForm String redirectUrl)
+	{
 		Device device = deviceRepository.findById(id);
 		Member member = memberRepository.findByUsername(bookedBy);
 
-		if (device.getBookedBy() == member) {
+		if (device.getBookedBy() == member)
+		{
 			device.setBookedBy(null);
 			device.setStatus("available");
 			device.setPickupTime(null);
-		} else {
+		}
+		else
+		{
 			device.setBookedBy(member);
 			device.setStatus("not available");
 			device.setPickupTime(LocalDateTime.now());
@@ -319,11 +321,14 @@ public class DeviceResource extends Controller
 		seeOther(safeRedirect(redirectUrl));
 	}
 
-	private String safeRedirect(String redirectUrl) {
-		if (redirectUrl == null || redirectUrl.isBlank()) {
+	private String safeRedirect(String redirectUrl)
+	{
+		if (redirectUrl == null || redirectUrl.isBlank())
+		{
 			return "/devices";
 		}
-		if (!redirectUrl.startsWith("/devices")) {
+		if (!redirectUrl.startsWith("/devices"))
+		{
 			return "/devices";
 		}
 		return redirectUrl;

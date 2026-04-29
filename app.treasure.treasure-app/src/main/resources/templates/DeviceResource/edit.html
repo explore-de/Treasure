@@ -41,7 +41,7 @@
                        type="text"
                        maxlength="50"
                        name="deviceName"
-                       placeholder="{device.deviceName}"
+                       placeholder="{device.deviceName == null || device.deviceName.trim.isEmpty ? 'e.g. MacBook Pro 14' : device.deviceName}"
                        id="nameInput"
                        oninput="validate()"
                        value="{device.deviceName}">
@@ -62,7 +62,7 @@
                        type="text"
                        maxlength="50"
                        name="deviceSerialNumber"
-                       placeholder="{device.deviceSerialNumber}"
+                       placeholder="{device.deviceSerialNumber == null || device.deviceSerialNumber.trim.isEmpty ? 'e.g. CNU1234567' : device.deviceSerialNumber}"
                        value="{device.deviceSerialNumber}">
             </div>
         </div>
@@ -76,7 +76,7 @@
                        maxlength="50"
                        name="group"
                        list="groupOptions"
-                       placeholder="e.g. Laptops"
+                       placeholder="{device.group == null || device.group.trim.isEmpty ? 'e.g. Laptops' : device.group}"
                        value="{device.group}">
                 <datalist id="groupOptions">
                     {#for g in groups}
@@ -95,7 +95,7 @@
                        type="text"
                        maxlength="80"
                        name="deviceModel"
-                       placeholder="e.g. A1708"
+                       placeholder="{device.deviceModel == null || device.deviceModel.trim.isEmpty ? 'e.g. A1708' : device.deviceModel}"
                        value="{device.deviceModel}">
             </div>
         </div>
@@ -108,7 +108,7 @@
                        type="text"
                        maxlength="30"
                        name="deviceAge"
-                       placeholder="e.g. 19.7.2022"
+                       placeholder="{device.deviceAge == null || device.deviceAge.trim.isEmpty ? 'e.g. 19.7.2022' : device.deviceAge}"
                        value="{device.deviceAge}">
             </div>
         </div>
