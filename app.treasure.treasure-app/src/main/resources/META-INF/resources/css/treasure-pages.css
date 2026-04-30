@@ -957,6 +957,153 @@ textarea.field-input {
   border-color: rgba(230,57,70,0.5);
   transform: scale(1.05);
 }
+.history-dialog {
+  width: min(900px, 92vw);
+  border: none;
+  border-radius: 12px;
+  padding: 0;
+  box-shadow: 0 20px 80px rgba(0,0,0,.35);
+}
+.history-dialog::backdrop {
+  background: rgba(0,0,0,.45);
+}
+.history-header {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+.history-title { font-weight: 700; }
+.history-close {
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 6px 10px;
+}
+.history-body {
+  padding: 14px 16px;
+  max-height: min(70vh, 560px);
+  overflow: auto;
+}
+.history-item {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0,0,0,.06);
+}
+.history-meta {
+  font-size: 12px;
+  opacity: .8;
+  margin-bottom: 6px;
+}
+.history-text { font-size: 14px; }
+.history-notes {
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: .75;
+}
+.history-empty { opacity: .75; }
+
+dialog.history-dialog[open]{
+  display: block !important;
+  position: fixed !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 999999 !important;
+  width: min(900px, 92vw) !important;
+  max-height: min(70vh, 560px) !important;
+  overflow: auto !important;
+  background: #fff !important;
+  color: #111 !important;
+  border: none !important;
+  border-radius: 12px !important;
+  box-shadow: 0 20px 80px rgba(0,0,0,.35) !important;
+  padding: 0 !important;
+}
+
+dialog.history-dialog::backdrop{
+  background: rgba(0,0,0,.45) !important;
+}
+
+.history-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+.history-title{ font-weight: 700; }
+.history-body{ padding: 14px 16px; }
+.history-item{ padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,.06); }
+.history-meta{ font-size: 12px; opacity: .8; margin-bottom: 6px; }
+.history-text{ font-size: 14px; }
+.history-notes{ margin-top: 6px; font-size: 12px; opacity: .75; }
+.history-empty{ opacity: .75; }
+
+.history-pill{
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .3px;
+  border: 1px solid transparent;
+  line-height: 1.4;
+}
+
+.pill-unassigned{
+  background: #fff1f1;
+  color: #a2191f;
+  border-color: #ffd7d9;
+}
+
+.pill-assigned{
+  background: #defbe6;
+  color: #0e6027;
+  border-color: #a7f0ba;
+}
+
+.pill-updated{
+  background: #fff8e1;
+  color: #8a5a00;
+  border-color: #f1c21b;
+}
+
+.pill-created{
+  background: rgba(144, 88, 197, 0.12);
+  color: #5a2d82;
+  border-color: rgba(144, 88, 197, 0.35);
+}
+
+.pill-default{
+  background: #f1f1f1;
+  color: #444;
+  border-color: #e0e0e0;
+}
+
+.history-item{
+  position: relative;
+  padding-left: 10px; /* Platz für Leiste */
+}
+
+.history-item::before{
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  border-radius: 4px;
+  background: transparent;
+}
+
+.history-item-unassigned::before{ background: #da1e28; }
+.history-item-assigned::before{ background: #24a148; }
+.history-item-updated::before{ background: #f1c21b; }
+.history-item-created::before{ background: #8a3ffc; }
+
 
 .actions {
   display: flex;
@@ -1125,3 +1272,31 @@ body.cds--g100 .badge-maintenance { background: #2c2100; color: #f1c21b; }
 body.cds--g100 .field-input { background: #393939; color: var(--text); border-color: var(--border); }
 body.cds--g100 .field-input:focus { border-color: #d4a90e; box-shadow: 0 0 0 3px rgba(212,169,14,0.15); }
 body.cds--g100 .admin-only-tag { background: var(--yellow-light); color: #e8a000; }
+
+dialog.history-dialog[open]{
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  max-height: min(70vh, 560px) !important;
+}
+
+.history-header{
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #fff;
+}
+
+.history-body{
+  flex: 1 1 auto;
+  overflow: auto;
+  max-height: none !important;
+}
+
+body.cds--g100 dialog.history-dialog[open]{
+  background: #262626 !important;
+  color: #f4f4f4 !important;
+}
+body.cds--g100 .history-header{
+  background: #262626 !important;
+}
