@@ -356,12 +356,15 @@ public class DeviceResource extends Controller
 	@Path("/delete-many")
 	@Transactional
 	public void deleteMany(
-			@RestForm String ids,
-			@RestForm String redirectUrl) {
+		@RestForm String ids,
+		@RestForm String redirectUrl)
+	{
 
-		for (Long id : parseIds(ids)) {
+		for (Long id : parseIds(ids))
+		{
 			Device device = deviceRepository.findById(id);
-			if (device != null) {
+			if (device != null)
+			{
 				device.delete();
 			}
 		}
@@ -372,25 +375,31 @@ public class DeviceResource extends Controller
 	@Path("/assign-many")
 	@Transactional
 	public void assignMany(
-			@RestForm String ids,
-			@RestForm String bookedBy,
-			@RestForm String redirectUrl) {
+		@RestForm String ids,
+		@RestForm String bookedBy,
+		@RestForm String redirectUrl)
+	{
 
 		Member member = memberRepository.findByUsername(bookedBy);
-		if (member == null) {
+		if (member == null)
+		{
 			seeOther(safeRedirect(redirectUrl));
 			return;
 		}
 
-		for (Long id : parseIds(ids)) {
+		for (Long id : parseIds(ids))
+		{
 			Device device = deviceRepository.findById(id);
 			if (device == null) continue;
 
-			if (device.getBookedBy() != null && device.getBookedBy().equals(member)) {
+			if (device.getBookedBy() != null && device.getBookedBy().equals(member))
+			{
 				device.setBookedBy(null);
 				device.setStatus("available");
 				device.setPickupTime(null);
-			} else {
+			}
+			else
+			{
 				device.setBookedBy(member);
 				device.setStatus("not available");
 				device.setPickupTime(LocalDateTime.now());
@@ -440,16 +449,18 @@ public class DeviceResource extends Controller
 		return redirectUrl;
 	}
 
-	private List<Long> parseIds(String idsCsv) {
-		if (idsCsv == null || idsCsv.isBlank()) {
+	private List<Long> parseIds(String idsCsv)
+	{
+		if (idsCsv == null || idsCsv.isBlank())
+		{
 			return Collections.emptyList();
 		}
 		return Arrays.stream(idsCsv.split(","))
-				.map(String::trim)
-				.filter(s -> !s.isBlank())
-				.map(Long::valueOf)
-				.distinct()
-				.toList();
+			.map(String::trim)
+			.filter(s -> !s.isBlank())
+			.map(Long::valueOf)
+			.distinct()
+			.toList();
 	}
 
 }
