@@ -2,10 +2,16 @@
 <html lang="de">
   <head>
     <script>
-      if (localStorage.getItem('theme') === 'dark') {
-        document.documentElement.classList.add('cds--g100');
-        document.documentElement.style.backgroundColor = '#161616';
-      }
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          if (t !== 'dark' && t !== 'light') {
+            t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          window.__theme = t;
+          if (t === 'dark') document.documentElement.classList.add('cds--g100');
+        } catch (e) {}
+      })();
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,6 +25,42 @@
     <link rel="stylesheet" href="/css/treasure-core.css?v=18">
     <link rel="stylesheet" href="/css/treasure-components.css?v=18">
     <link rel="stylesheet" href="/css/treasure-pages.css?v=13">
+    <style>
+      cds-header:not(:defined) {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 48px;
+        background-color: var(--cds-background, #ffffff);
+        border-bottom: 1px solid var(--cds-border-subtle, #e0e0e0);
+        z-index: 8000;
+      }
+      html.cds--g100 cds-header:not(:defined) {
+        background-color: #161616;
+        border-bottom-color: #393939;
+      }
+      cds-side-nav:not(:defined) {
+        display: block;
+        position: fixed;
+        top: 48px;
+        left: 0;
+        width: 48px;
+        height: calc(100vh - 48px);
+        background-color: var(--cds-background, #ffffff);
+        border-right: 1px solid var(--cds-border-subtle, #e0e0e0);
+        z-index: 7000;
+      }
+      html.cds--g100 cds-side-nav:not(:defined) {
+        background-color: #161616;
+        border-right-color: #393939;
+      }
+      cds-header:not(:defined) > *,
+      cds-side-nav:not(:defined) > * {
+        visibility: hidden;
+      }
+    </style>
     <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/ui-shell.min.js"></script>
     <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/button.min.js"></script>
     <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/text-input.min.js"></script>
@@ -44,9 +86,7 @@
   </head>
   <body>
     <script>
-      if (localStorage.getItem('theme') === 'dark') {
-        document.documentElement.classList.add('cds--g100');
-      }
+      if (window.__theme === 'dark') document.body.classList.add('cds--g100');
     </script>
     {#include tags/header.html /}
 
@@ -74,21 +114,26 @@
         }
       }
 
+      var THEME_ICON_DARK = '<path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M21.7519 15.0021C20.597 15.484 19.3296 15.7501 18 15.7501C12.6152 15.7501 8.25 11.3849 8.25 6.00011C8.25 4.67052 8.51614 3.40308 8.99806 2.24817C5.47566 3.71798 3 7.19493 3 11.2501C3 16.6349 7.36522 21.0001 12.75 21.0001C16.8052 21.0001 20.2821 18.5245 21.7519 15.0021Z"/>';
+      var THEME_ICON_LIGHT = '<path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M12 3V5.25M18.364 5.63604L16.773 7.22703M21 12H18.75M18.364 18.364L16.773 16.773M12 18.75V21M7.22703 16.773L5.63604 18.364M5.25 12H3M7.22703 7.22703L5.63604 5.63604M15.75 12C15.75 14.0711 14.0711 15.75 12 15.75C9.92893 15.75 8.25 14.0711 8.25 12C8.25 9.92893 9.92893 8.25 12 8.25C14.0711 8.25 15.75 9.92893 15.75 12Z"/>';
+
+      function applyTheme(theme) {
+        var isDark = theme === 'dark';
+        document.documentElement.classList.toggle('cds--g100', isDark);
+        document.body.classList.toggle('cds--g100', isDark);
+        var icon = document.getElementById('themeIcon');
+        if (icon) icon.innerHTML = isDark ? THEME_ICON_DARK : THEME_ICON_LIGHT;
+      }
+
       function toggleTheme() {
-        const isDark = document.body.classList.toggle('cds--g100');
-        document.getElementById('themeIcon').innerHTML = isDark
-                ? '<path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M21.7519 15.0021C20.597 15.484 19.3296 15.7501 18 15.7501C12.6152 15.7501 8.25 11.3849 8.25 6.00011C8.25 4.67052 8.51614 3.40308 8.99806 2.24817C5.47566 3.71798 3 7.19493 3 11.2501C3 16.6349 7.36522 21.0001 12.75 21.0001C16.8052 21.0001 20.2821 18.5245 21.7519 15.0021Z"/>'
-                : '<path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M12 3V5.25M18.364 5.63604L16.773 7.22703M21 12H18.75M18.364 18.364L16.773 16.773M12 18.75V21M7.22703 16.773L5.63604 18.364M5.25 12H3M7.22703 7.22703L5.63604 5.63604M15.75 12C15.75 14.0711 14.0711 15.75 12 15.75C9.92893 15.75 8.25 14.0711 8.25 12C8.25 9.92893 9.92893 8.25 12 8.25C14.0711 8.25 15.75 9.92893 15.75 12Z"/>';
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        var next = document.documentElement.classList.contains('cds--g100') ? 'light' : 'dark';
+        localStorage.setItem('theme', next);
+        window.__theme = next;
+        applyTheme(next);
       }
 
       document.addEventListener('DOMContentLoaded', function() {
-        if (localStorage.getItem('theme') === 'dark') {
-          document.body.classList.add('cds--g100');
-          //document.body.classList.add('app-container');
-          document.documentElement.classList.remove('cds--g100');
-          document.documentElement.classList.remove('app-container');
-        }
+        applyTheme(window.__theme || localStorage.getItem('theme') || 'light');
         var sideNav = document.querySelector('cds-side-nav');
         if (sideNav) {
           function updateLayout() {

@@ -628,7 +628,7 @@ textarea.field-input {
 }
 
 .btn-bulk-assign {
-  background: var(--yellow);
+  background: none;
   color: #3d2800;
   padding: 15px 25px;
   border-radius: 8px;
@@ -641,13 +641,14 @@ textarea.field-input {
   gap: 7px;
   transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
   box-shadow: 0 0 10px rgba(245, 197, 24, 0.5);
-  border: 0.5px solid var(--yellow);
+  border: 1px solid var(--yellow);
   height: 55px;
+  color: var(--yellow);
 }
 .btn-bulk-delete {
   background: transparent;
   color: var(--red);
-  border: 2px solid rgba(230,57,70,0.25);
+  border: 2px solid rgba(230,57,70,0.7);
   padding: 15px 25px;
   border-radius: 8px;
   font-family: 'DM Sans', sans-serif;
@@ -658,7 +659,6 @@ textarea.field-input {
   align-items: center;
   gap: 7px;
   transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 0 10px rgba(245, 197, 24, 0.5);
   height: 55px;
 }
 .dropdown-btn {
@@ -669,7 +669,7 @@ textarea.field-input {
   font-family: 'DM Sans', sans-serif;
   font-size: 17px;
   font-weight: 600;
-  min-width: 218px;
+  min-width: 162px;
   cursor: pointer;
   align-items: center;
   gap: 7px;
@@ -810,10 +810,12 @@ textarea.field-input {
   transform: scale(1.05);
 }
 .btn-bulk-assign:hover {
-  box-shadow: 0 0 20px rgba(245, 197, 24, 0.5);
+  background: var(--yellow-light);
+  box-shadow: 0 0 10px rgba(245, 197, 24, 0.5);
   transform: scale(1.05);
 }
 .btn-bulk-delete:hover {
+  box-shadow: 0 0 10px var(--red);
   background: var(--red-light);
   border-color: rgba(230,57,70,0.5);
   transform: scale(1.05);
@@ -853,11 +855,12 @@ textarea.field-input {
 .search-clean {
   display: flex;
   position: absolute;
-  right: 0px;
-  top: 50%;
-  width: 50px;
-  height: 54px;
-  transform: translateY(-50%);
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 52px;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   border-bottom-right-radius: 8px;
   border-top-right-radius: 8px;
@@ -923,7 +926,7 @@ textarea.field-input {
 .btn-edit {
   background: transparent;
   color: var(--text);
-  border: 2px solid var(--border);
+  border: 2px solid rgba(204, 204, 204, 0.4);
   padding: 12px 21.5px;
   border-radius: 6px;
   font-family: 'DM Sans', sans-serif;
@@ -935,14 +938,14 @@ textarea.field-input {
 }
 .btn-edit:hover {
   background: var(--bg);
-  border-color: #ccc;
+  border-color: rgba(204, 204, 204, 0.7);
   transform: scale(1.05);
 }
 
 .btn-delete {
   background: transparent;
   color: var(--red);
-  border: 2px solid rgba(230,57,70,0.25);
+  border: 2px solid rgba(230,57,70,0.5);
   padding: 12px 21.5px;
   border-radius: 6px;
   font-family: 'DM Sans', sans-serif;

@@ -1,6 +1,6 @@
-
 package app.treasure.device.api;
 
+import java.lang.reflect.Array;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Arrays;
@@ -52,6 +52,7 @@ public class DeviceResource extends Controller {
 	public static class Templates {
 		private Templates() {}
 		public static native TemplateInstance index(List<Device> devices, Member currentmember, List<Member> members);
+
 		public static native TemplateInstance create(List<String> groups);
 
 		public static native TemplateInstance edit(Device device, List<String> groups, List<DeviceHistory> history);
@@ -228,7 +229,6 @@ public class DeviceResource extends Controller {
 		return Templates.create(loadKnownGroups());
 	}
 
-
 	@GET
 	@Path("/{id}/edit")
 	public TemplateInstance edit(@PathParam("id") Long id) {
@@ -236,7 +236,6 @@ public class DeviceResource extends Controller {
 		List<DeviceHistory> history = deviceHistoryRepository.forDevice(id);
 		return Templates.edit(device, loadKnownGroups(), history);
 	}
-
 
 	@POST
 	@Path("/{id}/search")
@@ -277,7 +276,6 @@ public class DeviceResource extends Controller {
 
 	}
 
-
 	@POST
 	@Path("/create")
 	@Transactional
@@ -301,8 +299,10 @@ public class DeviceResource extends Controller {
 			Device device = new Device();
 			device.setDeviceName(deviceName);
 			device.setDeviceSerialNumber(deviceSerialNumber);
+
 			device.setStatus("available");
 			device.setCreatedOn(String.valueOf(LocalDateTime.now()));
+
 			device.setGroup(group);
 			device.setDeviceModel(deviceModel);
 			device.setExtraInfo(extraInfo);
@@ -338,8 +338,6 @@ public class DeviceResource extends Controller {
 		}
 		seeOther("/devices");
 	}
-
-
 
 	@POST
 	@Path("/{id}/update")
@@ -402,7 +400,6 @@ public class DeviceResource extends Controller {
 		seeOther("/devices");
 	}
 
-
 	@POST
 	@Path("/{id}/delete")
 	@Transactional
@@ -431,15 +428,15 @@ public class DeviceResource extends Controller {
 		seeOther(safeRedirect(redirectUrl));
 	}
 
-
 	@POST
 	@Path("/assign-many")
 	@Transactional
 	public void assignMany(
-			@RestForm String ids,
-			@RestForm String bookedBy,
-			@RestForm String redirectUrl
-	) {
+		@RestForm String ids,
+		@RestForm String bookedBy,
+		@RestForm String redirectUrl)
+	{
+
 		Member member = memberRepository.findByUsername(bookedBy);
 		if (member == null) {
 			seeOther(safeRedirect(redirectUrl));
@@ -475,15 +472,14 @@ public class DeviceResource extends Controller {
 		seeOther(safeRedirect(redirectUrl));
 	}
 
-
 	@POST
 	@Path("/{id}/assign")
 	@Transactional
 	public void assign(
-			@PathParam("id") Long id,
-			@RestForm String bookedBy,
-			@RestForm String redirectUrl
-	) {
+		@PathParam("id") Long id,
+		@RestForm String bookedBy,
+		@RestForm String redirectUrl)
+	{
 		Device device = deviceRepository.findById(id);
 		Member actor = currentMember();
 		String oldBooked = device.getBookedName();
@@ -510,7 +506,6 @@ public class DeviceResource extends Controller {
 
 		seeOther(safeRedirect(redirectUrl));
 	}
-
 
 	private String safeRedirect(String redirectUrl)
 	{
