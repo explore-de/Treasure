@@ -39,10 +39,9 @@
                type="text"
                maxlength="50"
                name="deviceName"
-               placeholder='e.g. MacBook Pro 14"'
+               placeholder="e.g. MacBook Pro 14"
                id="nameInput"
                oninput="validate()">
-        <span class="field-hint">Must be unique and descriptive</span>
         <span class="field-error" id="nameError" style="display:none">
           <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <circle cx="12" cy="12" r="10"/>
@@ -80,7 +79,6 @@
           <option value="{g}"></option>
           {/for}
         </datalist>
-        <span class="field-hint">Choose existing or type a new group</span>
       </div>
     </div>
 
@@ -108,10 +106,84 @@
       </div>
     </div>
 
+
+    <!-- Reg Company -->
+    <div class="form-body-middle">
+      <div class="field">
+        <label class="field-label">Which Company has it? </label>
+        <input class="field-input"
+               type="text"
+               maxlength="30"
+               name="regCompany"
+               placeholder="e.g. EXP Software">
+      </div>
+    </div>
+
+    <!-- Device Number -->
+    <div class="form-body-middle">
+      <div class="field">
+        <label class="field-label">Device Number: </label>
+        <input class="field-input"
+               type="text"
+               maxlength="30"
+               name="deviceNumber"
+               placeholder="e.g. Idk what you want">
+      </div>
+    </div>
+
+    <!-- Device Prozessor -->
+    <div class="form-body-middle">
+      <div class="field">
+        <label class="field-label">Device Prozessor: </label>
+        <input class="field-input"
+               type="text"
+               maxlength="30"
+               name="deviceProzessor"
+               placeholder="e.g. Apple M1 Pro">
+      </div>
+    </div>
+
+    <!-- Device HDD Storage -->
+    <div class="form-body-middle">
+      <div class="field">
+        <label class="field-label">Device HDD Storage: </label>
+        <input class="field-input"
+               type="text"
+               maxlength="30"
+               name="deviceHDDStorage"
+               placeholder="e.g. 1024GB">
+      </div>
+    </div>
+
+    <!-- Device RAM -->
+    <div class="form-body-middle">
+      <div class="field">
+        <label class="field-label">Device RAM: </label>
+        <input class="field-input"
+               type="text"
+               maxlength="30"
+               name="deviceRAM"
+               placeholder="e.g. 16GB">
+      </div>
+    </div>
+
+    <!-- Device Model Date -->
+    <div class="form-body-middle">
+      <div class="field">
+        <label class="field-label">Device bought on the: </label>
+        <input class="field-input"
+               type="text"
+               maxlength="30"
+               name="deviceModelDate"
+               placeholder="e.g. 2021-10-18">
+      </div>
+    </div>
+
+
     <!-- Device Damage -->
     <div class="form-body-middle">
       <div class="field">
-        <label class="field-label">Device Damage</label>
+        <label class="field-label">Device Condition</label>
         <select class="field-input" name="deviceDamage">
           <option value="perfect" selected>perfect</option>
           <option value="lightly damaged">lightly damaged</option>
@@ -120,6 +192,19 @@
         </select>
       </div>
     </div>
+
+    <!-- Device Location -->
+    <div class="form-body-middle">
+      <div class="field">
+        <label class="field-label">Where is/will the Device be stored: </label>
+        <textarea class="field-input"
+                  name="deviceLocation"
+                  maxlength="500"
+                  rows="3"
+                  placeholder="Room 1, Locker 2"></textarea>
+      </div>
+      </div>
+
 
     <!-- Extra Info -->
     <div class="form-body-bottom">
@@ -133,6 +218,7 @@
       </div>
     </div>
 
+
     <div class="form-actions">
       <button type="submit" class="btn-save" onclick="return handleSave()">
         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -143,6 +229,7 @@
       <button type="button" class="btn-cancel" onclick="history.back()">Cancel</button>
       <span class="btn-save-hint">Fields marked * are required</span>
     </div>
+  </div>
   </div>
 </form>
 

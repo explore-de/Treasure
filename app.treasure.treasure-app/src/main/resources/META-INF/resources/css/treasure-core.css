@@ -34,7 +34,7 @@ html, body {
   margin: 0;
   padding: 0;
   overflow-x: hidden; 
-  background-color: var(--cds-background, #f4f4f4);
+  background-color: var(--cds-background, #f4f4f4); /* IMPORTANT CHANGES COLOR OF BACKGROUND OF INDEX*/
 }
 
 body {
@@ -106,7 +106,7 @@ body.side-nav-expanded .app-container {
   gap: 0.75rem;
 }
 html.cds--g100 {                                                                                                                                                                                                                                   
-  background: #161616;                                                                                                                                                                                                                             
+  background: var(--white);
 } 
 
 cds-dropdown::part(menu-body) {
@@ -174,7 +174,7 @@ cds-button[kind="primary"]:active {
   width: 320px;
   max-height: calc(100vh - 48px);
   overflow-y: auto;
-  background: var(--cds-layer-02);
+  background: var(--white);
   border-left: 1px solid var(--cds-border-subtle-01);
   box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.1);
   z-index: 8000;
@@ -328,7 +328,7 @@ body.cds--g100 {
 
 body.cds--g100 .form-card-header,
 body.cds--g100 .form-actions {
-  background: #2d2d2d;
+  background: var(--white);
 }
 
 body.cds--g100 {

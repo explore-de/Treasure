@@ -1,7 +1,10 @@
 package app.treasure.device.api;
 
+import java.lang.reflect.Array;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Arrays;
+import java.util.Collections;
 
 import io.quarkus.panache.common.Sort;
 import org.jboss.resteasy.reactive.RestForm;
@@ -50,7 +53,7 @@ public class DeviceResource extends Controller
 		{
 		}
 
-		public static native TemplateInstance index(List<Device> devices, Member currentmember, List<Member> members, String query);
+		public static native TemplateInstance index(List<Device> devices, Member currentmember, List<Member> members);
 
 		public static native TemplateInstance create(List<String> groups);
 
@@ -67,22 +70,32 @@ public class DeviceResource extends Controller
 			.toList();
 	}
 
-	private void redirectToIndex() {
-		redirect(DeviceResource.class).index(null, null, null, null, null, null, null);
-	}
-
 	@GET
 	@Path("")
 	public TemplateInstance index(
-		@QueryParam("query") String query,
+		@QueryParam("searchName") String searchName,
+		@QueryParam("name") List<String> names,
 		@QueryParam("status") List<String> statuses,
 		@QueryParam("bookedBy") List<String> bookedBy,
 		@QueryParam("serial") List<String> serials,
 		@QueryParam("group") List<String> groups,
 		@QueryParam("model") List<String> models,
-		@QueryParam("damage") List<String> damages)
+		@QueryParam("damage") List<String> damages,
+
+		@QueryParam("company") List<String> companys,
+		@QueryParam("number") List<String> numbers,
+		@QueryParam("prozessor") List<String> prozessors,
+		@QueryParam("hddStorage") List<String> hddStorages,
+		@QueryParam("ram") List<String> rams,
+		@QueryParam("modelDate") List<String> modelDates)
 	{
-		List<String> nameTerms = (query != null && !query.isBlank()) ? List.of(query.trim()) : List.of();
+
+		List<String> nameTerms = normalize(names);
+		if ((nameTerms == null || nameTerms.isEmpty()) && searchName != null && !searchName.isBlank())
+		{
+			nameTerms = List.of(searchName.trim());
+		}
+
 		List<String> st = normalize(statuses);
 		List<String> bb = normalize(bookedBy);
 		List<String> se = normalize(serials);
@@ -90,14 +103,23 @@ public class DeviceResource extends Controller
 		List<String> mo = normalize(models);
 		List<String> da = normalize(damages);
 
+		List<String> cp = normalize(companys);
+		List<String> nb = normalize(numbers);
+		List<String> pz = normalize(prozessors);
+		List<String> hd = normalize(hddStorages);
+		List<String> rm = normalize(rams);
+		List<String> md = normalize(modelDates);
+
 		List<Device> all = deviceRepository.listAll(Sort.by("id").ascending());
+		List<String> finalNameTerms = nameTerms;
 		List<Device> filtered = all.stream()
-			.filter(d -> matches(d, nameTerms, st, bb, se, gr, mo, da))
+			.filter(d -> matches(d, finalNameTerms, st, bb, se, gr, mo, da, cp, nb, pz, hd, rm, md))
 			.toList();
 
 		String username = securityIdentity.getPrincipal().getName();
 		Member currentmember = memberRepository.findByUsername(username);
-		return Templates.index(filtered, currentmember, memberRepository.listAll(), query);
+
+		return Templates.index(filtered, currentmember, memberRepository.listAll());
 	}
 
 	private List<String> normalize(List<String> in)
@@ -110,16 +132,25 @@ public class DeviceResource extends Controller
 	}
 
 	private boolean matches(Device d,
-		List<String> names,
+		List<String> nameFallback,
 		List<String> statuses,
 		List<String> bookedBy,
 		List<String> serials,
 		List<String> groups,
 		List<String> models,
-		List<String> damages)
+		List<String> damages,
+		List<String> company,
+		List<String> number,
+		List<String> prozessor,
+		List<String> hddStorage,
+		List<String> ram,
+		List<String> modelDate
+
+	)
 	{
-		boolean nameOk = names.isEmpty() ||
-			names.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceName(), t));
+
+		boolean nameOk = nameFallback.isEmpty() ||
+			nameFallback.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceName(), t));
 		boolean statusOk = statuses.isEmpty() ||
 			statuses.stream().anyMatch(t -> equalsIgnoreCase(d.getStatus(), t));
 		boolean bookedOk = bookedBy.isEmpty() ||
@@ -132,7 +163,20 @@ public class DeviceResource extends Controller
 			models.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceModel(), t));
 		boolean damageOk = damages.isEmpty() ||
 			damages.stream().anyMatch(t -> equalsIgnoreCase(d.getDeviceDamage(), t));
-		return nameOk && statusOk && bookedOk && serialOk && groupOk && modelOk && damageOk;
+		boolean companyOk = company.isEmpty() ||
+			company.stream().anyMatch(t -> containsIgnoreCase(d.getRegCompany(), t));
+		boolean numberOk = number.isEmpty() ||
+			number.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceNumber(), t));
+		boolean prozessorOk = prozessor.isEmpty() ||
+			prozessor.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceProzessor(), t));
+		boolean hddStorageOk = hddStorage.isEmpty() ||
+			hddStorage.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceHDDStorage(), t));
+		boolean ramOk = ram.isEmpty() ||
+			ram.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceRAM(), t));
+		boolean modelDateOk = modelDate.isEmpty() ||
+			modelDate.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceModelDate(), t));
+
+		return nameOk && statusOk && bookedOk && serialOk && groupOk && modelOk && damageOk && companyOk && numberOk && prozessorOk && hddStorageOk && ramOk && modelDateOk;
 	}
 
 	private boolean containsIgnoreCase(String haystack, String needle)
@@ -208,12 +252,18 @@ public class DeviceResource extends Controller
 		@RestForm String deviceName,
 		@RestForm String deviceSerialNumber,
 
-		// ✅ neue Felder
 		@RestForm String group,
 		@RestForm String deviceModel,
 		@RestForm String extraInfo,
 		@RestForm String deviceDamage,
-		@RestForm String deviceAge)
+		@RestForm String deviceAge,
+		@RestForm String regCompany,
+		@RestForm String deviceNumber,
+		@RestForm String deviceProzessor,
+		@RestForm String deviceHDDStorage,
+		@RestForm String deviceRAM,
+		@RestForm String deviceModelDate,
+		@RestForm String deviceLocation)
 	{
 		if (deviceName != null && deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*"))
 		{
@@ -229,10 +279,17 @@ public class DeviceResource extends Controller
 			device.setExtraInfo(extraInfo);
 			device.setDeviceDamage(deviceDamage);
 			device.setDeviceAge(deviceAge);
+			device.setRegCompany(regCompany);
+			device.setDeviceNumber(deviceNumber);
+			device.setDeviceProzessor(deviceProzessor);
+			device.setDeviceHDDStorage(deviceHDDStorage);
+			device.setDeviceRAM(deviceRAM);
+			device.setDeviceModelDate(deviceModelDate);
+			device.setDeviceLocation(deviceLocation);
 
 			deviceRepository.persist(device);
 		}
-		redirectToIndex();
+		seeOther("/devices");
 	}
 
 	@POST
@@ -247,11 +304,18 @@ public class DeviceResource extends Controller
 		@RestForm String deviceModel,
 		@RestForm String extraInfo,
 		@RestForm String deviceDamage,
-		@RestForm String deviceAge)
+		@RestForm String deviceAge,
+		@RestForm String regCompany,
+		@RestForm String deviceNumber,
+		@RestForm String deviceProzessor,
+		@RestForm String deviceHDDStorage,
+		@RestForm String deviceRAM,
+		@RestForm String deviceModelDate,
+		@RestForm String deviceLocation)
 	{
 		if (deviceName == null || !deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*"))
 		{
-			redirectToIndex();
+			seeOther("/devices");
 			return;
 		}
 
@@ -265,64 +329,89 @@ public class DeviceResource extends Controller
 		device.setExtraInfo(extraInfo);
 		device.setDeviceDamage(deviceDamage);
 		device.setDeviceAge(deviceAge);
+		device.setRegCompany(regCompany);
+		device.setDeviceNumber(deviceNumber);
+		device.setDeviceProzessor(deviceProzessor);
+		device.setDeviceHDDStorage(deviceHDDStorage);
+		device.setDeviceRAM(deviceRAM);
+		device.setDeviceModelDate(deviceModelDate);
+		device.setDeviceLocation(deviceLocation);
 
-		redirectToIndex();
+		seeOther("/devices");
 	}
 
 	@POST
 	@Path("/{id}/delete")
 	@Transactional
-	public void delete(@PathParam("id") Long id)
+	public void delete(
+		@PathParam("id") Long id,
+		@RestForm String redirectUrl)
 	{
 		Device device = deviceRepository.findById(id);
 		device.delete();
-		redirectToIndex();
+		seeOther(safeRedirect(redirectUrl));
 	}
 
 	@POST
 	@Path("/delete-many")
 	@Transactional
-	public void deleteMany(@RestForm List<Long> ids){
-		for (Long id : ids){
+	public void deleteMany(
+			@RestForm String ids,
+			@RestForm String redirectUrl) {
+
+		for (Long id : parseIds(ids)) {
 			Device device = deviceRepository.findById(id);
-			device.delete();
-		};
-		redirectToIndex(); // this thing saves everything to index
+			if (device != null) {
+				device.delete();
+			}
+		}
+		seeOther(safeRedirect(redirectUrl));
 	}
 
 	@POST
 	@Path("/assign-many")
 	@Transactional
-	public void assignMany(@RestForm List<Long> ids, @RestForm String bookedBy){
+	public void assignMany(
+			@RestForm String ids,
+			@RestForm String bookedBy,
+			@RestForm String redirectUrl) {
+
 		Member member = memberRepository.findByUsername(bookedBy);
-		for (Long id : ids){
+		if (member == null) {
+			seeOther(safeRedirect(redirectUrl));
+			return;
+		}
+
+		for (Long id : parseIds(ids)) {
 			Device device = deviceRepository.findById(id);
-			if (device.getBookedBy() == member)
-			{
+			if (device == null) continue;
+
+			if (device.getBookedBy() != null && device.getBookedBy().equals(member)) {
 				device.setBookedBy(null);
 				device.setStatus("available");
 				device.setPickupTime(null);
-				redirectToIndex();
-			}
-			else {
+			} else {
 				device.setBookedBy(member);
 				device.setStatus("not available");
 				device.setPickupTime(LocalDateTime.now());
-				redirectToIndex();
 			}
 		}
-	}
 
+		seeOther(safeRedirect(redirectUrl));
+	}
 
 	@POST
 	@Path("/{id}/assign")
 	@Transactional
-	public void assign(@PathParam("id") Long id, @RestForm String bookedBy)
+	public void assign(
+		@PathParam("id") Long id,
+		@RestForm String bookedBy,
+		@RestForm String redirectUrl)
 	{
 		Device device = deviceRepository.findById(id);
 		Member member = memberRepository.findByUsername(bookedBy);
 
-		if (device.getBookedBy() == member)
+		if (device.getBookedBy() != null && device.getBookedBy().equals(member))
 		{
 			device.setBookedBy(null);
 			device.setStatus("available");
@@ -330,12 +419,37 @@ public class DeviceResource extends Controller
 		}
 		else
 		{
-			LOG.info("member found: {}", member);
-			LOG.info("bookedBy param: {}", bookedBy);
 			device.setBookedBy(member);
 			device.setStatus("not available");
 			device.setPickupTime(LocalDateTime.now());
 		}
-		redirectToIndex();
+
+		seeOther(safeRedirect(redirectUrl));
 	}
+
+	private String safeRedirect(String redirectUrl)
+	{
+		if (redirectUrl == null || redirectUrl.isBlank())
+		{
+			return "/devices";
+		}
+		if (!redirectUrl.startsWith("/devices"))
+		{
+			return "/devices";
+		}
+		return redirectUrl;
+	}
+
+	private List<Long> parseIds(String idsCsv) {
+		if (idsCsv == null || idsCsv.isBlank()) {
+			return Collections.emptyList();
+		}
+		return Arrays.stream(idsCsv.split(","))
+				.map(String::trim)
+				.filter(s -> !s.isBlank())
+				.map(Long::valueOf)
+				.distinct()
+				.toList();
+	}
+
 }

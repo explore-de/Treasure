@@ -87,3 +87,34 @@ This is a small Renarde webapp. Once the quarkus app is started visit http://loc
 Monitor your application's health using SmallRye Health
 
 [Related guide section...](https://quarkus.io/guides/smallrye-health)
+
+## If it doesn't work...
+
+### Quarkus wont start
+
+If it is this error:
+```shell script
+ERROR [io.quarkus.runtime.Application] (Quarkus Main Thread) Failed to start application: java.lang.RuntimeException: Failed to start quarkus
+```
+Write in local Console:
+```shell script
+cd samples-server/compose
+docker compose up -d
+```
+```shell script
+sudo ss -ltnp | grep ':8080'
+```
+You will get an output like this (after putting in your password):
+```shell script
+LISTEN 0      4096   [::ffff:127.0.0.1]:8080             *:*    users:(("java",pid=25450,fd=817)) 
+```
+Now you gotta remember the pid (in this case 25450) and write in local Console:
+
+```shell script
+sudo kill 25450
+```
+If you have more than one process running on port 8080, you have to kill every process. Just repeat the steps until there is no more output after typing:
+```shell script
+sudo ss -ltnp | grep ':8080'
+```
+Then you can start the quarkus app again and it should work now.
