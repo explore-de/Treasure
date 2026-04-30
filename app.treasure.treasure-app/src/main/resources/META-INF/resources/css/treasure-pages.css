@@ -621,6 +621,46 @@ textarea.field-input {
   border: 0.5px solid var(--yellow);
   height: 55px;
 }
+.bulk-actions {
+  min-width: 420px;
+  margin-left: auto;
+  margin-right: -10px;
+}
+
+.btn-bulk-assign {
+  background: var(--yellow);
+  color: #3d2800;
+  padding: 15px 25px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  min-width: 186px;
+  cursor: pointer;
+  align-items: center;
+  gap: 7px;
+  transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 0 10px rgba(245, 197, 24, 0.5);
+  border: 0.5px solid var(--yellow);
+  height: 55px;
+}
+.btn-bulk-delete {
+  background: transparent;
+  color: var(--red);
+  border: 2px solid rgba(230,57,70,0.25);
+  padding: 15px 25px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  min-width: 186px;
+  cursor: pointer;
+  align-items: center;
+  gap: 7px;
+  transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 0 10px rgba(245, 197, 24, 0.5);
+  height: 55px;
+}
 .dropdown-btn {
   background: var(--yellow);
   color: #3d2800;
@@ -637,6 +677,7 @@ textarea.field-input {
   box-shadow: 0 0 10px rgba(245, 197, 24, 0.5);
   border: 0.5px solid var(--yellow);
   height: 55px;
+  margin-right: 120px;
 }
 .dropdown-container {
   display: none;
@@ -766,6 +807,15 @@ textarea.field-input {
 }
 .dropdown-btn:hover {
   box-shadow: 0 0 20px rgba(245, 197, 24, 0.5);
+  transform: scale(1.05);
+}
+.btn-bulk-assign:hover {
+  box-shadow: 0 0 20px rgba(245, 197, 24, 0.5);
+  transform: scale(1.05);
+}
+.btn-bulk-delete:hover {
+  background: var(--red-light);
+  border-color: rgba(230,57,70,0.5);
   transform: scale(1.05);
 }
 .search{

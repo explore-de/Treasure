@@ -1,7 +1,10 @@
 package app.treasure.device.api;
 
+import java.lang.reflect.Array;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Arrays;
+import java.util.Collections;
 
 import io.quarkus.panache.common.Sort;
 import org.jboss.resteasy.reactive.RestForm;
@@ -84,8 +87,7 @@ public class DeviceResource extends Controller
 		@QueryParam("prozessor") List<String> prozessors,
 		@QueryParam("hddStorage") List<String> hddStorages,
 		@QueryParam("ram") List<String> rams,
-		@QueryParam("modelDate") List<String> modelDates
-		)
+		@QueryParam("modelDate") List<String> modelDates)
 	{
 
 		List<String> nameTerms = normalize(names);
@@ -174,7 +176,6 @@ public class DeviceResource extends Controller
 		boolean modelDateOk = modelDate.isEmpty() ||
 			modelDate.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceModelDate(), t));
 
-
 		return nameOk && statusOk && bookedOk && serialOk && groupOk && modelOk && damageOk && companyOk && numberOk && prozessorOk && hddStorageOk && ramOk && modelDateOk;
 	}
 
@@ -262,8 +263,7 @@ public class DeviceResource extends Controller
 		@RestForm String deviceHDDStorage,
 		@RestForm String deviceRAM,
 		@RestForm String deviceModelDate,
-		@RestForm String deviceLocation
-	)
+		@RestForm String deviceLocation)
 	{
 		if (deviceName != null && deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*"))
 		{
@@ -311,8 +311,7 @@ public class DeviceResource extends Controller
 		@RestForm String deviceHDDStorage,
 		@RestForm String deviceRAM,
 		@RestForm String deviceModelDate,
-		@RestForm String deviceLocation
-	)
+		@RestForm String deviceLocation)
 	{
 		if (deviceName == null || !deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*"))
 		{
@@ -357,11 +356,15 @@ public class DeviceResource extends Controller
 	@Path("/delete-many")
 	@Transactional
 	public void deleteMany(
-		@PathParam("id") Long id,
-		@RestForm String redirectUrl)
-	{
-		Device device = deviceRepository.findById(id);
-		device.delete();
+			@RestForm String ids,
+			@RestForm String redirectUrl) {
+
+		for (Long id : parseIds(ids)) {
+			Device device = deviceRepository.findById(id);
+			if (device != null) {
+				device.delete();
+			}
+		}
 		seeOther(safeRedirect(redirectUrl));
 	}
 
@@ -369,28 +372,32 @@ public class DeviceResource extends Controller
 	@Path("/assign-many")
 	@Transactional
 	public void assignMany(
-		@PathParam("id") Long id,
-		@RestForm String bookedBy,
-		@RestForm String redirectUrl)
-	{
+			@RestForm String ids,
+			@RestForm String bookedBy,
+			@RestForm String redirectUrl) {
+
 		Member member = memberRepository.findByUsername(bookedBy);
-
-		Device device = deviceRepository.findById(id);
-		if (device.getBookedBy() == member)
-		{
-			device.setBookedBy(null);
-			device.setStatus("available");
-			device.setPickupTime(null);
+		if (member == null) {
 			seeOther(safeRedirect(redirectUrl));
+			return;
 		}
-		else
-		{
-			device.setBookedBy(member);
-			device.setStatus("not available");
-			device.setPickupTime(LocalDateTime.now());
-			seeOther(safeRedirect(redirectUrl));
 
+		for (Long id : parseIds(ids)) {
+			Device device = deviceRepository.findById(id);
+			if (device == null) continue;
+
+			if (device.getBookedBy() != null && device.getBookedBy().equals(member)) {
+				device.setBookedBy(null);
+				device.setStatus("available");
+				device.setPickupTime(null);
+			} else {
+				device.setBookedBy(member);
+				device.setStatus("not available");
+				device.setPickupTime(LocalDateTime.now());
+			}
 		}
+
+		seeOther(safeRedirect(redirectUrl));
 	}
 
 	@POST
@@ -404,7 +411,7 @@ public class DeviceResource extends Controller
 		Device device = deviceRepository.findById(id);
 		Member member = memberRepository.findByUsername(bookedBy);
 
-		if (device.getBookedBy() == member)
+		if (device.getBookedBy() != null && device.getBookedBy().equals(member))
 		{
 			device.setBookedBy(null);
 			device.setStatus("available");
@@ -432,4 +439,17 @@ public class DeviceResource extends Controller
 		}
 		return redirectUrl;
 	}
+
+	private List<Long> parseIds(String idsCsv) {
+		if (idsCsv == null || idsCsv.isBlank()) {
+			return Collections.emptyList();
+		}
+		return Arrays.stream(idsCsv.split(","))
+				.map(String::trim)
+				.filter(s -> !s.isBlank())
+				.map(Long::valueOf)
+				.distinct()
+				.toList();
+	}
+
 }

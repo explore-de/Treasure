@@ -36,6 +36,43 @@
             aria-expanded="false" aria-controls="advancedSearchRow">
         Advanced Search
     </button>
+    <div class="bulk-actions" id="bulkActions" hidden>
+        <form id="bulkAssignForm" method="post" action="/devices/assign-many" style="display:inline-block;">
+            {#authenticityToken /}
+            <input type="hidden" name="ids" id="bulkAssignIds">
+            <input type="hidden" name="redirectUrl" id="bulkAssignRedirect">
+            <input type="hidden" name="bookedBy" id="bulkAssignBookedBy">
+
+            <div class="assign-wrap" style="display:inline-block;">
+                <button type="button" class="btn-bulk-assign" onclick="toggleDropdown('bulkAssignDropdown')">
+                    Assign selected
+                </button>
+
+                <div class="assign-dropdown" id="bulkAssignDropdown" style="display:none">
+                    {#for member in members}
+                    <div onclick="
+                    updateBulkActions();
+                    document.getElementById('bulkAssignBookedBy').value='{member.userName}';
+                    document.getElementById('bulkAssignForm').submit();
+                    ">
+                        {member.firstName} {member.lastName}
+                    </div>
+                    {/for}
+                </div>
+            </div>
+        </form>
+
+        <form id="bulkDeleteForm" method="post" action="/devices/delete-many"
+              style="display:inline-block; margin-left:10px;"
+              onsubmit="return confirmBulkDelete();">
+            {#authenticityToken /}
+            <input type="hidden" name="ids" id="bulkDeleteIds">
+            <input type="hidden" name="redirectUrl" id="bulkDeleteRedirect">
+            <button type="submit" class="btn-bulk-delete">
+                Delete selected
+            </button>
+        </form>
+    </div>
     <cds-modal>
 
     </cds-modal>
@@ -141,7 +178,10 @@
         <tbody>
         {#for device in devices}
         <tr>
-            <td class="select-checkbox"><input data-id="{device.id}" class="checkbox" type="checkbox"></td>
+            <td class="select-checkbox">
+                <input data-id="{device.id}" class="checkbox" type="checkbox" onclick="">
+                {#authenticityToken /}
+                </td>
             <td class="td-deviceName">{device.deviceName}</td>
             <td>
                 {#if device.status == "available"}
@@ -218,22 +258,68 @@
 <script>
     let selected = [];
 
+    function updateBulkActions() {
+        const bar = document.getElementById("bulkActions");
+        if (!bar) return;
+
+        bar.hidden = selected.length === 0;
+
+        const idsCsv = selected.join(",");
+        const redirect = window.location.pathname + window.location.search;
+
+        const aIds = document.getElementById("bulkAssignIds");
+        const dIds = document.getElementById("bulkDeleteIds");
+        const aRed = document.getElementById("bulkAssignRedirect");
+        const dRed = document.getElementById("bulkDeleteRedirect");
+
+        if (aIds) aIds.value = idsCsv;
+        if (dIds) dIds.value = idsCsv;
+        if (aRed) aRed.value = redirect;
+        if (dRed) dRed.value = redirect;
+    }
+
+    function confirmBulkDelete() {
+        if (!selected || selected.length === 0) return false;
+        var ids = [];
+        for (var i = 0; i < selected.length; i++) {
+            if (ids.indexOf(selected[i]) === -1) ids.push(selected[i]);
+        }
+        var names = [];
+        for (var j = 0; j < ids.length; j++) {
+            var id = ids[j];
+            var cb = document.querySelector('.checkbox[data-id="' + id + '"]');
+            var tr = cb ? cb.closest("tr") : null;
+            var nameEl = tr ? tr.querySelector(".td-deviceName") : null;
+
+            var name = nameEl ? nameEl.textContent : id;
+            if (name && name.trim) name = name.trim();
+
+            names.push(name);
+        }
+
+        return confirm("Continue Deleting " + ids.length + " devices? (" + names.join(", ") + ")");
+    }
+
     function getParams() {
         return new URLSearchParams(window.location.search);
     }
+
 
     function DOMContenLoaded(){
         document.querySelectorAll('.checkbox')
             .forEach(cb => cb.addEventListener("change", (e) => {
                 if (e.target.checked) {
+                    /*
                     selected.push(e.target.dataset.id);
                     console.log("added: ", selected);
+                     */
                 } else {
                     selected = selected.filter(i => i !== e.target.dataset.id);
                     console.log("removed: ", selected);
                 }
             }));
     }
+
 
     function navigateWithParams(p) {
         const qs = p.toString();
@@ -515,12 +601,55 @@
         dropdown.style.display = isOpen ? "none" : "block";
     }
 
+
+    function checkboxSelection(id) {
+        const checkbox = document.querySelector(`.checkbox[data-id=id]`);
+        if (checkbox) {
+            checkbox.checked = !checkbox.checked;
+            if (checkbox.checked) {
+                selected.push(id);
+                console.log("added: ", selected);
+            } else {
+                selected = selected.filter(i => i !== id);
+                console.log("removed: ", selected);
+            }
+        }
+    }
+
+    function hookCheckboxSelection() {
+        document.querySelectorAll(".checkbox").forEach(cb => {
+            cb.addEventListener("change", (e) => {
+                const id = e.target.dataset.id;
+                if (!id) return;
+
+                if (e.target.checked) {
+                    if (!selected.includes(id)) selected.push(id);
+                } else {
+                    selected = selected.filter(x => x !== id);
+                }
+                updateBulkActions();
+            });
+        });
+    }
+
+    function selectDelAssignVisible() {
+        boolean
+        let delassignvisible;
+            if (selected.length > 0){
+                delassignvisible = true;
+            } else {
+                delassignvisible = false;
+            }
+            return delassignvisible;
+    }
+
     function confirmDelete(formEl) {
         const name = formEl.dataset.deviceName || "this device";
-        return confirm("Continue Deleting: " + name + "?");
         if (selected.length > 1){
             document.createElement("form")
         };
+        return confirm("Continue Deleting: " + name + "?");
+
     }
 
     function clearSearch() {
@@ -563,13 +692,15 @@
 
     document.addEventListener("DOMContentLoaded", () => {
         const clearBtn = document.getElementById("clearFiltersBtn");
-        if (clearBtn) {
-            clearBtn.addEventListener("click", clearAllFilters);
-        }
+        if (clearBtn) clearBtn.addEventListener("click", clearAllFilters);
+
         hookQuickSearch();
         hookAdvancedToggle();
         hookAdvancedAdders();
         renderTags();
+
+        hookCheckboxSelection();
+        updateBulkActions();
         DOMContenLoaded();
     });
 </script>
