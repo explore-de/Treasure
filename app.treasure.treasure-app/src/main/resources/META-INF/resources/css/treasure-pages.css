@@ -498,7 +498,7 @@ cds-table-row.needs-review {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 17px;
   color: var(--muted);
   margin-bottom: 28px;
 }
@@ -605,6 +605,7 @@ textarea.field-input {
 }
 
 .btn-primary {
+  display: flex;
   background: var(--yellow);
   color: #3d2800;
   padding: 15px 25px;
@@ -629,7 +630,6 @@ textarea.field-input {
 
 .btn-bulk-assign {
   background: none;
-  color: #3d2800;
   padding: 15px 25px;
   border-radius: 8px;
   font-family: 'DM Sans', sans-serif;
@@ -640,7 +640,6 @@ textarea.field-input {
   align-items: center;
   gap: 7px;
   transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 0 10px rgba(245, 197, 24, 0.5);
   border: 1px solid var(--yellow);
   height: 55px;
   color: var(--yellow);
@@ -740,11 +739,11 @@ textarea.field-input {
   align-items: center;
   gap: 8px;
   padding: 6px 10px;
-  border-radius: 999px;
+  border-radius: 10px;
   background: var(--white);
   border: var(--border);
   color: var(--muted);
-  font-size: 13px;
+  font-size: 15px;
 }
 .tag-type {
   opacity: .75;
