@@ -235,15 +235,57 @@
                 Save device
             </button>
             <button type="button" class="btn-cancel" onclick="history.back()">Cancel</button>
+            <button type="button" class="btn-cancel" onclick="openHistory(event)">
+                View history
+            </button>
             <span class="btn-save-hint">Fields marked * are required</span>
         </div>
-
     </div>
-
-    <div style="font-size:10px; padding:5px;">Was created on: {device.createdOn}</div>
 </form>
 
+<dialog id="historyDialog" class="history-dialog">
+    <div class="history-header">
+        <div class="history-title">History: {device.deviceName}</div>
+        <button type="button" class="btn-cancel" onclick="closeHistory()">Close</button>
+    </div>
+    <div class="history-body">
+        {#if history == null || history.isEmpty}
+        <div class="history-empty">No history yet.</div>
+        {#else}
+        {#for h in history}
+        <div class="history-item">
+
+            <div class="history-meta">
+                {h.formattedAt} • {h.actorName} •
+                {#if h.eventType == 'UNASSIGNED'}
+                <span class="history-pill pill-unassigned">UNASSIGNED</span>
+                {#else if h.eventType == 'ASSIGNED'}
+                <span class="history-pill pill-assigned">ASSIGNED</span>
+                {#else if h.eventType == 'UPDATED'}
+                <span class="history-pill pill-updated">UPDATED</span>
+                {#else if h.eventType == 'CREATED'}
+                <span class="history-pill pill-created">CREATED</span>
+                {#else}
+                <span class="history-pill pill-default">{h.eventType}</span>
+                {/if}
+            </div>
+            {#if h.eventType == 'CREATED'}
+            <div class="history-text">Created with: {h.notes}</div>
+            {#else}
+            <div class="history-text">{h.fieldName}: "{h.oldValue}" → "{h.newValue}"</div>
+            {#if h.notes != null && !h.notes.isEmpty}
+            <div class="history-notes">{h.notes}</div>
+            {/if}
+            {/if}
+        </div>
+        {/for}
+        {/if}
+    </div>
+</dialog>
+
 {#moreScripts}
+
+
 <script>
     function validate() {
         const input = document.getElementById('nameInput');
@@ -268,6 +310,48 @@
         }
         return true;
     }
+    function openHistory(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        const dlg = document.getElementById('historyDialog');
+        if (!dlg) {
+            console.warn('historyDialog not found');
+            return;
+        }
+        if (typeof dlg.showModal === 'function') {
+            if (!dlg.open) dlg.showModal();
+        } else {
+            dlg.setAttribute('open', '');
+        }
+    }
+    function closeHistory(){
+        const dlg = document.getElementById('historyDialog');
+        if (!dlg) return;
+        if (typeof dlg.close === 'function') dlg.close();
+        else dlg.removeAttribute('open');
+    }
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeHistory();
+    });
+
+    document.addEventListener('click', (e) => {
+        const dlg = document.getElementById('historyDialog');
+        if (!dlg || !dlg.open) return;
+        const r = dlg.getBoundingClientRect();
+        const inDialog = (r.top <= e.clientY && e.clientY <= r.bottom && r.left <= e.clientX && e.clientX <= r.right);
+        if (!inDialog) dlg.close();
+    });
+
+    (function () {
+        const dlg = document.getElementById('historyDialog');
+        if (!dlg) return;
+        if (typeof dlg.showModal !== 'function') {
+            dlg.showModal = function () { dlg.setAttribute('open', ''); };
+            dlg.close = function () { dlg.removeAttribute('open'); };
+        }
+    })();
 </script>
 {/moreScripts}
 
