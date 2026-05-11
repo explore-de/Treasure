@@ -24,6 +24,8 @@ services:
       POSTGRES_USER: temporal
       POSTGRES_PWD: temporal
       POSTGRES_SEEDS: temporal-postgresql
+    expose:
+      - "7233"
     ports:
       - "7233:7233"
 

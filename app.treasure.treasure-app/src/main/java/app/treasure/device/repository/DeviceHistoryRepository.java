@@ -8,9 +8,11 @@ import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
 
 @ApplicationScoped
-public class DeviceHistoryRepository implements PanacheRepository<DeviceHistory> {
+public class DeviceHistoryRepository implements PanacheRepository<DeviceHistory>
+{
 
-    public List<DeviceHistory> forDevice(Long deviceId) {
-        return find("device.id = ?1", Sort.by("happenedAt").descending(), deviceId).list();
-    }
+	public List<DeviceHistory> forDevice(Long deviceId)
+	{
+		return find("device.id = ?1", Sort.by("happenedAt").descending(), deviceId).list();
+	}
 }

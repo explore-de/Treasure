@@ -107,7 +107,8 @@
       "Bash(fuser -k 8080/tcp)",
       "WebFetch(domain:app.unpkg.com)",
       "Bash(python3:*)",
-      "Bash(git *)"
+      "Bash(git *)",
+      "Read(//sys/power/**)"
     ]
   }
 }

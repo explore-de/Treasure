@@ -28,11 +28,10 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 
-
-
 @Authenticated
 @Path("/devices")
-public class DeviceResource extends Controller {
+public class DeviceResource extends Controller
+{
 
 	private static final Logger LOG = LoggerFactory.getLogger(DeviceResource.class);
 
@@ -49,8 +48,12 @@ public class DeviceResource extends Controller {
 	MemberRepository memberRepository;
 
 	@CheckedTemplate
-	public static class Templates {
-		private Templates() {}
+	public static class Templates
+	{
+		private Templates()
+		{
+		}
+
 		public static native TemplateInstance index(List<Device> devices, Member currentmember, List<Member> members);
 
 		public static native TemplateInstance create(List<String> groups);
@@ -58,28 +61,32 @@ public class DeviceResource extends Controller {
 		public static native TemplateInstance edit(Device device, List<String> groups, List<DeviceHistory> history);
 	}
 
-	private List<String> loadKnownGroups() {
+	private List<String> loadKnownGroups()
+	{
 		return deviceRepository.listAll().stream()
-				.map(Device::getGroup)
-				.filter(g -> g != null && !g.isBlank())
-				.distinct()
-				.sorted()
-				.toList();
+			.map(Device::getGroup)
+			.filter(g -> g != null && !g.isBlank())
+			.distinct()
+			.sorted()
+			.toList();
 	}
 
-	private Member currentMember() {
+	private Member currentMember()
+	{
 		String username = securityIdentity.getPrincipal().getName();
 		return memberRepository.findByUsername(username);
 	}
 
-	private String n(String s) {
+	private String n(String s)
+	{
 		return s == null ? "" : s;
 	}
 
 	private void recordChange(Device device, Member actor,
-	                          String eventType, String field,
-	                          String oldVal, String newVal,
-	                          String notes) {
+		String eventType, String field,
+		String oldVal, String newVal,
+		String notes)
+	{
 		DeviceHistory h = new DeviceHistory();
 		h.setDevice(device);
 		h.setActor(actor);
@@ -92,14 +99,15 @@ public class DeviceResource extends Controller {
 		deviceHistoryRepository.persist(h);
 	}
 
-	private void recordIfChanged(Device device, Member actor, String field, String oldVal, String newVal) {
+	private void recordIfChanged(Device device, Member actor, String field, String oldVal, String newVal)
+	{
 		String o = n(oldVal);
 		String nn = n(newVal);
-		if (!o.equals(nn)) {
+		if (!o.equals(nn))
+		{
 			recordChange(device, actor, "UPDATED", field, o, nn, null);
 		}
 	}
-
 
 	@GET
 	@Path("")
@@ -231,7 +239,8 @@ public class DeviceResource extends Controller {
 
 	@GET
 	@Path("/{id}/edit")
-	public TemplateInstance edit(@PathParam("id") Long id) {
+	public TemplateInstance edit(@PathParam("id") Long id)
+	{
 		Device device = deviceRepository.findById(id);
 		List<DeviceHistory> history = deviceHistoryRepository.forDevice(id);
 		return Templates.edit(device, loadKnownGroups(), history);
@@ -280,22 +289,23 @@ public class DeviceResource extends Controller {
 	@Path("/create")
 	@Transactional
 	public void save(
-			@RestForm String deviceName,
-			@RestForm String deviceSerialNumber,
-			@RestForm String group,
-			@RestForm String deviceModel,
-			@RestForm String extraInfo,
-			@RestForm String deviceDamage,
-			@RestForm String deviceAge,
-			@RestForm String regCompany,
-			@RestForm String deviceNumber,
-			@RestForm String deviceProzessor,
-			@RestForm String deviceHDDStorage,
-			@RestForm String deviceRAM,
-			@RestForm String deviceModelDate,
-			@RestForm String deviceLocation
-	) {
-		if (deviceName != null && deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*")) {
+		@RestForm String deviceName,
+		@RestForm String deviceSerialNumber,
+		@RestForm String group,
+		@RestForm String deviceModel,
+		@RestForm String extraInfo,
+		@RestForm String deviceDamage,
+		@RestForm String deviceAge,
+		@RestForm String regCompany,
+		@RestForm String deviceNumber,
+		@RestForm String deviceProzessor,
+		@RestForm String deviceHDDStorage,
+		@RestForm String deviceRAM,
+		@RestForm String deviceModelDate,
+		@RestForm String deviceLocation)
+	{
+		if (deviceName != null && deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*"))
+		{
 			Device device = new Device();
 			device.setDeviceName(deviceName);
 			device.setDeviceSerialNumber(deviceSerialNumber);
@@ -320,19 +330,19 @@ public class DeviceResource extends Controller {
 
 			Member actor = currentMember();
 			String criteria = "deviceName=" + n(deviceName)
-					+ ", serial=" + n(deviceSerialNumber)
-					+ ", group=" + n(group)
-					+ ", model=" + n(deviceModel)
-					+ ", damage=" + n(deviceDamage)
-					+ ", age=" + n(deviceAge)
-					+ ", company=" + n(regCompany)
-					+ ", number=" + n(deviceNumber)
-					+ ", prozessor=" + n(deviceProzessor)
-					+ ", hdd=" + n(deviceHDDStorage)
-					+ ", ram=" + n(deviceRAM)
-					+ ", modelDate=" + n(deviceModelDate)
-					+ ", location=" + n(deviceLocation)
-					+ ", extraInfo=" + n(extraInfo);
+				+ ", serial=" + n(deviceSerialNumber)
+				+ ", group=" + n(group)
+				+ ", model=" + n(deviceModel)
+				+ ", damage=" + n(deviceDamage)
+				+ ", age=" + n(deviceAge)
+				+ ", company=" + n(regCompany)
+				+ ", number=" + n(deviceNumber)
+				+ ", prozessor=" + n(deviceProzessor)
+				+ ", hdd=" + n(deviceHDDStorage)
+				+ ", ram=" + n(deviceRAM)
+				+ ", modelDate=" + n(deviceModelDate)
+				+ ", location=" + n(deviceLocation)
+				+ ", extraInfo=" + n(extraInfo);
 
 			recordChange(device, actor, "CREATED", null, "", "", criteria);
 		}
@@ -343,23 +353,24 @@ public class DeviceResource extends Controller {
 	@Path("/{id}/update")
 	@Transactional
 	public void update(
-			@PathParam("id") Long id,
-			@RestForm String deviceName,
-			@RestForm String deviceSerialNumber,
-			@RestForm String group,
-			@RestForm String deviceModel,
-			@RestForm String extraInfo,
-			@RestForm String deviceDamage,
-			@RestForm String deviceAge,
-			@RestForm String regCompany,
-			@RestForm String deviceNumber,
-			@RestForm String deviceProzessor,
-			@RestForm String deviceHDDStorage,
-			@RestForm String deviceRAM,
-			@RestForm String deviceModelDate,
-			@RestForm String deviceLocation
-	) {
-		if (deviceName == null || !deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*")) {
+		@PathParam("id") Long id,
+		@RestForm String deviceName,
+		@RestForm String deviceSerialNumber,
+		@RestForm String group,
+		@RestForm String deviceModel,
+		@RestForm String extraInfo,
+		@RestForm String deviceDamage,
+		@RestForm String deviceAge,
+		@RestForm String regCompany,
+		@RestForm String deviceNumber,
+		@RestForm String deviceProzessor,
+		@RestForm String deviceHDDStorage,
+		@RestForm String deviceRAM,
+		@RestForm String deviceModelDate,
+		@RestForm String deviceLocation)
+	{
+		if (deviceName == null || !deviceName.matches(".*[a-zA-Z0-9а-яА-Я].*"))
+		{
 			seeOther("/devices");
 			return;
 		}
@@ -416,12 +427,15 @@ public class DeviceResource extends Controller {
 	@Path("/delete-many")
 	@Transactional
 	public void deleteMany(
-			@RestForm String ids,
-			@RestForm String redirectUrl) {
+		@RestForm String ids,
+		@RestForm String redirectUrl)
+	{
 
-		for (Long id : parseIds(ids)) {
+		for (Long id : parseIds(ids))
+		{
 			Device device = deviceRepository.findById(id);
-			if (device != null) {
+			if (device != null)
+			{
 				device.delete();
 			}
 		}
@@ -438,25 +452,30 @@ public class DeviceResource extends Controller {
 	{
 
 		Member member = memberRepository.findByUsername(bookedBy);
-		if (member == null) {
+		if (member == null)
+		{
 			seeOther(safeRedirect(redirectUrl));
 			return;
 		}
 
 		Member actor = currentMember();
 
-		for (Long id : parseIds(ids)) {
+		for (Long id : parseIds(ids))
+		{
 			Device device = deviceRepository.findById(id);
 			if (device == null) continue;
 			String oldBooked = device.getBookedName();
 			String oldStatus = n(device.getStatus());
 			String oldPickup = device.getPickupTime() != null ? device.getPickupTime().toString() : "";
 
-			if (device.getBookedBy() != null && device.getBookedBy().equals(member)) {
+			if (device.getBookedBy() != null && device.getBookedBy().equals(member))
+			{
 				device.setBookedBy(null);
 				device.setStatus("available");
 				device.setPickupTime(null);
-			} else {
+			}
+			else
+			{
 				device.setBookedBy(member);
 				device.setStatus("not available");
 				device.setPickupTime(LocalDateTime.now());
@@ -487,11 +506,14 @@ public class DeviceResource extends Controller {
 		String oldPickup = device.getPickupTime() != null ? device.getPickupTime().toString() : "";
 		Member member = memberRepository.findByUsername(bookedBy);
 
-		if (device.getBookedBy() != null && device.getBookedBy().equals(member)) {
+		if (device.getBookedBy() != null && device.getBookedBy().equals(member))
+		{
 			device.setBookedBy(null);
 			device.setStatus("available");
 			device.setPickupTime(null);
-		} else {
+		}
+		else
+		{
 			device.setBookedBy(member);
 			device.setStatus("not available");
 			device.setPickupTime(LocalDateTime.now());
@@ -520,16 +542,18 @@ public class DeviceResource extends Controller {
 		return redirectUrl;
 	}
 
-	private List<Long> parseIds(String idsCsv) {
-		if (idsCsv == null || idsCsv.isBlank()) {
+	private List<Long> parseIds(String idsCsv)
+	{
+		if (idsCsv == null || idsCsv.isBlank())
+		{
 			return Collections.emptyList();
 		}
 		return Arrays.stream(idsCsv.split(","))
-				.map(String::trim)
-				.filter(s -> !s.isBlank())
-				.map(Long::valueOf)
-				.distinct()
-				.toList();
+			.map(String::trim)
+			.filter(s -> !s.isBlank())
+			.map(Long::valueOf)
+			.distinct()
+			.toList();
 	}
 
 }
