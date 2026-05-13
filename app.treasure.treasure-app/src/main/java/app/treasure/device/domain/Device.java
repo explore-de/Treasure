@@ -1,10 +1,13 @@
 package app.treasure.device.domain;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import app.treasure.member.domain.Member;
 
 @Entity
@@ -222,6 +225,9 @@ public class Device extends PanacheEntity
 	{
 		return deviceAge;
 	}
+
+	@OneToMany(mappedBy = "device", cascade = CascadeType.REMOVE, orphanRemoval = true)
+	private List<DeviceHistory> histories;
 
 	public String getBookedName()
 	{

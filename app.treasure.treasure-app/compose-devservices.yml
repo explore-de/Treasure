@@ -12,12 +12,19 @@ services:
       - "5433:5432"
     volumes:
       - temporal-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U temporal -d temporal"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   temporal-server:
     image: temporalio/auto-setup:1.24.2
     restart: unless-stopped
     depends_on:
-      - temporal-postgresql
+      temporal-postgresql:
+        condition: service_healthy
     environment:
       DB: postgres12
       DB_PORT: 5432
@@ -28,12 +35,18 @@ services:
       - "7233"
     ports:
       - "7233:7233"
+    healthcheck:
+      test: ["CMD-SHELL", "temporal operator cluster health --address $$(hostname -i):7233 || tctl --address $$(hostname -i):7233 cluster health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
 
   temporal-init:
     image: temporalio/admin-tools:1.24.2-tctl-1.18.1-cli-0.13.2
     depends_on:
       temporal-server:
-        condition: service_started
+        condition: service_healthy
     restart: on-failure
     command: >
       bash -c "
@@ -49,7 +62,7 @@ services:
     restart: unless-stopped
     depends_on:
       temporal-server:
-        condition: service_started
+        condition: service_healthy
     environment:
       TEMPORAL_ADDRESS: temporal-server:7233
       TEMPORAL_CORS_ORIGINS: http://localhost:3000
