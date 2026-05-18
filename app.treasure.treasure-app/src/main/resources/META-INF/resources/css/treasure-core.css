@@ -316,11 +316,11 @@ cds-button[kind="primary"]:active {
   border-top: 1px solid var(--cds-border-subtle-01);
 }
 
-.panel-footer a {
-  color: var(--cds-link-primary);
-  text-decoration: none;
-  font-weight: 600;
-}
+/*.panel-footer a {*/
+/*  color: var(--cds-link-primary);*/
+/*  text-decoration: none;*/
+/*  font-weight: 600;*/
+/*}*/
 
 body.cds--g100 {
   color: var(--cds-text-primary);

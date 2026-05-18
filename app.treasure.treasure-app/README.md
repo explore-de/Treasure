@@ -96,7 +96,7 @@ If it is this error:
 ```shell script
 ERROR [io.quarkus.runtime.Application] (Quarkus Main Thread) Failed to start application: java.lang.RuntimeException: Failed to start quarkus
 ```
-Write in local Console:
+Write in local Console (from the root of the project):
 ```shell script
 cd samples-server/compose
 docker compose up -d
@@ -117,4 +117,4 @@ If you have more than one process running on port 8080, you have to kill every p
 ```shell script
 sudo ss -ltnp | grep ':8080'
 ```
-Then you can start the quarkus app again and it should work now.
+Then you can start the quarkus app again and it should work now. If not repeat the steps again, then in my experience it should work. If it still doesnt work gg. ;)
