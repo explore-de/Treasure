@@ -1,3 +1,5 @@
+name: treasure-dev
+
 services:
   # Database for the main application
   postgres:
