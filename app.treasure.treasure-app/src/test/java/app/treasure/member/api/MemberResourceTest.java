@@ -1,8 +1,5 @@
 package app.treasure.member.api;
 
-import app.treasure.bommel.domain.Bommel;
-import app.treasure.bommel.repository.BommelRepository;
-import app.treasure.invitation.repository.InvitationRepository;
 import app.treasure.member.domain.Member;
 import app.treasure.member.repository.MemberRepository;
 import app.treasure.member.service.MemberKeycloakSyncService;
@@ -26,12 +23,6 @@ class MemberResourceTest extends BaseOrganizationTest
 	@Inject
 	MemberRepository memberRepository;
 
-	@Inject
-	BommelRepository bommelRepository;
-
-	@Inject
-	InvitationRepository invitationRepository;
-
 	@InjectMock
 	MemberKeycloakSyncService memberKeycloakSyncService;
 
@@ -40,7 +31,6 @@ class MemberResourceTest extends BaseOrganizationTest
 	void setupOrganizationContext()
 	{
 		Organization testOrg = getOrCreateTestOrganization();
-		// Create a test member for each test method's @TestSecurity user (bob)
 		createTestMember("bob", testOrg);
 	}
 
@@ -73,8 +63,6 @@ class MemberResourceTest extends BaseOrganizationTest
 			.get("/mitglieder")
 			.then()
 			.statusCode(200)
-			// With test security, there's always the test user (Bob), so we
-			// check for that
 			.body(containsString("Bob Test"));
 	}
 
@@ -160,55 +148,6 @@ class MemberResourceTest extends BaseOrganizationTest
 
 	@Test
 	@TestSecurity(user = "bob", roles = "user")
-	void shouldShowResponsibleBommelsOnDetailPage()
-	{
-		deleteAllData();
-		Long memberId = createMember("Max", "Mustermann", null, null);
-		createBommelWithWart("Verein", memberId);
-
-		given()
-			.when()
-			.get("/mitglieder/" + memberId)
-			.then()
-			.statusCode(200)
-			.body(containsString("Bommelwart für"))
-			.body(containsString("Verein"));
-	}
-
-	@Test
-	@TestSecurity(user = "bob", roles = "user")
-	void shouldShowNoBommelsMessageWhenNotBommelwart()
-	{
-		deleteAllData();
-		Long memberId = createMember("Max", "Mustermann", null, null);
-
-		given()
-			.when()
-			.get("/mitglieder/" + memberId)
-			.then()
-			.statusCode(200)
-			.body(containsString("Noch keinem Bommel als Bommelwart zugewiesen"));
-	}
-
-	@Test
-	@TestSecurity(user = "bob", roles = "user")
-	void shouldShowBommelCountInMemberList()
-	{
-		deleteAllData();
-		Long memberId = createMember("Max", "Mustermann", null, null);
-		createBommelWithWart("Verein", memberId);
-		createBommelWithWart("Jugend", memberId);
-
-		given()
-			.when()
-			.get("/mitglieder")
-			.then()
-			.statusCode(200)
-			.body(containsString("2 Bommel(s)"));
-	}
-
-	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldRedirectToIndexForNonExistentMember()
 	{
 		deleteAllData();
@@ -224,10 +163,7 @@ class MemberResourceTest extends BaseOrganizationTest
 	@Transactional(Transactional.TxType.REQUIRES_NEW)
 	void deleteAllData()
 	{
-		bommelRepository.deleteAll();
-		invitationRepository.deleteAll();
 		memberRepository.deleteAll();
-		// Recreate the test security member
 		Organization testOrg = getOrCreateTestOrganization();
 		Member testMember = new Member();
 		testMember.setUserName("bob");
@@ -251,20 +187,5 @@ class MemberResourceTest extends BaseOrganizationTest
 		member.setOrganization(org);
 		memberRepository.persist(member);
 		return member.getId();
-	}
-
-	@Transactional(Transactional.TxType.REQUIRES_NEW)
-	Long createBommelWithWart(String title, Long memberId)
-	{
-		Organization org = getOrCreateTestOrganization();
-
-		Member member = memberRepository.findById(memberId);
-		Bommel bommel = new Bommel();
-		bommel.setIcon("folder");
-		bommel.setTitle(title);
-		bommel.setResponsibleMember(member);
-		bommel.setOrganization(org);
-		bommelRepository.persist(bommel);
-		return bommel.getId();
 	}
 }

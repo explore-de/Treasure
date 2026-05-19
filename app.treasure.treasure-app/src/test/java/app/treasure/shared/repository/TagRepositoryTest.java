@@ -11,7 +11,6 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import app.treasure.document.repository.DocumentRepository;
 import app.treasure.organization.domain.Organization;
 import app.treasure.shared.BaseOrganizationTest;
 import app.treasure.shared.TestSecurityHelper;
@@ -34,9 +33,6 @@ class TagRepositoryTest extends BaseOrganizationTest
 
 	@Inject
 	TagRepository tagRepository;
-
-	@Inject
-	DocumentRepository documentRepository;
 
 	@TestTransaction
 	@Test
