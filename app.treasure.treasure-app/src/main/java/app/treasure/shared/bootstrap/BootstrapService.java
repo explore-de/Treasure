@@ -1,7 +1,5 @@
 package app.treasure.shared.bootstrap;
 
-import app.treasure.bommel.domain.Bommel;
-import app.treasure.bommel.repository.BommelRepository;
 import app.treasure.member.domain.Member;
 import app.treasure.member.repository.MemberRepository;
 import app.treasure.member.service.KeycloakAdminService;
@@ -21,9 +19,7 @@ import java.util.List;
 
 /**
  * Bootstrap service that ensures the application has the necessary initial
- * data: - 2 organizations - 3 users with Member records - Root bommels
- * <p>
- * This service is idempotent and can be run multiple times safely.
+ * data: organizations and users with Member records.
  */
 @ApplicationScoped
 public class BootstrapService
@@ -35,9 +31,6 @@ public class BootstrapService
 
 	@Inject
 	MemberRepository memberRepository;
-
-	@Inject
-	BommelRepository bommelRepository;
 
 	@Inject
 	KeycloakAdminService keycloakAdminService;
@@ -119,18 +112,11 @@ public class BootstrapService
 	@ConfigProperty(name = "treasure.bootstrap.users.thomas.organization")
 	String thomasOrganization;
 
-	/**
-	 * User configuration record for bootstrapping users.
-	 */
 	private record UserConfig(String username, String email, String firstName, String lastName,
 		List<String> roles, String organizationSlug)
 	{
 	}
 
-	/**
-	 * Bootstraps both organizations. Returns list of created/existing
-	 * organizations.
-	 */
 	@Transactional
 	public List<Organization> bootstrapOrganizations()
 	{
@@ -138,29 +124,21 @@ public class BootstrapService
 
 		List<Organization> orgs = new ArrayList<>();
 
-		// Create Organization A
 		Organization orgA = ensureOrganization(orgASlug, orgAName, orgADisplayName);
 		orgs.add(orgA);
-		ensureRootBommel(orgA);
 
-		// Create Organization B
 		Organization orgB = ensureOrganization(orgBSlug, orgBName, orgBDisplayName);
 		orgs.add(orgB);
-		ensureRootBommel(orgB);
 
 		LOG.info("Bootstrapped {} organizations", orgs.size());
 		return orgs;
 	}
 
-	/**
-	 * Bootstraps all 3 users with their Member records.
-	 */
 	@Transactional
 	public void bootstrapUsers()
 	{
 		LOG.info("Bootstrapping users...");
 
-		// Create user configs
 		List<UserConfig> users = List.of(new UserConfig(adminUsername, adminEmail, adminFirstName,
 			adminLastName, adminRoles, adminOrganization),
 			new UserConfig(mariaUsername, mariaEmail, mariaFirstName, mariaLastName, mariaRoles,
@@ -168,7 +146,6 @@ public class BootstrapService
 			new UserConfig(thomasUsername, thomasEmail, thomasFirstName, thomasLastName, thomasRoles,
 				thomasOrganization));
 
-		// Bootstrap each user
 		for (UserConfig userConfig : users)
 		{
 			bootstrapUser(userConfig);
@@ -177,12 +154,8 @@ public class BootstrapService
 		LOG.info("Bootstrapped {} users", users.size());
 	}
 
-	/**
-	 * Bootstraps a single user: creates Keycloak user and links Member record.
-	 */
 	private void bootstrapUser(UserConfig config)
 	{
-		// Get the organization for this user
 		Organization org = organizationRepository.findBySlug(config.organizationSlug());
 		if (org == null)
 		{
@@ -191,7 +164,6 @@ public class BootstrapService
 			return;
 		}
 
-		// Check if Member already exists by username
 		Member existingMember = memberRepository.findByUsername(config.username());
 		if (existingMember != null)
 		{
@@ -199,8 +171,6 @@ public class BootstrapService
 			return;
 		}
 
-		// Find or create Keycloak user (with retry logic for DevServices
-		// timing)
 		String keycloakUserId = findOrCreateKeycloakUser(config, 10);
 		if (keycloakUserId == null)
 		{
@@ -208,23 +178,11 @@ public class BootstrapService
 			return;
 		}
 
-		// Create Member record with Keycloak user ID
 		createIfNotExisting(config, org, keycloakUserId);
 	}
 
-	/**
-	 * Finds or creates a Keycloak user. Handles DevServices timing with retry
-	 * logic.
-	 *
-	 * @param config
-	 *            User configuration
-	 * @param maxRetries
-	 *            Maximum number of retries for finding existing users
-	 * @return Keycloak user ID, or null if failed
-	 */
 	private String findOrCreateKeycloakUser(UserConfig config, int maxRetries)
 	{
-		// First, check if user exists (with retries for DevServices timing)
 		String existingUserId = findKeycloakUserWithRetry(config.username(), maxRetries, 1000);
 		if (existingUserId != null)
 		{
@@ -232,7 +190,6 @@ public class BootstrapService
 			return existingUserId;
 		}
 
-		// User doesn't exist, create it
 		try
 		{
 			String newUserId = keycloakAdminService.createUser(config.username(), config.email(),
@@ -242,8 +199,6 @@ public class BootstrapService
 		}
 		catch (RuntimeException e)
 		{
-			// Handle race condition: user might have been created between our
-			// check and creation
 			if (e.getMessage() != null && e.getMessage().contains("User exists"))
 			{
 				LOG.info("User was created concurrently, fetching: {}", config.username());
@@ -258,18 +213,6 @@ public class BootstrapService
 		}
 	}
 
-	/**
-	 * Finds a Keycloak user by username with retry logic. DevServices may still
-	 * be initializing users.
-	 *
-	 * @param username
-	 *            Username to search for
-	 * @param maxAttempts
-	 *            Maximum retry attempts
-	 * @param delayMs
-	 *            Delay between retries in milliseconds
-	 * @return Keycloak user ID, or null if not found
-	 */
 	private String findKeycloakUserWithRetry(String username, int maxAttempts, long delayMs)
 	{
 		for (int attempt = 1; attempt <= maxAttempts; attempt++)
@@ -303,17 +246,6 @@ public class BootstrapService
 		return null;
 	}
 
-	/**
-	 * Creates or links a Member record to a Keycloak user. Uses REQUIRES_NEW
-	 * transaction to handle race conditions during concurrent bootstrap.
-	 *
-	 * @param config
-	 *            User configuration
-	 * @param org
-	 *            Organization for this member
-	 * @param keycloakUserId
-	 *            Keycloak user ID
-	 */
 	@Transactional(TxType.REQUIRES_NEW)
 	void createIfNotExisting(UserConfig config, Organization org, String keycloakUserId)
 	{
@@ -334,10 +266,8 @@ public class BootstrapService
 			newMember.setOrganization(org);
 			newMember.setKeycloakUserId(keycloakUserId);
 
-			// Set invitation tracking fields for bootstrap users
 			newMember.setInviteType("BOOTSTRAP");
 			newMember.setJoinedAt(Instant.now());
-			// invitedByMemberId remains null for bootstrap users
 
 			memberRepository.persist(newMember);
 
@@ -348,9 +278,6 @@ public class BootstrapService
 		}
 		catch (Exception e)
 		{
-			// Handle race condition: member might have been created
-			// concurrently
-			// Check if it's a unique constraint violation
 			if (e.getMessage() != null
 				&& (e.getMessage().contains("unique") || e.getMessage().contains("duplicate")))
 			{
@@ -358,16 +285,12 @@ public class BootstrapService
 			}
 			else
 			{
-				// Unexpected error, re-throw
 				LOG.error("Failed to create member: {}", config.username(), e);
 				throw e;
 			}
 		}
 	}
 
-	/**
-	 * Ensures an organization exists. Creates if not found.
-	 */
 	private Organization ensureOrganization(String slug, String name, String displayName)
 	{
 		Organization org = organizationRepository.findBySlug(slug);
@@ -385,29 +308,5 @@ public class BootstrapService
 
 		LOG.info("Created organization: {} (slug: {})", org.getName(), org.getSlug());
 		return org;
-	}
-
-	/**
-	 * Ensures a root bommel exists for an organization.
-	 */
-	@Transactional
-	public void ensureRootBommel(Organization organization)
-	{
-		// Check if root bommel exists for this organization
-		Bommel root = bommelRepository
-			.find("parent is null and organization.id = ?1", organization.id).firstResult();
-		if (root != null)
-		{
-			LOG.debug("Root bommel already exists for organization: {}", organization.getName());
-			return;
-		}
-
-		root = new Bommel();
-		root.setTitle(organization.getDisplayName());
-		root.setIcon("enterprise");
-		root.setOrganization(organization);
-		bommelRepository.persist(root);
-
-		LOG.info("Created root bommel for organization: {}", organization.getName());
 	}
 }

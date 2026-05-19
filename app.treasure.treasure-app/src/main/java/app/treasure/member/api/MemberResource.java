@@ -180,13 +180,6 @@ public class MemberResource extends Controller
 			return;
 		}
 
-		if (!member.getResponsibleBommels().isEmpty())
-		{
-			flash(FlashKeys.ERROR, "Mitglied ist noch Bommelwart. Bitte zuerst die Zuweisungen entfernen.");
-			redirect(MemberResource.class).detail(id);
-			return;
-		}
-
 		// Delete Keycloak user first
 		try
 		{

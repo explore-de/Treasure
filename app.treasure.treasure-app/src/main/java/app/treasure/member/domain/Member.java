@@ -1,20 +1,15 @@
 package app.treasure.member.domain;
 
-import app.treasure.bommel.domain.Bommel;
 import app.treasure.organization.domain.Organization;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 public class Member extends PanacheEntity
@@ -36,9 +31,6 @@ public class Member extends PanacheEntity
 	@ManyToOne(optional = false)
 	@JoinColumn(name = "organization_id", nullable = false)
 	private Organization organization;
-
-	@OneToMany(mappedBy = "responsibleMember", fetch = FetchType.LAZY)
-	private List<Bommel> responsibleBommels = new ArrayList<>();
 
 	/**
 	 * ID of the member who invited this member (if invited).
@@ -107,11 +99,6 @@ public class Member extends PanacheEntity
 	public void setPhone(String phone)
 	{
 		this.phone = phone;
-	}
-
-	public List<Bommel> getResponsibleBommels()
-	{
-		return responsibleBommels;
 	}
 
 	public String getUserName()
