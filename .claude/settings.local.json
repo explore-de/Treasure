@@ -108,7 +108,18 @@
       "WebFetch(domain:app.unpkg.com)",
       "Bash(python3:*)",
       "Bash(git *)",
-      "Read(//sys/power/**)"
+      "Read(//sys/power/**)",
+      "Bash(rm -rf app.treasure.treasure-app/src/main/java/app/treasure/invitation)",
+      "Bash(rm -rf app.treasure.treasure-app/src/main/resources/templates/InvitationResource)",
+      "Bash(rm -rf app.treasure.treasure-app/src/main/resources/templates/RegistrationResource)",
+      "Bash(rm -rf app.treasure.treasure-app/src/test/java/app/treasure/invitation)",
+      "Bash(grep -r \"import app.treasure.invitation\" app.treasure.treasure-app/src --include=\"*.java\")",
+      "Bash(echo \"Exit: $?\")",
+      "Bash(pkill -9 -f \"quarkus\")",
+      "Bash(pkill -f \"quarkus:dev\")",
+      "Bash(pkill -9 -f \"io.quarkus\")",
+      "Bash([ -d \"/home/oleh/IdeaProjects/Treasure-competitive/app.treasure.treasure-app/src/main/java/app/treasure/$pkg\" ])",
+      "Bash(echo \"exit: $?\")"
     ]
   }
 }
