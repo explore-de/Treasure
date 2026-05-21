@@ -122,13 +122,12 @@ public class DeviceResource extends Controller
 		@QueryParam("group") List<String> groups,
 		@QueryParam("model") List<String> models,
 		@QueryParam("damage") List<String> damages,
-
 		@QueryParam("company") List<String> companys,
-		@QueryParam("number") List<String> numbers,
-		@QueryParam("prozessor") List<String> prozessors,
-		@QueryParam("hddStorage") List<String> hddStorages,
-		@QueryParam("ram") List<String> rams,
-		@QueryParam("modelDate") List<String> modelDates)
+		@QueryParam("deviceNumber") List<String> numbers,
+		@QueryParam("deviceProzessor") List<String> prozessors,
+		@QueryParam("deviceHDDStorage") List<String> hddStorages,
+		@QueryParam("deviceRAM") List<String> rams,
+		@QueryParam("deviceModelDate") List<String> modelDates)
 	{
 
 		List<String> nameTerms = normalize(names);
@@ -143,7 +142,6 @@ public class DeviceResource extends Controller
 		List<String> gr = normalize(groups);
 		List<String> mo = normalize(models);
 		List<String> da = normalize(damages);
-
 		List<String> cp = normalize(companys);
 		List<String> nb = normalize(numbers);
 		List<String> pz = normalize(prozessors);
