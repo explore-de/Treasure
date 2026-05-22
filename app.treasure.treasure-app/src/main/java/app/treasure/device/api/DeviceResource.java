@@ -117,7 +117,7 @@ public class DeviceResource extends Controller
 		@QueryParam("searchName") String searchName,
 		@QueryParam("name") List<String> names,
 		@QueryParam("status") List<String> statuses,
-		@QueryParam("bookedBy") List<String> bookedBy,
+		@QueryParam("assignedTo") List<String> assignedTo,
 		@QueryParam("serial") List<String> serials,
 		@QueryParam("group") List<String> groups,
 		@QueryParam("model") List<String> models,
@@ -137,7 +137,7 @@ public class DeviceResource extends Controller
 		}
 
 		List<String> st = normalize(statuses);
-		List<String> bb = normalize(bookedBy);
+		List<String> bb = normalize(assignedTo);
 		List<String> se = normalize(serials);
 		List<String> gr = normalize(groups);
 		List<String> mo = normalize(models);
@@ -412,11 +412,11 @@ public class DeviceResource extends Controller
 	@Transactional
 	public void assignMany(
 		@RestForm String ids,
-		@RestForm String bookedBy,
+		@RestForm String assignedTo,
 		@RestForm String redirectUrl)
 	{
 
-		Member member = memberRepository.findByUsername(bookedBy);
+		Member member = memberRepository.findByUsername(assignedTo);
 		if (member == null)
 		{
 			seeOther(safeRedirect(redirectUrl));
@@ -433,15 +433,15 @@ public class DeviceResource extends Controller
 			String oldStatus = n(device.getStatus());
 			String oldPickup = device.getPickupTime() != null ? device.getPickupTime().toString() : "";
 
-			if (device.getBookedBy() != null && device.getBookedBy().equals(member))
+			if (device.getAssignedTo() != null && device.getAssignedTo().equals(member))
 			{
-				device.setBookedBy(null);
+				device.setAssignedTo(null);
 				device.setStatus("available");
 				device.setPickupTime(null);
 			}
 			else
 			{
-				device.setBookedBy(member);
+				device.setAssignedTo(member);
 				device.setStatus("not available");
 				device.setPickupTime(LocalDateTime.now());
 			}
@@ -451,7 +451,7 @@ public class DeviceResource extends Controller
 			String type = (newBooked == null || newBooked.isBlank()) ? "UNASSIGNED" : "ASSIGNED";
 			String notes = "status: " + oldStatus + " -> " + newStatus + ", pickupTime: " + oldPickup + " -> " + newPickup;
 
-			recordChange(device, actor, type, "bookedBy", n(oldBooked), n(newBooked), notes);
+			recordChange(device, actor, type, "assignedTo", n(oldBooked), n(newBooked), notes);
 		}
 		seeOther(safeRedirect(redirectUrl));
 	}
@@ -461,7 +461,7 @@ public class DeviceResource extends Controller
 	@Transactional
 	public void assign(
 		@PathParam("id") Long id,
-		@RestForm String bookedBy,
+		@RestForm String assignedTo,
 		@RestForm String redirectUrl)
 	{
 		Device device = deviceRepository.findById(id);
@@ -469,17 +469,17 @@ public class DeviceResource extends Controller
 		String oldBooked = device.getBookedName();
 		String oldStatus = n(device.getStatus());
 		String oldPickup = device.getPickupTime() != null ? device.getPickupTime().toString() : "";
-		Member member = memberRepository.findByUsername(bookedBy);
+		Member member = memberRepository.findByUsername(assignedTo);
 
-		if (device.getBookedBy() != null && device.getBookedBy().equals(member))
+		if (device.getAssignedTo() != null && device.getAssignedTo().equals(member))
 		{
-			device.setBookedBy(null);
+			device.setAssignedTo(null);
 			device.setStatus("available");
 			device.setPickupTime(null);
 		}
 		else
 		{
-			device.setBookedBy(member);
+			device.setAssignedTo(member);
 			device.setStatus("not available");
 			device.setPickupTime(LocalDateTime.now());
 		}
@@ -489,7 +489,7 @@ public class DeviceResource extends Controller
 
 		String type = (newBooked == null || newBooked.isBlank()) ? "UNASSIGNED" : "ASSIGNED";
 		String notes = "status: " + oldStatus + " -> " + newStatus + ", pickupTime: " + oldPickup + " -> " + newPickup;
-		recordChange(device, actor, type, "bookedBy", n(oldBooked), n(newBooked), notes);
+		recordChange(device, actor, type, "assignedTo", n(oldBooked), n(newBooked), notes);
 
 		seeOther(safeRedirect(redirectUrl));
 	}

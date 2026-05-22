@@ -40,7 +40,7 @@
             {#authenticityToken /}
             <input type="hidden" name="ids" id="bulkAssignIds">
             <input type="hidden" name="redirectUrl" id="bulkAssignRedirect">
-            <input type="hidden" name="bookedBy" id="bulkAssignBookedBy">
+            <input type="hidden" name="assignedTo" id="bulkAssignAssignedTo">
 
             <div class="assign-wrap" style="display:inline-block;">
                 <button type="button" class="btn-bulk-assign" onclick="toggleDropdown('bulkAssignDropdown')">
@@ -51,7 +51,7 @@
                     {#for member in members}
                     <div onclick="
                     updateBulkActions();
-                    document.getElementById('bulkAssignBookedBy').value='{member.userName}';
+                    document.getElementById('bulkAssignAssignedTo').value='{member.userName}';
                     document.getElementById('bulkAssignForm').submit();
                     ">
                         {member.firstName} {member.lastName}
@@ -94,9 +94,9 @@
                 <button type="button" class="tag-creator-add" id="addStatusBtn">Add</button>
             </div>
             <div class="tag-creator">
-                <label>Booked by: </label>
-                <input type="text" id="advBookedBy" placeholder="e.g. Max">
-                <button type="button" class="tag-creator-add" id="addBookedByBtn">Add</button>
+                <label>Assigned To: </label>
+                <input type="text" id="advAssignedTo" placeholder="e.g. Max">
+                <button type="button" class="tag-creator-add" id="addAssignedToBtn">Add</button>
             </div>
             <div class="tag-creator">
                 <label>Serial Number: </label>
@@ -168,7 +168,7 @@
             <th class="select"></th>
             <th class="name-table">Name</th>
             <th>Status</th>
-            <th>Booked by</th>
+            <th>Assigned To</th>
             <th>Pickup time</th>
             <th>Group</th>
             <th class="empty-table"></th>
@@ -205,14 +205,14 @@
                             {#authenticityToken /}
                             <input type="hidden" name="redirectUrl">
                             {#authenticityToken /}
-                            <input type="hidden" name="bookedBy" id="bookedBy-{device.id}">
+                            <input type="hidden" name="assignedTo" id="assignedTo-{device.id}">
                             <button type="button" class="btn-assign"
                                     onclick="toggleDropdown('dropdown-{device.id}')">
                                 Assign
                             </button>
                             <div class="assign-dropdown" id="dropdown-{device.id}" style="display:none">
                                 {#for member in members}
-                                <div onclick="document.getElementById('bookedBy-{device.id}').value='{member.userName}';
+                                <div onclick="document.getElementById('assignedTo-{device.id}').value='{member.userName}';
                                 this.closest('form').querySelector('[name=redirectUrl]').value = window.location.pathname + window.location.search;
                                 this.closest('form').submit();">
                                     {member.firstName} {member.lastName}
@@ -395,7 +395,7 @@
         const entries = [                                                                                   // !!--IMPORTANT--!!
             { key: "name", label: "Name", values: p.getAll("name")},                                        // AFTER REFORMATING IT WILL CAUSE AN ERROR
             { key: "status", label: "Status", values: p.getAll("status")},                                  // TO FIX IT PUT A SPACE BETWEEN { AND key
-            { key: "bookedBy", label: "Booked", values: p.getAll("bookedBy")},                              // FOR EXAMPLE:
+            { key: "assignedTo", label: "Booked", values: p.getAll("assignedTo")},                              // FOR EXAMPLE:
             { key: "serial", label: "Serial", values: p.getAll("serial")},                                  // { key: "name", label: "Name", values: p.getAll("name")}
             { key: "group", label: "Group", values: p.getAll("group")},                                     // (I cant even put a wrong example here cause that will crash too)
             { key: "model", label: "Model", values: p.getAll("model")},                                     //
@@ -424,7 +424,7 @@
         const p = getParams();
         p.delete("name");
         p.delete("status");
-        p.delete("bookedBy");
+        p.delete("assignedTo");
         p.delete("serial");
         p.delete("group");
         p.delete("model");
@@ -443,7 +443,7 @@
         const nameInp = document.getElementById("advName");
 
         const statusSel = document.getElementById("advStatus");
-        const bookedByInp = document.getElementById("advBookedBy");
+        const assignedToInp = document.getElementById("advAssignedTo");
         const serialInp = document.getElementById("advSerial");
         const groupInp = document.getElementById("advGroup");
         const modelInp = document.getElementById("advModel");
@@ -457,7 +457,7 @@
 
         const addNameBtn = document.getElementById("addNameBtn");
         const addStatusBtn = document.getElementById("addStatusBtn");
-        const addBookedByBtn = document.getElementById("addBookedByBtn");
+        const addAssignedToBtn = document.getElementById("addAssignedToBtn");
         const addSerialBtn = document.getElementById("addSerialBtn");
         const addGroupBtn = document.getElementById("addGroupBtn");
         const addModelBtn = document.getElementById("addModelBtn");
@@ -481,9 +481,9 @@
             });
         }
 
-        if (addBookedByBtn && bookedByInp) {
-            addBookedByBtn.addEventListener("click", function () {
-                addParam("bookedBy", bookedByInp.value);
+        if (addAssignedToBtn && assignedToInp) {
+            addAssignedToBtn.addEventListener("click", function () {
+                addParam("assignedTo", assignedToInp.value);
             });
         }
 
@@ -559,7 +559,7 @@
         }
 
         bindEnter(nameInp, "name");
-        bindEnter(bookedByInp, "bookedBy");
+        bindEnter(assignedToInp, "assignedTo");
         bindEnter(serialInp, "serial");
         bindEnter(groupInp, "group");
         bindEnter(modelInp, "model");

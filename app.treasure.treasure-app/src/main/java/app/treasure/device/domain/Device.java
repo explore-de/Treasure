@@ -20,7 +20,7 @@ public class Device extends PanacheEntity
 	private Boolean visible;
 
 	@ManyToOne
-	private Member bookedBy;
+	private Member assignedTo;
 	private String createdOn;
 	private String deviceGroup;
 	private String extraInfo;
@@ -156,14 +156,14 @@ public class Device extends PanacheEntity
 		return deviceSerialNumber;
 	}
 
-	public Member getBookedBy()
+	public Member getAssignedTo()
 	{
-		return bookedBy;
+		return assignedTo;
 	}
 
-	public void setBookedBy(Member bookedby)
+	public void setAssignedTo(Member assignedto)
 	{
-		this.bookedBy = bookedby;
+		this.assignedTo = assignedto;
 	}
 
 	public void setCreatedOn(String createdOn)
@@ -231,9 +231,9 @@ public class Device extends PanacheEntity
 
 	public String getBookedName()
 	{
-		if (bookedBy != null)
+		if (assignedTo != null)
 		{
-			return bookedBy.getDisplayName();
+			return assignedTo.getDisplayName();
 		}
 		return "";
 	}
