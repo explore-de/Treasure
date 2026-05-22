@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Arrays;
 import java.util.Collections;
 
+import app.treasure.device.filter.DeviceFieldFilter;
 import io.quarkus.panache.common.Sort;
 import org.jboss.resteasy.reactive.RestForm;
 import org.slf4j.Logger;
@@ -17,6 +18,7 @@ import app.treasure.device.repository.DeviceRepository;
 import app.treasure.device.repository.DeviceHistoryRepository;
 import app.treasure.member.domain.Member;
 import app.treasure.member.repository.MemberRepository;
+import app.treasure.device.filter.DeviceFilter;
 
 import io.quarkiverse.renarde.Controller;
 import io.quarkus.qute.CheckedTemplate;
@@ -148,9 +150,22 @@ public class DeviceResource extends Controller
 		List<String> md = normalize(modelDates);
 
 		List<Device> all = deviceRepository.listAll(Sort.by("id").ascending());
-		List<String> finalNameTerms = nameTerms;
+		List<DeviceFilter> filters = List.<DeviceFilter> of(
+			new DeviceFieldFilter(nameTerms, Device::getDeviceName, this::containsIgnoreCase),
+			new DeviceFieldFilter(st, Device::getStatus, this::equalsIgnoreCase),
+			new DeviceFieldFilter(bb, Device::getBookedName, this::containsIgnoreCase),
+			new DeviceFieldFilter(se, Device::getDeviceSerialNumber, this::containsIgnoreCase),
+			new DeviceFieldFilter(gr, Device::getGroup, this::containsIgnoreCase),
+			new DeviceFieldFilter(mo, Device::getDeviceModel, this::containsIgnoreCase),
+			new DeviceFieldFilter(da, Device::getDeviceDamage, this::equalsIgnoreCase),
+			new DeviceFieldFilter(cp, Device::getRegCompany, this::containsIgnoreCase),
+			new DeviceFieldFilter(nb, Device::getDeviceNumber, this::containsIgnoreCase),
+			new DeviceFieldFilter(pz, Device::getDeviceProzessor, this::containsIgnoreCase),
+			new DeviceFieldFilter(hd, Device::getDeviceHDDStorage, this::containsIgnoreCase),
+			new DeviceFieldFilter(rm, Device::getDeviceRAM, this::containsIgnoreCase),
+			new DeviceFieldFilter(md, Device::getDeviceModelDate, this::containsIgnoreCase));
 		List<Device> filtered = all.stream()
-			.filter(d -> matches(d, finalNameTerms, st, bb, se, gr, mo, da, cp, nb, pz, hd, rm, md))
+			.filter(d -> filters.stream().allMatch(f -> f.matches(d)))
 			.toList();
 
 		String username = securityIdentity.getPrincipal().getName();
@@ -166,54 +181,6 @@ public class DeviceResource extends Controller
 			.map(s -> s == null ? "" : s.trim())
 			.filter(s -> !s.isBlank())
 			.toList();
-	}
-
-	private boolean matches(Device d,
-		List<String> nameFallback,
-		List<String> statuses,
-		List<String> bookedBy,
-		List<String> serials,
-		List<String> groups,
-		List<String> models,
-		List<String> damages,
-		List<String> company,
-		List<String> number,
-		List<String> prozessor,
-		List<String> hddStorage,
-		List<String> ram,
-		List<String> modelDate
-
-	)
-	{
-
-		boolean nameOk = nameFallback.isEmpty() ||
-			nameFallback.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceName(), t));
-		boolean statusOk = statuses.isEmpty() ||
-			statuses.stream().anyMatch(t -> equalsIgnoreCase(d.getStatus(), t));
-		boolean bookedOk = bookedBy.isEmpty() ||
-			bookedBy.stream().anyMatch(t -> containsIgnoreCase(d.getBookedName(), t));
-		boolean serialOk = serials.isEmpty() ||
-			serials.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceSerialNumber(), t));
-		boolean groupOk = groups.isEmpty() ||
-			groups.stream().anyMatch(t -> containsIgnoreCase(d.getGroup(), t));
-		boolean modelOk = models.isEmpty() ||
-			models.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceModel(), t));
-		boolean damageOk = damages.isEmpty() ||
-			damages.stream().anyMatch(t -> equalsIgnoreCase(d.getDeviceDamage(), t));
-		boolean companyOk = company.isEmpty() ||
-			company.stream().anyMatch(t -> containsIgnoreCase(d.getRegCompany(), t));
-		boolean numberOk = number.isEmpty() ||
-			number.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceNumber(), t));
-		boolean prozessorOk = prozessor.isEmpty() ||
-			prozessor.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceProzessor(), t));
-		boolean hddStorageOk = hddStorage.isEmpty() ||
-			hddStorage.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceHDDStorage(), t));
-		boolean ramOk = ram.isEmpty() ||
-			ram.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceRAM(), t));
-		boolean modelDateOk = modelDate.isEmpty() ||
-			modelDate.stream().anyMatch(t -> containsIgnoreCase(d.getDeviceModelDate(), t));
-
-		return nameOk && statusOk && bookedOk && serialOk && groupOk && modelOk && damageOk && companyOk && numberOk && prozessorOk && hddStorageOk && ramOk && modelDateOk;
 	}
 
 	private boolean containsIgnoreCase(String haystack, String needle)

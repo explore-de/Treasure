@@ -206,3 +206,6 @@ target
 frontend/mobile/android/
 frontend/mobile/ios/
 frontend/mobile/.expo/
+
+# Claude Code
+.claude/
