@@ -613,7 +613,7 @@ textarea.field-input {
   font-family: 'DM Sans', sans-serif;
   font-size: 17px;
   font-weight: 600;
-  min-width: 186px;
+  min-width: 191px;
   cursor: pointer;
   align-items: center;
   gap: 7px;
@@ -668,7 +668,7 @@ textarea.field-input {
   font-family: 'DM Sans', sans-serif;
   font-size: 17px;
   font-weight: 600;
-  min-width: 162px;
+  min-width: 220px;
   cursor: pointer;
   align-items: center;
   gap: 7px;
@@ -850,6 +850,7 @@ textarea.field-input {
   display: flex;
   transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   height: 55px;
+  min-width: 280px;
 }
 .search-clean {
   display: flex;
