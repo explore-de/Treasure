@@ -303,7 +303,6 @@
         return new URLSearchParams(window.location.search);
     }
 
-
     function DOMContenLoaded(){
         document.querySelectorAll('.checkbox')
             .forEach(cb => cb.addEventListener("change", (e) => {
@@ -318,7 +317,6 @@
                 }
             }));
     }
-
 
     function navigateWithParams(p) {
         const qs = p.toString();
@@ -547,7 +545,6 @@
             });
         }
 
-
         function bindEnter(input, key) {
             if (!input) return;
             input.addEventListener("keydown", function (e) {
@@ -599,7 +596,6 @@
         });
         dropdown.style.display = isOpen ? "none" : "block";
     }
-
 
     function checkboxSelection(id) {
         const checkbox = document.querySelector(`.checkbox[data-id=id]`);
