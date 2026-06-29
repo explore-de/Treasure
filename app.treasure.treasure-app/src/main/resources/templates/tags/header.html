@@ -8,17 +8,6 @@
     <img src="/svg/final.svg" alt="treasure" style="height: 34px; width: auto; justify-content: center; align-content: center; display: flex;">
   </cds-header-name>
   <cds-header-global-bar>
-    {#if inject:organizationContext.isSuperAdmin()}
-    <cds-header-global-action
-      aria-label="Organisationen"
-      tooltip-text="Organisationen verwalten"
-      href="/organisationen">
-      <svg slot="icon" viewBox="0 0 32 32" width="20" height="20">
-        <path d="M21 2h-2v5h2V2zM11 2H9v5h2V2zM21 25h-2v5h2v-5zM11 25H9v5h2v-5zM2 11h5V9H2v2zM25 11h5V9h-5v2zM2 21h5v-2H2v2zM25 21h5v-2h-5v2z"/>
-        <rect x="9" y="9" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"/>
-      </svg>
-    </cds-header-global-action>
-    {/if}
     <cds-header-global-action                                                                                                                                                                                                                          
     id="themeToggle"                                                                                                                                                                                                                                 
     aria-label="Theme"
@@ -27,15 +16,6 @@
       <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M12 3V5.25M18.364 5.63604L16.773 7.22703M21 12H18.75M18.364 18.364L16.773 16.773M12 18.75V21M7.22703 16.773L5.63604 18.364M5.25 12H3M7.22703 7.22703L5.63604 5.63604M15.75 12C15.75 14.0711 14.0711 15.75 12 15.75C9.92893 15.75 8.25 14.0711 8.25 12C8.25 9.92893 9.92893 8.25 12 8.25C14.0711 8.25 15.75 9.92893 15.75 12Z"/>
     </svg>
   </cds-header-global-action> 
-    <cds-header-global-action
-      id="notificationButton"
-      aria-label="Benachrichtigungen"
-      tooltip-text="Benachrichtigungen"
-      onclick="togglePanel('notificationPanel')">
-      <svg slot="icon" viewBox="0 0 32 32" width="20" height="20">
-        <path d="M28.707 19.293L26 16.586V13a10.014 10.014 0 0 0-9-9.95V1h-2v2.05A10.014 10.014 0 0 0 6 13v3.586l-2.707 2.707A1 1 0 0 0 3 20v3a1 1 0 0 0 1 1h7v.777a5.152 5.152 0 0 0 4.5 5.199A5.006 5.006 0 0 0 21 25v-1h7a1 1 0 0 0 1-1v-3a1 1 0 0 0-.293-.707ZM19 25a3 3 0 0 1-6 0v-1h6Zm8-3H5v-1.586l2.707-2.707A1 1 0 0 0 8 17v-4a8 8 0 0 1 16 0v4a1 1 0 0 0 .293.707L27 20.414Z"/>
-      </svg>
-    </cds-header-global-action>
     <cds-header-global-action
       id="profileButton"
       aria-label="Profil"
@@ -47,69 +27,6 @@
     </cds-header-global-action>
   </cds-header-global-bar>
 </cds-header>
-
-<!-- Notification Panel -->
-<div id="notificationPanel" class="header-panel">
-  <div class="panel-header">
-    <h3 class="panel-title">
-      Benachrichtigungen
-      <span class="bald-tag">
-        <svg viewBox="0 0 32 32" width="12" height="12">
-          <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/>
-          <path d="M16 8a1.5 1.5 0 1 0 1.5 1.5A1.5 1.5 0 0 0 16 8ZM16 13a1 1 0 0 0-1 1v8a1 1 0 0 0 2 0v-8a1 1 0 0 0-1-1Z"/>
-        </svg>
-        Bald
-      </span>
-    </h3>
-  </div>
-  <div class="panel-content">
-    <!-- Notification 1: New document uploaded -->
-    <div class="notification-item">
-      <div class="notification-icon">
-        <svg viewBox="0 0 32 32">
-          <path d="M25.7 9.3l-7-7A.91.91 0 0 0 18 2H8a2 2 0 0 0-2 2v24a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V10a.91.91 0 0 0-.3-.7ZM18 4.4l5.6 5.6H18ZM24 28H8V4h8v6a2 2 0 0 0 2 2h6Z"/>
-        </svg>
-      </div>
-      <div class="notification-content">
-        <div class="notification-title">Neuer Beleg hochgeladen</div>
-        <div class="notification-message">Rechnung_2024_001.pdf wurde erfolgreich analysiert</div>
-        <div class="notification-time">Vor 2 Stunden</div>
-      </div>
-    </div>
-    <!-- Notification 2: Pending review -->
-    <div class="notification-item">
-      <div class="notification-icon">
-        <svg viewBox="0 0 32 32">
-          <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/>
-          <path d="M16 8a1.5 1.5 0 1 0 1.5 1.5A1.5 1.5 0 0 0 16 8ZM16 13a1 1 0 0 0-1 1v8a1 1 0 0 0 2 0v-8a1 1 0 0 0-1-1Z"/>
-        </svg>
-      </div>
-      <div class="notification-content">
-        <div class="notification-title">Prüfung ausstehend</div>
-        <div class="notification-message">3 Belege warten auf Ihre Bestätigung</div>
-        <div class="notification-time">Vor 1 Tag</div>
-      </div>
-    </div>
-    <!-- Notification 3: Transaction created -->
-    <div class="notification-item">
-      <div class="notification-icon">
-        <svg viewBox="0 0 32 32">
-          <path d="M14 21.414l-5-5.001L10.413 15 14 18.586 21.585 11 23 12.415l-9 8.999z"/>
-          <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/>
-        </svg>
-      </div>
-      <div class="notification-content">
-        <div class="notification-title">Transaktion erstellt</div>
-        <div class="notification-message">Neue Buchung für Büromaterial wurde angelegt</div>
-        <div class="notification-time">Vor 3 Tagen</div>
-      </div>
-    </div>
-  </div>
-  <div class="panel-footer">
-    <a href="#" onclick="alert('Bald verfügbar'); return false;">Alle Benachrichtigungen anzeigen</a>
-  </div>
-</div>
-
 
 <!-- Profile Panel -->
 <div id="profilePanel" class="header-panel">
@@ -206,12 +123,10 @@
   document.addEventListener('click', function(event) {
     if (!currentPanel) return;
 
-    const notificationButton = document.getElementById('notificationButton');
     const profileButton = document.getElementById('profileButton');
 
     // Check if click is outside panel and buttons
     const clickedInside = currentPanel.contains(event.target) ||
-                         notificationButton.contains(event.target) ||
                          profileButton.contains(event.target);
 
     if (!clickedInside) {
