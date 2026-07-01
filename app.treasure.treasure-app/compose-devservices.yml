@@ -4,85 +4,14 @@ services:
     image: postgres:17
     restart: unless-stopped
     environment:
-      POSTGRES_DB: temporal
-      POSTGRES_USER: temporal
-      POSTGRES_PASSWORD: temporal
+      POSTGRES_DB: treasure
+      POSTGRES_USER: treasure
+      POSTGRES_PASSWORD: treasure
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U temporal -d temporal"]
+      test: ["CMD-SHELL", "pg_isready -U treasure -d treasure"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
-
-  temporal-postgresql:
-    image: postgres:17
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: temporal
-      POSTGRES_USER: temporal
-      POSTGRES_PASSWORD: temporal
-    ports:
-      - "5433:5432"
-    volumes:
-      - temporal-postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U temporal -d temporal"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-
-  temporal-server:
-    image: temporalio/auto-setup:1.24.2
-    restart: unless-stopped
-    depends_on:
-      temporal-postgresql:
-        condition: service_healthy
-    environment:
-      DB: postgres12
-      DB_PORT: 5432
-      POSTGRES_USER: temporal
-      POSTGRES_PWD: temporal
-      POSTGRES_SEEDS: temporal-postgresql
-    expose:
-      - "7233"
-    ports:
-      - "7233:7233"
-    healthcheck:
-      test: ["CMD-SHELL", "temporal operator cluster health --address $$(hostname -i):7233 || tctl --address $$(hostname -i):7233 cluster health"]
-      interval: 15s
-      timeout: 10s
-      retries: 10
-      start_period: 90s
-
-  temporal-init:
-    image: temporalio/admin-tools:1.24.2-tctl-1.18.1-cli-0.13.2
-    depends_on:
-      temporal-server:
-        condition: service_healthy
-    restart: on-failure
-    command: >
-      bash -c "
-      echo 'Waiting for Temporal server...';
-      until tctl --address temporal-server:7233 namespace describe default 2>/dev/null; do
-        echo 'Temporal not ready, waiting...';
-        sleep 2;
-      done;
-      "
-
-  temporal-ui:
-    image: temporalio/ui:2.24.0
-    restart: unless-stopped
-    depends_on:
-      temporal-server:
-        condition: service_healthy
-    environment:
-      TEMPORAL_ADDRESS: temporal-server:7233
-      TEMPORAL_CORS_ORIGINS: http://localhost:3000
-    ports:
-      - "8088:8080"
-
-volumes:
-  temporal-postgres-data:

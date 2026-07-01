@@ -112,6 +112,7 @@ public abstract class BaseOrganizationTest
 		Member member = memberRepository.findByUsername(username);
 		if (member != null)
 		{
+			member.setOrganization(org);
 			return member;
 		}
 

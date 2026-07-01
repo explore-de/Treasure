@@ -493,7 +493,6 @@ cds-table-row.needs-review {
   --sidebar-w: 200px;
 }
 
-
 .breadcrumb {
   display: flex;
   align-items: center;
@@ -1106,7 +1105,6 @@ dialog.history-dialog::backdrop{
 .history-item-assigned::before{ background: #24a148; }
 .history-item-updated::before{ background: #f1c21b; }
 .history-item-created::before{ background: #8a3ffc; }
-
 
 .actions {
   display: flex;
