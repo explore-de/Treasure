@@ -26,7 +26,7 @@ class DeviceTest
 		member.setLastName("Mustermann");
 
 		Device device = new Device();
-		device.setBookedBy(member);
+		device.setAssignedTo(member);
 
 		assertEquals("Max Mustermann", device.getBookedName());
 	}

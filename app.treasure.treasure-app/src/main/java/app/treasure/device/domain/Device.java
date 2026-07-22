@@ -21,6 +21,7 @@ public class Device extends PanacheEntity
 
 	@ManyToOne
 	private Member assignedTo;
+
 	private String createdOn;
 	private String deviceGroup;
 	private String extraInfo;
