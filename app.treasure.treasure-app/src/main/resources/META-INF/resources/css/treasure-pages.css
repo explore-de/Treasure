@@ -823,10 +823,12 @@ textarea.field-input {
   font-family: 'DM Sans', sans-serif;
   font-size: 17px;
   font-weight: 500;
-  cursor: pointer;
+  cursor: text;
   padding: 0;
   height: 55px;
-  border: rgba(255, 255, 255, 0.5);
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.5);
   transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
   
@@ -849,8 +851,13 @@ textarea.field-input {
   display: flex;
   transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   height: 55px;
-  min-width: 280px;
+  width: 280px;
 }
+.search-wrap form {
+  position: relative;
+  width: 100%;
+}
+
 .search-clean {
   display: flex;
   position: absolute;
