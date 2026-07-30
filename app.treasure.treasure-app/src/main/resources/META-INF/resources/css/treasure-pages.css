@@ -807,6 +807,7 @@ textarea.field-input {
 .tag-creator input {
   border-radius: 5px;
   border: 2px solid var(--border);
+  height: 27px;
 }
 .tag-creator select {
   border-radius: 5px;
@@ -816,8 +817,8 @@ textarea.field-input {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px;
-  border-radius: 999px;
+  padding: 5px 8px;
+  border-radius: 10px;
   background: var(--yellow);
   border: var(--border);
   color: black;
@@ -956,6 +957,26 @@ textarea.field-input {
 }
 .btn-assign:hover {
   box-shadow: 0 4px 14px rgba(208, 152, 11, 0.485);
+  transform: scale(1.05);
+}
+
+.btn-unassign {
+  background: transparent;
+  color: var(--text);
+  border: var(--btn-border) solid rgba(208, 152, 11, 0.55);
+  padding: var(--btn-pad-y) var(--btn-pad-x);
+  border-radius: var(--btn-radius);
+  font-family: 'DM Sans', sans-serif;
+  font-size: var(--btn-font);
+  font-weight: var(--btn-weight);
+  line-height: var(--btn-line);
+  cursor: pointer;
+  display: flex; align-items: center; gap: var(--btn-gap);
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+.btn-unassign:hover {
+  background: rgba(208, 152, 11, 0.12);
+  border-color: rgba(208, 152, 11, 0.8);
   transform: scale(1.05);
 }
 
@@ -1495,12 +1516,12 @@ body.modal-open {
 }
 
 .dm-label {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--muted);
 }
 
 .dm-value {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   overflow-wrap: anywhere;
   margin-top: 1%;
@@ -1516,7 +1537,7 @@ body.modal-open {
 
 .dm-extra {
   margin: 0;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.5;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
