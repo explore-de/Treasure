@@ -459,6 +459,36 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
+	@Path("/unassign-many")
+	@Transactional
+	public void unassignMany(
+		@RestForm String ids,
+		@RestForm String redirectUrl)
+	{
+		Member actor = currentMember();
+
+		for (Long id : parseIds(ids))
+		{
+			Device device = deviceRepository.findById(id);
+			if (device == null || device.getAssignedTo() == null) continue;
+
+			String oldBooked = device.getBookedName();
+			String oldStatus = n(device.getStatus());
+			String oldPickup = device.getPickupTime() != null ? device.getPickupTime().toString() : "";
+
+			device.setAssignedTo(null);
+			device.setStatus("available");
+			device.setPickupTime(null);
+
+			String notes = "status: " + oldStatus + " -> available, pickupTime: " + oldPickup + " -> ";
+			recordChange(device, actor, "UNASSIGNED", "assignedTo", n(oldBooked), "", notes);
+
+			LOG.info("Unassigned device {} from member {}", id, n(oldBooked));
+		}
+		seeOther(safeRedirect(redirectUrl));
+	}
+
+	@POST
 	@Path("/{id}/assign")
 	@Transactional
 	public TemplateInstance assign(
