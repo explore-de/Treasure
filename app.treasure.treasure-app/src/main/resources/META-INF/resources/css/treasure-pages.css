@@ -666,6 +666,23 @@ textarea.field-input {
   height: 55px;
   color: var(--yellow);
 }
+.btn-bulk-unassign {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid rgba(208, 152, 11, 0.55);
+  padding: 15px 25px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  min-width: 186px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  height: 55px;
+}
 .btn-bulk-delete {
   background: transparent;
   color: var(--red);
@@ -838,6 +855,11 @@ textarea.field-input {
 .btn-bulk-assign:hover {
   background: var(--yellow-light);
   box-shadow: 0 0 10px rgba(245, 197, 24, 0.5);
+  transform: scale(1.05);
+}
+.btn-bulk-unassign:hover {
+  background: rgba(208, 152, 11, 0.12);
+  border-color: rgba(208, 152, 11, 0.8);
   transform: scale(1.05);
 }
 .btn-bulk-delete:hover {
