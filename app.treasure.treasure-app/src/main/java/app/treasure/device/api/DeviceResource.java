@@ -58,6 +58,8 @@ public class DeviceResource extends Controller
 
 		public static native TemplateInstance index(List<Device> devices, Member currentmember, List<Member> members);
 
+		public static native TemplateInstance index$row(Device device, List<Member> members);
+
 		public static native TemplateInstance create(List<String> groups);
 
 		public static native TemplateInstance edit(Device device, List<String> groups, List<DeviceHistory> history);
@@ -457,14 +459,48 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
-	@Path("/{id}/assign")
+	@Path("/unassign-many")
 	@Transactional
-	public void assign(
-		@PathParam("id") Long id,
-		@RestForm String assignedTo,
+	public void unassignMany(
+		@RestForm String ids,
 		@RestForm String redirectUrl)
 	{
+		Member actor = currentMember();
+
+		for (Long id : parseIds(ids))
+		{
+			Device device = deviceRepository.findById(id);
+			if (device == null || device.getAssignedTo() == null) continue;
+
+			String oldBooked = device.getBookedName();
+			String oldStatus = n(device.getStatus());
+			String oldPickup = device.getPickupTime() != null ? device.getPickupTime().toString() : "";
+
+			device.setAssignedTo(null);
+			device.setStatus("available");
+			device.setPickupTime(null);
+
+			String notes = "status: " + oldStatus + " -> available, pickupTime: " + oldPickup + " -> ";
+			recordChange(device, actor, "UNASSIGNED", "assignedTo", n(oldBooked), "", notes);
+
+			LOG.info("Unassigned device {} from member {}", id, n(oldBooked));
+		}
+		seeOther(safeRedirect(redirectUrl));
+	}
+
+	@POST
+	@Path("/{id}/assign")
+	@Transactional
+	public TemplateInstance assign(
+		@PathParam("id") Long id,
+		@RestForm String assignedTo)
+	{
 		Device device = deviceRepository.findById(id);
+		if (device == null)
+		{
+			throw new NotFoundException();
+		}
+
 		Member actor = currentMember();
 		String oldBooked = device.getBookedName();
 		String oldStatus = n(device.getStatus());
@@ -491,7 +527,40 @@ public class DeviceResource extends Controller
 		String notes = "status: " + oldStatus + " -> " + newStatus + ", pickupTime: " + oldPickup + " -> " + newPickup;
 		recordChange(device, actor, type, "assignedTo", n(oldBooked), n(newBooked), notes);
 
-		seeOther(safeRedirect(redirectUrl));
+		LOG.info("Device {} assignment changed: {} -> {}", id, n(oldBooked), n(newBooked));
+
+		return Templates.index$row(device, memberRepository.listAll());
+	}
+
+	@POST
+	@Path("/{id}/unassign")
+	@Transactional
+	public TemplateInstance unassign(@PathParam("id") Long id)
+	{
+		Device device = deviceRepository.findById(id);
+		if (device == null)
+		{
+			throw new NotFoundException();
+		}
+
+		if (device.getAssignedTo() != null)
+		{
+			Member actor = currentMember();
+			String oldBooked = device.getBookedName();
+			String oldStatus = n(device.getStatus());
+			String oldPickup = device.getPickupTime() != null ? device.getPickupTime().toString() : "";
+
+			device.setAssignedTo(null);
+			device.setStatus("available");
+			device.setPickupTime(null);
+
+			String notes = "status: " + oldStatus + " -> available, pickupTime: " + oldPickup + " -> ";
+			recordChange(device, actor, "UNASSIGNED", "assignedTo", n(oldBooked), "", notes);
+
+			LOG.info("Unassigned device {} from member {}", id, n(oldBooked));
+		}
+
+		return Templates.index$row(device, memberRepository.listAll());
 	}
 
 	private String safeRedirect(String redirectUrl)
