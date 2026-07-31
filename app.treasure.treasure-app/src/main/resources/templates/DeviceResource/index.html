@@ -35,7 +35,7 @@
             aria-expanded="false" aria-controls="advancedSearchRow">
         Advanced Search
     </button>
-    <div class="bulk-actions" id="bulkActions" hidden>
+    <div class="bulk-actions" id="bulkActions">
         <form id="bulkAssignForm" method="post" action="/devices/assign-many" style="display:inline-block;">
             {#authenticityToken /}
             <input type="hidden" name="ids" id="bulkAssignIds">
@@ -446,7 +446,7 @@
         const bar = document.getElementById("bulkActions");
         if (!bar) return;
 
-        bar.hidden = selected.length === 0;
+        bar.classList.toggle("is-open", selected.length > 0);
 
         const idsCsv = selected.join(",");
         const redirect = window.location.pathname + window.location.search;
