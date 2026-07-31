@@ -35,7 +35,7 @@
             aria-expanded="false" aria-controls="advancedSearchRow">
         Advanced Search
     </button>
-    <div class="bulk-actions" id="bulkActions" hidden>
+    <div class="bulk-actions" id="bulkActions">
         <form id="bulkAssignForm" method="post" action="/devices/assign-many" style="display:inline-block;">
             {#authenticityToken /}
             <input type="hidden" name="ids" id="bulkAssignIds">
@@ -93,7 +93,7 @@
         </form>
     </div>
 </div>
-<div class="advanced-search-row" id="advancedSearchRow" hidden>
+<div class="advanced-search-row" id="advancedSearchRow">
     <div class="advanced-search-panel">
         <div class="adv-grid">
             <div class="tag-creator">
@@ -446,7 +446,7 @@
         const bar = document.getElementById("bulkActions");
         if (!bar) return;
 
-        bar.hidden = selected.length === 0;
+        bar.classList.toggle("is-open", selected.length > 0);
 
         const idsCsv = selected.join(",");
         const redirect = window.location.pathname + window.location.search;
@@ -894,29 +894,25 @@
         const row = document.getElementById("advancedSearchRow");
         if (!btn || !row) return;
 
+        const setOpen = (open) => {
+            row.classList.toggle("is-open", open);
+            btn.setAttribute("aria-expanded", open ? "true" : "false");
+        };
+
         btn.addEventListener("click", (e) => {
             e.stopPropagation();
-            const isOpen = !row.hasAttribute("hidden");
-            if (isOpen) {
-                row.setAttribute("hidden", "");
-                btn.setAttribute("aria-expanded", "false");
-            } else {
-                row.removeAttribute("hidden");
-                btn.setAttribute("aria-expanded", "true");
-            }
+            setOpen(!row.classList.contains("is-open"));
         });
 
         document.addEventListener("click", (e) => {
             if (!e.target.closest("#advancedToggle") && !e.target.closest("#advancedSearchRow")) {
-                row.setAttribute("hidden", "");
-                btn.setAttribute("aria-expanded", "false");
+                setOpen(false);
             }
         });
 
         document.addEventListener("keydown", (e) => {
             if (e.key === "Escape") {
-                row.setAttribute("hidden", "");
-                btn.setAttribute("aria-expanded", "false");
+                setOpen(false);
             }
         });
     }
