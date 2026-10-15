@@ -3,117 +3,139 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with
 code in this repository.
 
+## What this project is
+
+Treasure is a device-management web app for organizations (tenants): a
+hardware inventory, assignment of devices to members, and a change history of
+who changed what and when. `README.md` is the authoritative overview and
+`CONTRIBUTING.md` holds the house rules.
+
+The repository contains **one** Maven project, `app.treasure.treasure-app/`,
+plus the shared formatter config in `formatter/` and CI in `.github/`. There
+are no other modules or microservices.
+
 ## Build Commands
 
+All Maven commands run from `app.treasure.treasure-app/`:
+
 ```bash
-# Run in dev mode with live reload
-./mvnw quarkus:dev
-
-# Run tests
-./mvnw test
-
-# Run a single test class
-./mvnw test -Dtest=TestClassName
-
-# Package the application
-./mvnw package
-
-# Validate code formatting
-./mvnw formatter:validate
-
-# Format code
-./mvnw formatter:format
-
-# Start infrastructure (auto-starts with quarkus:dev, or manually)
-docker-compose -f app.treasure.treasure-app/compose-devservices.yml up -d
-
-# Stop infrastructure
-docker-compose -f app.treasure.treasure-app/compose-devservices.yml down
+./mvnw quarkus:dev              # dev mode with live reload, http://localhost:8080
+./mvnw test                     # run tests
+./mvnw test -Dtest=ClassName    # run a single test class
+./mvnw verify                   # tests + JaCoCo report (what CI runs)
+./mvnw package                  # builds target/quarkus-app/quarkus-run.jar
+./mvnw formatter:validate       # check formatting
+./mvnw formatter:format         # apply formatting
 ```
+
+Quarkus Dev Services start PostgreSQL, Keycloak and LocalStack in Docker
+automatically in dev and test mode. There is no compose file; Docker must be
+running.
+
+`formatter:validate` is bound to the `validate` phase, so every build
+(including the IDE's background import) fails on unformatted code. Run
+`./mvnw formatter:format` before committing.
+
+Opening the folder in VS Code triggers a background import and compile by the
+Java language server. That fills `target/` but does not start the app.
 
 ## Architecture
 
-This is a Quarkus web application using the Renarde framework for server-side
-rendering.
+**Stack:**
 
-**Key frameworks:**
+- **Quarkus 3.31.2**, Java 21
+- **Renarde 3.1.5** - server-side web framework on Qute + RESTEasy Reactive
+- **Hibernate ORM Panache** with the repository pattern
+- **PostgreSQL**, schema owned by **Flyway** (`src/main/resources/db/migration`,
+  Hibernate only validates). Never edit an applied migration; add a new
+  versioned file.
+- **Keycloak** via OIDC (`application-type=web-app`) plus the Keycloak Admin
+  REST client for user management
+- **htmx 2.0.4** for row-level partial page updates
+- **SmallRye Health** at `/q/health`, **SmallRye OpenAPI** at `/q/swagger-ui`
+- Declared but currently unused by any Java code: `quarkus-amazon-s3`
+  (LocalStack still starts in dev), `quarkus-mailer`, `quarkus-scheduler`.
+  The `templates/EmailService/` templates have no matching Java class.
 
-- **Quarkus 3.30.x** with Java 21
-- **Renarde** - server-side web framework built on Qute templating, RESTEasy
-  Reactive
-- **Hibernate ORM Panache** - simplified ORM with repository pattern
-- **Amazon S3** - file storage via quarkus-amazon-s3 (LocalStack in dev/test)
-- **SmallRye Health** - health check endpoints at `/q/health`
-- **SmallRye OpenAPI** - API documentation
-
-**Project structure:**
-
-Feature-based package structure:
+**Package layout** (feature-based, under `src/main/java/app/treasure/`):
 
 ```
-app.treasure.<feature>/
-├── api/          - Renarde controllers (extend Controller)
-├── domain/       - Entity classes (extend PanacheEntity)
-├── model/        - DTOs/Input classes
-├── repository/   - Data access (implement PanacheRepository)
-├── service/      - Business logic (e.g., StorageService)
-└── messaging/    - Message producers/consumers
-
-app.treasure.shared/
-├── filter/       - HTTP filters
-├── infrastructure/storage/  - Storage handlers
-├── security/     - Security utilities
-├── util/         - Template extensions (JavaExtensions.java)
-└── validation/   - Validation utilities
+dashboard/api        DashboardResource: "/" redirects to /devices
+device/
+  api                DeviceResource: all /devices routes (list, create, edit, assign, bulk actions)
+  domain             Device, DeviceHistory (every field change is recorded)
+  filter             DeviceFilter, DeviceFieldFilter (list filtering)
+  repository         DeviceRepository, DeviceHistoryRepository
+member/
+  domain             Member (belongs to an Organization, linked to a Keycloak user)
+  repository         MemberRepository
+  service            KeycloakAdminService, MemberKeycloakSyncService
+organization/
+  domain             Organization (the tenant)
+  repository         OrganizationRepository
+shared/
+  bootstrap          StartupOrchestrator -> BootstrapService (orgs, users, members) -> DataSeeder (dev demo data)
+  domain/repository  Tag, TagRepository
+  security           Roles, OrganizationContext (resolves the current tenant per request)
+  template           UserContext (available in templates as inject:userContext)
+  util               FlashKeys, JavaExtensions (Qute @TemplateExtension), SlugUtil, SortHelper
 ```
 
-Current features:
+**Multi-tenancy:** a Member belongs to an Organization; a Device reaches its
+tenant through the Member it is assigned to. `OrganizationContext` returns the
+member's organization for normal users and a session-selected organization for
+super admins.
 
-- `bommel/` - Bommel tree management (api, domain, repository)
-- `member/` - Member management (api, domain, repository)
-- `document/` - Document/receipt management with S3 file storage and intelligent extraction
-- `audit/` - Audit logging (domain, repository)
-- `shared/` - Shared utilities
+**Dev users** (provisioned by the Keycloak dev service and `BootstrapService`):
+`admin` (super_admin, admin, user), `maria` (admin, user), `thomas` (user),
+all with password `password`. See `README.md` for the organizations.
 
-**Microservices:**
-
-- `app.treasure.zugferd` - ZugFerd e-invoice extraction service (port 8103)
-- `app.treasure.az-document-ai` - Azure Document Intelligence integration (port 8200)
-
-Templates: `src/main/resources/templates/<ControllerName>/<method>.html`
+**Templates:** `src/main/resources/templates/<ControllerName>/<method>.html`.
+Layout is `main.html`; reusable tags live in `templates/tags/` (`header`,
+`flashNotifications`, `carbonIcon`, `iconPicker`).
 
 ## Renarde & Qute Conventions
 
 **Controllers:**
 
-- Extend `Controller` class from Renarde
-- Use `@CheckedTemplate` with native method declarations for type-safe templates
-- Method names become URL paths: `save()` -> `/resource/save`
-- Use `redirect(Resource.class).method()` for redirects
-- Use `flash("key", "message")` for flash messages
+- Extend `Controller` from Renarde, annotate the class with `@Authenticated`
+  and `@Path`
+- Declare templates in a `@CheckedTemplate public static class Templates`
+  with `native` methods, one per template
+- A native method named `index$row(...)` renders the `{#fragment id=row}`
+  block of `index.html`. htmx posts to `/devices/{id}/assign` and
+  `/devices/{id}/unassign` and swaps that single table row
+- Form fields arrive via `@RestForm` parameters; POST handlers are
+  `@Transactional`
+- After a POST, redirect with `seeOther("/devices")`
+- Flash messages: `flash(FlashKeys.SUCCESS, "...")` or `FlashKeys.ERROR`;
+  `tags/flashNotifications.html` renders those two keys
+- Record every device mutation in `DeviceHistory` through the `recordChange`
+  / `recordIfChanged` helpers in `DeviceResource`
 
 **Qute CheckedTemplate limitations:**
 
 - NO direct Java method calls like `ZoneId.systemDefault()` in templates
-- NO safe navigation operator `?.` (e.g., `object?.field`)
-- Solution: Add helper methods to entities for template access:
+- NO safe navigation operator `?.`; use the Elvis operator `?:` instead
+- Put presentation helpers on the entity (`getFormattedPickupTime()`,
+  `getBookedName()`) or in `JavaExtensions` (`capitalise`, `formatGerman`)
 
 ```java
 // In entity class
-public String getFormattedDate()
+public String getFormattedPickupTime()
 {
-	return date != null ? date.format(formatter) : "";
-}
-
-public String getSenderName()
-{
-	return sender != null ? sender.getName() : "";
+	return pickupTime != null ? pickupTime.format(formatter) : "";
 }
 ```
 
+**Template injections:** `inject:userContext.username`, `.email`, `.roles`,
+`.firstLetter`, `.isSuperAdmin` and `inject:vertxRequest.path` (used for the
+active side-nav entry).
+
 **Logging:**
 
-**IMPORTANT:** Always use SLF4J for logging. Never use `System.out.println()` or other logging frameworks.
+**IMPORTANT:** Always use SLF4J for logging. Never use `System.out.println()`
+or other logging frameworks.
 
 ```java
 import org.slf4j.Logger;
@@ -123,670 +145,246 @@ private static final Logger LOG = LoggerFactory.getLogger(MyClass.class);
 ```
 
 Log levels:
-- `LOG.error()` - For failures and exceptions that need attention
-- `LOG.warn()` - For issues that might cause problems
-- `LOG.info()` - For important operations (user actions, service calls, state changes)
-- `LOG.debug()` - For detailed debugging information
+- `LOG.error()` - failures and exceptions that need attention
+- `LOG.warn()` - issues that might cause problems
+- `LOG.info()` - important operations (user actions, service calls, state changes)
+- `LOG.debug()` - detailed debugging information
 
-Examples:
-```java
-LOG.info("Created member: {} ({})", member.getFullName(), member.getEmail());
-LOG.warn("No Keycloak user found for username: {}", username);
-LOG.error("Failed to process document: id={}, error={}", docId, e.getMessage());
-LOG.debug("Processing workflow step: {}", stepName);
-```
-
-Add reasonable logging for:
-- Important operations (create, update, delete)
-- External service calls (Keycloak, S3, microservices)
-- State changes (workflow transitions, status updates)
-- Error conditions and exceptions
+Add reasonable logging for create/update/delete, external calls (Keycloak),
+state changes and error conditions.
 
 **Roles and Security:**
 
-**IMPORTANT:** Always use role constants from `Roles.java` instead of hardcoded strings.
+**IMPORTANT:** Always use role constants from `Roles.java` instead of
+hardcoded strings.
 
 ```java
 import app.treasure.shared.security.Roles;
-```
 
-Available role constants:
-- `Roles.SUPER_ADMIN` = "super_admin" - System administrator with full access
-- `Roles.ADMIN` = "admin" - Organization administrator
-- `Roles.MEMBER` = "member" - Regular member
-
-Examples:
-
-```java
-// In service classes
 if (securityIdentity.hasRole(Roles.ADMIN)) {
     // Admin-only operations
 }
-
-// In UserContext or template helpers
-public boolean isSuperAdmin() {
-    return hasRole(Roles.SUPER_ADMIN);
-}
-
-// In test classes
-@TestSecurity(user = "maria", roles = { Roles.ADMIN, Roles.MEMBER })
-void shouldAllowAdminAccess() {
-    // Test admin functionality
-}
 ```
 
-**Note:** Some tests may use `"user"` as a role string for legacy reasons, but new code should use `Roles.MEMBER` for consistency. The application is configured to accept both "user" and "member" as valid roles.
+- `Roles.SUPER_ADMIN` = "super_admin" - full access, can switch organizations
+- `Roles.ADMIN` = "admin" - organization administrator
+- `Roles.MEMBER` = "member" - regular member
+
+**Note:** the Keycloak dev users carry the roles `super_admin`, `admin` and
+`user`, and the existing tests use `@TestSecurity(user = "maria", roles =
+"user")`. Use the `Roles` constants in new code.
 
 **Form handling:**
 
-- Forms require `{#authenticityToken /}` for CSRF protection
-- Use `@RestForm` annotation for form parameters
-- Multipart forms: `enctype="multipart/form-data"` with `FileUpload` parameter
-- Validation: `@NotNull`, `validationFailed()` check
-
-## S3 File Storage
-
-Configuration in `application.properties`:
-
-```properties
-bucket.name=treasure-documents
-quarkus.s3.path-style-access=true
-quarkus.s3.devservices.buckets=${bucket.name}
-```
-
-Dev services automatically start LocalStack for S3 in dev/test mode.
-
-Use `StorageService` for file operations:
-
-```java
-@Inject StorageService storageService;
-
-storageService.
-
-uploadFile(key, filePath, contentType);
-storageService.
-
-downloadFile(key);
-storageService.
-
-deleteFile(key);
-```
-
-## Document Analysis Workflow
-
-Document analysis uses a workflow-based approach with ZugFerd extraction first, falling back to Azure Document AI if ZugFerd fails.
-
-**Workflow steps:**
-
-1. **Upload** - Document uploaded to S3 storage
-2. **ZugFerd extraction** (AnalyzeDocumentZugFerdTask) - Attempts to extract embedded ZugFerd XML from PDF
-3. **AI extraction** (AnalyzeDocumentAiTask) - If ZugFerd fails or document is not PDF, uses Azure Document AI
-4. **Review** - User reviews and confirms extracted data
-
-**Extraction source tracking:**
-
-The `ExtractionSource` enum tracks how data was extracted:
-- `ZUGFERD` - Data from embedded ZugFerd XML in PDF
-- `AI` - Data from Azure Document Intelligence
-- `MANUAL` - User-entered data
-
-**ZugFerd service (`app.treasure.zugferd`):**
-
-Uses Mustang Project library (`org.mustangproject`) to extract ZugFerd XML:
-
-```java
-ZUGFeRDImporter importer = new ZUGFeRDImporter();
-importer.doIgnoreCalculationErrors(); // Handle incomplete invoices
-importer.setInputStream(stream);
-Invoice invoice = importer.extractInvoice();
-
-// Get values directly from XML header (not calculated from line items)
-BigDecimal grandTotal = parseBigDecimal(importer.getAmount());
-BigDecimal totalTax = parseBigDecimal(importer.getTaxTotalAmount());
-BigDecimal taxBasis = parseBigDecimal(importer.getTaxBasisTotalAmount());
-```
-
-**Important:** Use `ZUGFeRDImporter.getAmount()` and `getTaxTotalAmount()` to read values directly from XML header, not `TransactionCalculator` which returns 0 when calculation errors are ignored.
-
-**Document preview:**
-
-PDF documents are displayed inline using the `/view` endpoint:
-- `/belege/{id}/download` - Downloads file with `Content-Disposition: attachment`
-- `/belege/{id}/view` - Displays inline with `Content-Disposition: inline`
-- Templates use `#navpanes=0` parameter to hide PDF viewer thumbnail sidebar
+- Every POST form needs `{#authenticityToken /}` for CSRF protection
+- Use `@RestForm` for form parameters
 
 ## Testing
 
 **Patterns:**
 
-- Use `@QuarkusTest` annotation
-- Name tests like `shouldDoSomething()`
-- Use RESTAssured for HTTP tests
-- Use Hamcrest matchers (`containsString`, `is`, `equalTo`)
-- Helper methods with `@Transactional(TxType.REQUIRES_NEW)` for test data
+- `@QuarkusTest` on the class, `@TestSecurity(user = ..., roles = ...)` on
+  methods that hit authenticated routes
+- Name tests `shouldDoSomething()`
+- RESTAssured for HTTP, Hamcrest matchers or JUnit assertions
+- Helper methods annotated `@Transactional(TxType.REQUIRES_NEW)` for test data
+- Extend `BaseOrganizationTest` when a test needs an organization, members or
+  tags; it provides `getOrCreateTestOrganization()`, `createOrganization()`,
+  `createTestMember()`, `createTags()`
+- `TestSecurityHelper.TEST_USER_MARIA` holds the default test username
+- Clean up what a test created (see the `try/finally` blocks in
+  `DeviceResourceTest`)
+- Tests tagged `integration` are excluded by Surefire
 
-**Example test structure:**
+**Example:**
 
 ```java
 @QuarkusTest
-class ResourceTest
+class DeviceResourceTest
 {
 	@Inject
-	Repository repository;
+	DeviceRepository deviceRepository;
 
 	@Test
-	void shouldShowEntityInList()
+	@TestSecurity(user = "maria", roles = "user")
+	void shouldOpenDeviceList()
 	{
-		deleteAllData();
-		createEntity("Test");
-
 		given()
-			.when()
-			.get("/resource")
+			.when().get("/devices")
 			.then()
-			.statusCode(200)
-			.body(containsString("Test"));
+			.statusCode(200);
 	}
 
 	@Transactional(TxType.REQUIRES_NEW)
-	void deleteAllData()
+	void deleteDevices(Long... ids)
 	{
-		repository.deleteAll();
+		for (Long id : ids)
+		{
+			deviceRepository.deleteById(id);
+		}
 	}
 }
 ```
 
-**Testing forms with CSRF:**
+**Testing forms with CSRF:** POST endpoints require the CSRF token. Test GET
+endpoints and verify the form is present, and test business logic through the
+repositories or services directly.
 
-Form POST endpoints require CSRF tokens. For testing:
+## CI
 
-- Test GET endpoints and verify form elements are present
-- Test service layer directly for business logic
-- Download endpoints work without CSRF
+- `.github/workflows/treasure-app.yml` runs `./mvnw -B verify` and pushes a
+  Docker image to GHCR on every push to `main` or `deploy` that touches the
+  app
+- `.github/workflows/claude-code-review.yml` runs an automated review on every
+  pull request
+- `.github/workflows/claude.yml` runs when `@claude` is mentioned in an issue
+  or PR comment
+- Dependabot opens daily grouped update PRs for Maven, Docker and Actions
 
 ## Frontend
 
-This application uses [Carbon Design System v11.100.0](https://carbondesignsystem.com/) with [@carbon/web-components](https://web-components.carbondesignsystem.com/).
+This application uses the [Carbon Design System](https://carbondesignsystem.com/)
+with [@carbon/web-components](https://web-components.carbondesignsystem.com/).
 
-**Important:** Use actual Carbon web components, not custom HTML/CSS mimicking Carbon styles.
+**Important:** Use actual Carbon web components, not custom HTML/CSS mimicking
+Carbon styles.
 
-### Carbon Web Components
+### Loading
 
-Carbon components are loaded via CDN in `main.html` using specific versions for consistency:
-- `@carbon/styles`: 1.99.0
-- `@carbon/web-components`: 2.47.0
+`main.html` loads the Carbon stylesheet from a local copy
+(`/css/carbon-styles.min.css`) and the web components from the IBM CDN at
+`https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/<component>.min.js`,
+one script per component (ui-shell, button, text-input, number-input, select,
+date-picker, checkbox, textarea, tile, tag, notification, tree-view, dropdown,
+data-table, file-uploader, loading, ai-label). Add a new component by adding
+its script there. Chart.js 4.4.0 and htmx 2.0.4 are loaded the same way.
+
+App styles live in `treasure-core.css` (tokens and brand colours),
+`treasure-components.css` (buttons, notifications) and `treasure-pages.css`
+(page layouts). A light/dark toggle switches the `cds--g100` class on `<html>`.
+
+### Form components
 
 ```html
-<!-- Carbon Design System v11.100.0 -->
-<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1.99.0/css/styles.min.css">
-
-<!-- Carbon Web Components v2.47.0 -->
-<script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/v2.47.0/button.min.js"></script>
-<script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/v2.47.0/text-input.min.js"></script>
-<!-- etc. -->
-```
-
-**Form components:**
-
-```html
-<!-- Text input -->
-<cds-text-input
-  label="Name"
-  name="name"
-  placeholder="z.B. Büromaterial"
-  value="{document.name ?: ''}">
+<cds-text-input label="Name" name="deviceName" value="{device.deviceName ?: ''}">
 </cds-text-input>
 
-<!-- Number input -->
-<cds-number-input
-  label="Bruttobetrag"
-  name="total"
-  step="0.01"
-  required
-  value="{document.total}">
-</cds-number-input>
-
-<!-- Select -->
-<cds-select label="Währung" name="currencyCode">
-  <cds-select-item value="EUR">EUR</cds-select-item>
-  <cds-select-item value="USD">USD</cds-select-item>
+<cds-select label="Status" name="status">
+  <cds-select-item value="available">available</cds-select-item>
 </cds-select>
 
-<!-- Date picker -->
 <cds-date-picker>
-  <cds-date-picker-input
-    label="Belegdatum"
-    name="documentDate"
-    placeholder="dd.mm.yyyy">
+  <cds-date-picker-input label="Abholzeit" name="pickupTime" placeholder="dd.mm.yyyy">
   </cds-date-picker-input>
 </cds-date-picker>
 
-<!-- Checkbox -->
-<cds-checkbox
-  name="privatelyPaid"
-  label-text="Privat bezahlt"
-  {#if privatelyPaid}checked{/if}>
+<cds-checkbox name="visible" label-text="Sichtbar" {#if device.visible}checked{/if}>
 </cds-checkbox>
 
-<!-- Textarea -->
-<cds-textarea
-  label="Beschreibung"
-  name="description"
-  rows="4"
-  value="{description ?: ''}">
+<cds-textarea label="Beschreibung" name="extraInfo" rows="4" value="{device.extraInfo ?: ''}">
 </cds-textarea>
 ```
 
-**Buttons:**
+### Buttons
 
-**IMPORTANT:** Always use native `<button>` elements for form submissions and actions. Use `<cds-button>` ONLY for navigation links (with `href` attribute). The Carbon web components `<cds-button type="submit">` does not properly submit forms.
-
-```html
-<!-- Form submit button - USE NATIVE BUTTON -->
-<button type="submit" class="cds-btn cds-btn-primary">
-  Speichern
-  <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor">...</svg>
-</button>
-
-<!-- Danger action button - USE NATIVE BUTTON -->
-<button type="submit" class="cds-btn cds-btn-danger">
-  Löschen
-  <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor">...</svg>
-</button>
-
-<!-- Secondary action button - USE NATIVE BUTTON -->
-<button type="button" class="cds-btn cds-btn-secondary">
-  Aktion
-</button>
-
-<!-- Disabled button - USE NATIVE BUTTON -->
-<button type="submit" class="cds-btn cds-btn-primary" disabled>
-  Hochladen
-</button>
-
-<!-- Navigation link - USE CDS-BUTTON -->
-<cds-button href="/belege" kind="secondary">
-  Abbrechen
-</cds-button>
-
-<!-- Link to another page - USE CDS-BUTTON -->
-<cds-button href="/transaktionen" kind="primary">
-  Zur Übersicht
-  <svg slot="icon">...</svg>
-</cds-button>
-```
-
-**Button styling classes:**
-- `.cds-btn` - Base button class (required)
-- `.cds-btn-primary` - Primary action (purple background)
-- `.cds-btn-secondary` - Secondary action
-- `.cds-btn-danger` - Destructive action (red)
-
-These styles are defined in `treasure-components.css` and automatically styled to match Carbon Design System.
-
-**Notifications:**
+**IMPORTANT:** Always use native `<button>` elements for form submissions and
+actions. Use `<cds-button>` ONLY for navigation links (with `href`). The
+`<cds-button type="submit">` web component does not reliably submit forms.
 
 ```html
-<cds-actionable-notification
-  kind="info"
-  title="Ein Beleg wartet auf Ihre Prüfung!"
-  subtitle="Die KI hat die Daten bereits extrahiert."
-  low-contrast>
-  <cds-actionable-notification-button slot="action">
-    Jetzt prüfen
-  </cds-actionable-notification-button>
-</cds-actionable-notification>
+<!-- Form submit - native button -->
+<button type="submit" class="cds-btn cds-btn-primary">Speichern</button>
+
+<!-- Destructive action - native button -->
+<button type="submit" class="cds-btn cds-btn-danger">Löschen</button>
+
+<!-- Navigation - cds-button -->
+<cds-button href="/devices" kind="secondary">Abbrechen</cds-button>
 ```
 
-**AI Labels:**
+Classes `.cds-btn`, `.cds-btn-primary`, `.cds-btn-secondary` and
+`.cds-btn-danger` are defined in `treasure-components.css`.
 
-Carbon provides `<cds-ai-label>` for AI-generated content. Use `slot="label-text"` to add it to form fields:
+### Notifications
 
 ```html
-<cds-text-input
-  label="Bezeichnung"
-  name="name"
-  value="{document.name ?: ''}">
-  {#if document.name != null && document.analysisStatus.name == 'COMPLETED'}
-  <cds-ai-label slot="label-text" size="mini" autoalign alignment="bottom-left">
-    <div slot="body-text" class="ai-explainer">
-      <p class="secondary">KI-erkannt</p>
-      <p class="secondary bold">Bezeichnung</p>
-      <p class="secondary">Automatisch aus dem Beleg extrahiert.</p>
-    </div>
-  </cds-ai-label>
-  {/if}
-</cds-text-input>
+<cds-inline-notification kind="success" title="Erfolg" subtitle="{flash:success}">
+</cds-inline-notification>
 ```
 
-**Sortable Tables (Server-Side Sorting):**
+### Carbon UI Shell (navigation)
 
-CRITICAL: Carbon's `is-sortable` attribute is designed for CLIENT-SIDE sorting and will cause race conditions with server-side sorting.
+`main.html` renders `<cds-header>` and `<cds-side-nav collapse-mode="fixed">`.
+Carbon's side nav is `position: fixed` and does NOT offset the page content.
+The `.app-container` gets its `margin-left` from a `body.side-nav-expanded`
+class that a `MutationObserver` in `main.html` toggles when the nav's
+`expanded` attribute changes. Keep that mechanism when touching the layout.
 
-When implementing server-side sorting with table reloads:
+Use `collapse-mode="fixed"` for the main navigation, not `rail`, which
+collapses as soon as the mouse leaves.
 
-```javascript
-function initTableSorting() {
-  const sortableHeaders = document.querySelectorAll('cds-table-header-cell[is-sortable]');
+### Colours
 
-  sortableHeaders.forEach(function(header) {
-    header.addEventListener('click', function(event) {
-      // CRITICAL: Stop Carbon's client-side sort from running
-      event.preventDefault();
-      event.stopImmediatePropagation();
-
-      const field = this.getAttribute('data-sort-field');
-      const currentDirection = this.getAttribute('sort-direction');
-
-      // Determine next direction
-      let nextDirection;
-      if (currentDirection === 'none' || currentDirection === 'descending') {
-        nextDirection = 'asc';
-      } else {
-        nextDirection = 'desc';
-      }
-
-      // Build URL with sort parameters
-      const url = new URL(window.location);
-      url.searchParams.set('sortBy', field);
-      url.searchParams.set('sortDir', nextDirection);
-
-      // Navigate to server-side sorted view
-      window.location.href = url.toString();
-    }, true); // CRITICAL: Use capture phase to run before Carbon's handler
-  });
-}
-```
-
-**Key points:**
-- Keep `is-sortable` attribute for visual UI (arrows, hover states)
-- Use `event.stopImmediatePropagation()` to prevent Carbon's default behavior
-- Use capture phase (`addEventListener` third param = `true`) to intercept clicks first
-- Set `sort-direction` in template based on URL params to show correct arrow state
-- Never mix client-side and server-side sorting - race conditions will occur
-
-### Carbon UI Shell (Navigation)
-
-The application uses Carbon UI Shell components for header and side navigation:
-
-```html
-<cds-header aria-label="Treasure Buchhaltung">
-  <cds-header-menu-button onclick="toggleSideNav()">
-  </cds-header-menu-button>
-  <cds-header-name href="/" prefix="">treasure</cds-header-name>
-  <cds-header-global-bar>
-    <cds-header-global-action aria-label="Profil">
-      <svg slot="icon">...</svg>
-    </cds-header-global-action>
-  </cds-header-global-bar>
-</cds-header>
-
-<cds-side-nav aria-label="Hauptnavigation" collapse-mode="fixed" expanded>
-  <cds-side-nav-items>
-    <cds-side-nav-link href="/" active>
-      Dashboard
-      <svg slot="title-icon">...</svg>
-    </cds-side-nav-link>
-    <cds-side-nav-divider></cds-side-nav-divider>
-    <cds-side-nav-link href="/belege">
-      Belege
-      <svg slot="title-icon">...</svg>
-    </cds-side-nav-link>
-    <cds-side-nav-link href="#" disabled>
-      Einstellungen <span class="bald-tag">Bald</span>
-      <svg slot="title-icon">...</svg>
-    </cds-side-nav-link>
-  </cds-side-nav-items>
-</cds-side-nav>
-```
-
-**CRITICAL: Carbon UI Shell Layout**
-
-Carbon's `<cds-side-nav>` uses `position: fixed` and does NOT automatically offset content. You must manually add margin to your content container:
+Use the CSS custom properties from `treasure-core.css` instead of hardcoded
+colours:
 
 ```css
-/* Default: side nav in rail mode (collapsed, 48px wide) */
-.app-container {
-  margin-top: 48px; /* Height of cds-header */
-  margin-left: 48px; /* Width of collapsed rail side-nav */
-  transition: margin-left 0.11s cubic-bezier(0.2, 0, 1, 0.9);
-}
-
-/* When side nav is expanded (256px wide) - handled by JS */
-body.side-nav-expanded .app-container {
-  margin-left: 256px;
-}
-
-/* Responsive: side nav overlays content on mobile */
-@media (max-width: 1056px) {
-  .app-container {
-    margin-left: 0 !important;
-  }
-}
+var(--treasure-primary)        /* #FF521D - Treasure orange */
+var(--treasure-primary-hover)  /* #E6491A */
+var(--treasure-primary-active) /* #CC4017 */
+var(--treasure-primary-light)  /* #FFE5DC */
 ```
 
-Use JavaScript to track side-nav state and toggle body class:
+Carbon status colours: green `#24a148` (success), red `#da1e28` (error),
+yellow `#f1c21b` (warning). For Chart.js use the Treasure orange as the
+primary series colour.
 
-```javascript
-document.addEventListener('DOMContentLoaded', function() {
-  var sideNav = document.querySelector('cds-side-nav');
-  if (sideNav) {
-    function updateLayout() {
-      if (sideNav.expanded) {
-        document.body.classList.add('side-nav-expanded');
-      } else {
-        document.body.classList.remove('side-nav-expanded');
-      }
-    }
-    updateLayout();
-
-    var observer = new MutationObserver(function(mutations) {
-      mutations.forEach(function(mutation) {
-        if (mutation.attributeName === 'expanded') {
-          updateLayout();
-        }
-      });
-    });
-    observer.observe(sideNav, { attributes: true });
-  }
-});
-```
-
-**Collapse modes:**
-
-- `collapse-mode="rail"` - Auto-collapses to icons when mouse leaves (annoying for main nav)
-- `collapse-mode="fixed"` - Stays in user-selected state (recommended for main navigation)
-
-### Charts
-
-Use [Chart.js v4.4.0](https://www.chartjs.org/) for data visualization:
+### Qute syntax with Carbon
 
 ```html
-<!-- In main.html -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- Conditional attribute -->
+<cds-side-nav-link href="/devices" {#if inject:vertxRequest.path.startsWith('/devices')}active{/if}>
 
-<!-- In template -->
-<div style="max-width: 300px; margin: 0 auto;">
-  <canvas id="myChart"></canvas>
-</div>
+<!-- Null-safe value: Elvis, never ?. -->
+<cds-text-input value="{device.deviceName ?: ''}"></cds-text-input>
 
-{#moreScripts}
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('myChart');
-    if (ctx) {
-      new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: ['Rechnungen', 'Quittungen', 'Sonstige'],
-          datasets: [{
-            data: [14, 7, 3],
-            backgroundColor: ['#FF521D', '#24a148', '#f1c21b'], // Treasure orange, green, yellow
-            borderWidth: 0
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              position: 'bottom',
-              labels: {
-                font: { family: 'IBM Plex Sans', size: 14 }
-              }
-            }
-          }
-        }
-      });
-    }
-  });
-</script>
-{/moreScripts}
-```
-
-**Use Treasure brand colors:**
-- **Treasure Orange (Primary)**: `#FF521D` - Main brand color for buttons, links, interactive elements
-- **Treasure Orange Hover**: `#E6491A` - Darker shade for hover states
-- **Treasure Orange Active**: `#CC4017` - Even darker for active/pressed states
-- **Treasure Orange Light**: `#FFE5DC` - Light orange for backgrounds and accents
-- Green 60: `#24a148` - Success/positive states
-- Red 60: `#da1e28` - Error/danger states
-- Yellow 30: `#f1c21b` - Warning states
-
-**CSS Custom Properties:**
-The application uses CSS custom properties for theming. Always use these variables instead of hardcoding colors:
-
-```css
-/* Treasure Brand Colors (defined in treasure-core.css) */
-var(--treasure-primary)        /* #FF521D - Main orange */
-var(--treasure-primary-hover)  /* #E6491A - Hover state */
-var(--treasure-primary-active) /* #CC4017 - Active state */
-var(--treasure-primary-light)  /* #FFE5DC - Light orange */
-
-/* Carbon Design Tokens (mapped to Treasure colors) */
-var(--cds-interactive-01)      /* Primary interactive color */
-var(--cds-border-interactive)  /* Interactive borders */
-var(--cds-link-primary)        /* Link color */
-var(--cds-link-primary-hover)  /* Link hover */
-var(--cds-ui-focus)           /* Focus indicators */
-```
-
-**Chart.js colors:**
-When creating charts, use the Treasure orange as the primary color:
-
-```javascript
-backgroundColor: ['#FF521D', '#24a148', '#f1c21b'],  // Orange, Green, Yellow
-```
-
-### Custom CSS
-
-Keep custom CSS minimal - Carbon handles most styling. Use Carbon design tokens:
-
-```css
-:root {
-  --cds-spacing-03: 0.5rem;
-  --cds-spacing-05: 1rem;
-  --cds-spacing-07: 2rem;
-  --cds-layer-01: #f4f4f4;
-  --cds-layer-02: #ffffff;
-  --cds-border-subtle-01: #e0e0e0;
-  --cds-text-primary: #161616;
-  --cds-text-secondary: #525252;
-}
-```
-
-**Layout utilities:**
-
-```css
-.box {
-  background-color: var(--cds-layer-02);
-  border: 1px solid var(--cds-border-subtle-01);
-  padding: var(--cds-spacing-07);
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--cds-spacing-05);
-}
-```
-
-### Qute Template Syntax with Carbon
-
-**Conditional attributes:**
-
-```html
-<cds-side-nav-link href="/" {#if inject:vertxRequest.path == '/'}active{/if}>
-  Dashboard
-</cds-side-nav-link>
-
-<cds-checkbox
-  name="privatelyPaid"
-  {#if privatelyPaid}checked{/if}>
-</cds-checkbox>
-```
-
-**Dynamic values:**
-
-Use Elvis operator `?:` for null safety (NOT safe navigation `?.` which is unsupported):
-
-```html
-<!-- CORRECT -->
-<cds-text-input value="{document.name ?: ''}">
-</cds-text-input>
-
-<!-- WRONG - Qute doesn't support ?. operator -->
-<cds-text-input value="{document?.name ?: ''}">
-</cds-text-input>
-```
-
-**Loops with Carbon components:**
-
-```html
-{#for item in items}
-<cds-select-item value="{item.id}">{item.name}</cds-select-item>
+<!-- Loop -->
+{#for member in members}
+<cds-select-item value="{member.id}">{member.fullName}</cds-select-item>
 {/for}
 ```
 
-### Loading States
-
-For long-running requests, use Carbon loading components:
+### Loading states
 
 ```html
-<!-- Inline loading -->
 <cds-inline-loading status="active"></cds-inline-loading>
-
-<!-- Full page loading -->
 <cds-loading></cds-loading>
 ```
 
-See [Carbon loading patterns](https://carbondesignsystem.com/patterns/loading-pattern/) for best practices.
-
 ## Common Gotchas
 
-1. **Formatter runs on validate phase** - Run `./mvnw formatter:format` before
-   committing
-2. **CheckedTemplate expressions** - No Java calls or `?.` operator in templates
-3. **CSRF tokens** - All POST forms need `{#authenticityToken /}`
-4. **.gitignore patterns** - Use `/tags` not `tags` to avoid ignoring
+1. **Formatter runs on the validate phase** - run `./mvnw formatter:format`
+   before committing
+2. **CheckedTemplate expressions** - no Java calls and no `?.` in templates
+3. **CSRF tokens** - every POST form needs `{#authenticityToken /}`
+4. **.gitignore patterns** - use `/tags` not `tags` to avoid ignoring
    `templates/tags/`
-5. **S3 dependency** - Requires `url-connection-client` for HTTP transport
-6. **Carbon UI Shell layout** - `<cds-side-nav>` is position fixed and does NOT
-   auto-offset content. Must manually add margin-left to content container (see
-   Frontend section)
-7. **Qute section blocks** - `{#moreStyles}` must close with `{/moreStyles}`,
+5. **Carbon UI Shell layout** - the side nav does not offset content; see the
+   Frontend section
+6. **Qute section blocks** - `{#moreStyles}` must close with `{/moreStyles}`,
    not `{/if}`. Mismatched closing tags cause template parser errors
-8. **Safe navigation operator** - Qute does NOT support `?.` operator. Use
-   Elvis operator instead: `{object.property ?: ''}` not `{object?.property}`
-9. **Carbon collapse modes** - Use `collapse-mode="fixed"` for main navigation,
-   not `collapse-mode="rail"` which auto-collapses on mouse leave
+7. **Carbon collapse modes** - use `collapse-mode="fixed"` for the main
+   navigation
+8. **Port 8080 already in use** - a previous dev-mode run is still alive; see
+   the Troubleshooting section of `README.md`
 
 ## Git
 
-- Use Gitmoji with the official emojis as Unicode in the form
-  `✨ (scope): Short description` followed by a longer description or
-  enumeration. 
+- Gitmoji with the official emoji as Unicode and a scope:
+  `✨ (device): Add assignment filter`, followed by a longer description or
+  bullet list if needed
+- Branches: `feature/`, `fix/`, `refactor/`, `docs/`
 
 ## Dialog scoped
 
-u are my teacher and u have to teach me during the session, if i ask u u give me code or write it down for me, but when I learn u should not write it for me, you are always allowed to watch my code 
+u are my teacher and u have to teach me during the session, if i ask u u give me code or write it down for me, but when I learn u should not write it for me, you are always allowed to watch my code
