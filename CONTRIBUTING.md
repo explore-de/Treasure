@@ -41,7 +41,7 @@ This project is committed to providing a welcoming and inclusive environment for
 
 ## Development Setup
 
-The project uses Quarkus DevServices, which automatically starts required services (PostgreSQL, Keycloak, LocalStack) in containers. No manual setup required!
+The project uses Quarkus DevServices, which automatically starts required services (PostgreSQL, Keycloak) in containers. No manual setup required!
 
 ### Run in Development Mode
 
@@ -52,7 +52,7 @@ cd app.treasure.treasure-app
 
 This starts the application with:
 - Live reload on code changes
-- DevServices for PostgreSQL, S3 (LocalStack), and Keycloak
+- DevServices for PostgreSQL and Keycloak
 - Application at http://localhost:8080
 - Dev UI at http://localhost:8080/q/dev
 
@@ -103,7 +103,7 @@ app.treasure.<feature>/
 └── service/      # Business logic
 ```
 
-Current features: `dashboard`, `device`, `member`, `organization`, `shared`.
+Current features: `dashboard`, `device`, `member`, `shared`.
 
 ## Coding Standards
 
