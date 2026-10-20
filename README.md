@@ -22,8 +22,8 @@ changed what and when.
 - **Assignment** — assign a device to a member; status and pickup time update accordingly. Bulk assign, unassign and delete supported
 - **History** — every change is recorded with field name, old value, new value, actor and timestamp
 - **Search & filters** — filter the device list by field
-- **Soft delete** — devices are hidden via a `visible` flag instead of being wiped
-- **Members & organizations** — members are scoped to an organization and linked to their Keycloak identity, with invite tracking. Super admins can switch organizations
+- **Delete** — removes a device together with its history; there is no soft delete yet
+- **Members** — everyone who can hold a device, linked to their Keycloak identity, with the devices they currently hold
 - **Dashboard** — landing page with an overview
 
 ---
@@ -33,21 +33,20 @@ changed what and when.
 | Layer | Choice |
 |---|---|
 | Language | Java 21 |
-| Framework | Quarkus 3.31.2 |
-| Web / UI | Renarde 3.1.5 (server-side rendering with Qute) |
+| Framework | Quarkus 3.40.1 |
+| Web / UI | Renarde 3.1.10 (server-side rendering with Qute) |
 | Persistence | Hibernate ORM with Panache, repository pattern |
 | Database | PostgreSQL, schema managed by Flyway |
 | Auth | Keycloak via OIDC + Keycloak Admin REST Client |
-| Storage | Amazon S3 (LocalStack in dev) |
-| Extras | SmallRye OpenAPI, SmallRye Health, Mailer, Scheduler |
-| Testing | JUnit 5, REST Assured, Mockito, WireMock, JaCoCo |
+| Extras | SmallRye Health |
+| Testing | JUnit 5, REST Assured, Mockito, JaCoCo |
 
 ---
 
 ## Quick Start 🚀
 
-**Prerequisites:** JDK 21 and Docker — Quarkus Dev Services provisions PostgreSQL,
-Keycloak and LocalStack for you.
+**Prerequisites:** JDK 21 and Docker — Quarkus Dev Services provisions PostgreSQL
+and Keycloak for you.
 
 ```shell
 cd app.treasure.treasure-app
@@ -59,18 +58,17 @@ needed; Flyway migrates the schema on boot.
 
 ### Dev credentials
 
-| Username | Password | Organization | Roles |
-|---|---|---|---|
-| `admin` | `password` | Musikverein Harmonie | super_admin, admin, user |
-| `maria` | `password` | Musikverein Harmonie | admin, user |
-| `thomas` | `password` | Sportverein Alpenblick | user |
+| Username | Password | Roles |
+|---|---|---|
+| `admin` | `password` | super_admin, admin, user |
+| `maria` | `password` | admin, user |
+| `thomas` | `password` | user |
 
 ### Dev endpoints
 
 | URL | What |
 |---|---|
 | <http://localhost:8080/q/dev/> | Quarkus Dev UI |
-| <http://localhost:8080/q/swagger-ui> | Swagger UI |
 | <http://localhost:8080/q/health> | Health checks |
 
 ---
@@ -79,16 +77,15 @@ needed; Flyway migrates the schema on boot.
 
 ```mermaid
 erDiagram
-    ORGANIZATION ||--o{ MEMBER : "has"
-    ORGANIZATION ||--o{ TAG : "defines"
     MEMBER ||--o| MEMBER : "invited by"
     MEMBER ||--o{ DEVICE : "assigned"
     DEVICE ||--o{ DEVICE_HISTORY : "logged in"
     MEMBER ||--o{ DEVICE_HISTORY : "acted on"
+    TAG }o--|| DEVICE : "names the group of"
 ```
 
-A device belongs to a tenant indirectly, through the member it is assigned to.
-Full column list: `src/main/resources/db/migration`.
+`TAG` holds every group name ever saved, so a group survives after the last
+device leaves it. Full column list: `src/main/resources/db/migration`.
 
 ---
 
@@ -97,11 +94,10 @@ Full column list: `src/main/resources/db/migration`.
 ```
 app.treasure.treasure-app/
 └── src/main/java/app/treasure/
-    ├── dashboard/     landing page
+    ├── dashboard/     overview page
     ├── device/        api · domain · filter · repository
-    ├── member/        member administration
-    ├── organization/  tenant management
-    └── shared/        cross-feature code (tags, templates, utils)
+    ├── member/        members and the devices they hold
+    └── shared/        cross-feature code (groups, bootstrap, security, templates)
 ```
 
 Packages are organized by feature, not by layer. Inside a feature: `api/` controllers,
@@ -147,6 +143,47 @@ All under `/devices`, authentication required:
 
 ---
 
+## Deploying to a stand 🚀
+
+The packaged app (`./mvnw package`, then `java -jar target/quarkus-app/quarkus-run.jar`)
+runs with the `prod` profile and signs people in through **Microsoft Entra ID**.
+No demo users or demo members are created there; a person's `Member` row is
+created automatically the first time they sign in.
+
+Environment variables the stand needs:
+
+| Variable | What |
+|---|---|
+| `ENTRA_TENANT_ID` | the directory (tenant) id of the company tenant |
+| `ENTRA_CLIENT_ID` | the application (client) id of the app registration |
+| `ENTRA_CLIENT_SECRET` | a client secret of that app registration |
+| `OIDC_SESSION_SECRET` | at least 32 random characters; encrypts the session cookie and must be identical on every instance |
+| `QUARKUS_DATASOURCE_JDBC_URL`, `QUARKUS_DATASOURCE_USERNAME`, `QUARKUS_DATASOURCE_PASSWORD` | the PostgreSQL database; Flyway migrates it on start |
+
+In the Entra app registration:
+
+- add a **Web** redirect URI of `https://<host>/callback`
+- set the front-channel logout URL to `https://<host>/`
+- define **App roles** with the values `super_admin`, `admin` and `user`, and assign
+  them to people or groups. Someone without a role can sign in but gets no admin
+  functions.
+
+**First sign-in checklist.** The Entra settings were written from the Quarkus
+documentation, not from a live tenant, so verify once with a real account:
+
+1. The login completes and lands on the page that was requested, not on `/callback`.
+2. The account panel (top right) shows the person's roles. If it is empty, the ID
+   token carries no `roles` claim: check that App Roles are assigned, or change
+   `quarkus.oidc.roles.role-claim-path` if your tenant emits `groups` instead.
+3. The Members page lists the person after that first login, with name and email
+   filled from the token.
+4. Sign out returns to `/` and signing in again works without a second consent screen.
+
+Dev mode is unaffected: it keeps using the Keycloak dev container and the demo users
+listed above.
+
+---
+
 ## Troubleshooting 🔧
 
 **`Failed to start quarkus`** — usually port 8080 is still held by an older run:
@@ -159,7 +196,7 @@ sudo kill <pid>
 Repeat until `ss` returns nothing, then start again.
 
 **Dev Services misbehaving** — check that the Docker daemon is up and no stale Keycloak
-/ PostgreSQL / LocalStack containers are left over (`docker ps`, then `docker rm -f <id>`).
+/ PostgreSQL containers are left over (`docker ps`, then `docker rm -f <id>`).
 
 ---
 
