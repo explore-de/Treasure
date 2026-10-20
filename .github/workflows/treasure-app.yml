@@ -21,10 +21,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
@@ -35,7 +35,7 @@ jobs:
 
       # TODO: Uncomment when SonarCloud project is set up
       # - name: Cache SonarQube packages
-      #   uses: actions/cache@v5
+      #   uses: actions/cache@v6
       #   with:
       #     path: ~/.sonar/cache
       #     key: ${{ runner.os }}-sonar
@@ -52,7 +52,7 @@ jobs:
       #       -Dsonar.projectKey=treasure-app_treasure-app
 
       - name: Log in to the Container registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -60,7 +60,7 @@ jobs:
 
       - name: Build and push Docker image
         if: ${{ success() }}
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: app.treasure.treasure-app
           push: true
