@@ -6,14 +6,13 @@ import static org.hamcrest.Matchers.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import app.treasure.organization.domain.Organization;
-import app.treasure.shared.BaseOrganizationTest;
+import app.treasure.shared.BaseMemberTest;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 
 @QuarkusTest
-class UserContextTest extends BaseOrganizationTest
+class UserContextTest extends BaseMemberTest
 {
 	@Inject
 	UserContext userContext;
@@ -22,10 +21,9 @@ class UserContextTest extends BaseOrganizationTest
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
 	void setupTestMembers()
 	{
-		Organization org = getOrCreateTestOrganization();
-		createTestMember("alice", org);
-		createTestMember("bob", org);
-		createTestMember("x", org);
+		createTestMember("alice");
+		createTestMember("bob");
+		createTestMember("x");
 	}
 
 	@Test

@@ -11,19 +11,17 @@ package app.treasure.shared.security;
 public interface Roles
 {
 	/**
-	 * Super administrator role - full system access, can manage all
-	 * organizations
+	 * Super administrator role - full system access
 	 */
 	String SUPER_ADMIN = "super_admin";
 
 	/**
-	 * Administrator role - can manage users and settings within their
-	 * organization
+	 * Administrator role - can manage users and settings
 	 */
 	String ADMIN = "admin";
 
 	/**
-	 * Member role - standard user access within their organization
+	 * Member role - standard user access
 	 */
 	String MEMBER = "member";
 }

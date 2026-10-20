@@ -1,11 +1,9 @@
 package app.treasure.shared.bootstrap;
 
-import java.util.List;
-
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import app.treasure.organization.domain.Organization;
 import io.quarkus.runtime.LaunchMode;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -16,8 +14,8 @@ import jakarta.inject.Inject;
  * Unified startup orchestrator that coordinates bootstrap sequence in
  * deterministic order.
  * <p>
- * Execution order: 1. Bootstrap organizations 2. Bootstrap users + members 3.
- * DEV mode only: Seed demo data
+ * Execution order: 1. Bootstrap users + members 2. DEV mode only: Seed demo
+ * data
  */
 @ApplicationScoped
 public class StartupOrchestrator
@@ -31,6 +29,13 @@ public class StartupOrchestrator
 	DataSeeder dataSeeder;
 
 	/**
+	 * Only dev and test create the demo users. On a stand real people sign in
+	 * through the identity provider and get their Member row on first login.
+	 */
+	@ConfigProperty(name = "treasure.bootstrap.enabled", defaultValue = "false")
+	boolean bootstrapEnabled;
+
+	/**
 	 * Called when the application starts. Runs the bootstrap process in a
 	 * deterministic order.
 	 *
@@ -39,22 +44,23 @@ public class StartupOrchestrator
 	 */
 	void onStart(@Observes StartupEvent event)
 	{
+		if (!bootstrapEnabled)
+		{
+			LOG.info("Bootstrap disabled (treasure.bootstrap.enabled=false); members are created on first login");
+			return;
+		}
 		LOG.info("Application starting - running bootstrap...");
 
 		try
 		{
-			// 1. Create organizations
-			List<Organization> orgs = bootstrapService.bootstrapOrganizations();
-			LOG.info("Bootstrapped {} organizations", orgs.size());
-
-			// 2. Create users + members
+			// 1. Create users + members
 			bootstrapService.bootstrapUsers();
 			LOG.info("Bootstrapped users and members");
 
-			// 3. DEV ONLY: Seed demo data
+			// 2. DEV ONLY: Seed demo data
 			if (LaunchMode.current() == LaunchMode.DEVELOPMENT)
 			{
-				dataSeeder.seedDemoData(orgs);
+				dataSeeder.seedDemoData();
 				LOG.info("Seeded demo data for development mode");
 			}
 

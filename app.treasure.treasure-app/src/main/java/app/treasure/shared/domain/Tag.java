@@ -1,22 +1,18 @@
 package app.treasure.shared.domain;
 
-import app.treasure.organization.domain.Organization;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
+/**
+ * A remembered device group name. Groups outlive the devices that used them.
+ */
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = { "organization_id", "name" }))
+@Table(uniqueConstraints = @UniqueConstraint(name = "UK_tag_name", columnNames = { "name" }))
 public class Tag extends PanacheEntity
 {
-	@ManyToOne(optional = false)
-	@JoinColumn(name = "organization_id", nullable = false)
-	private Organization organization;
-
 	@Column(nullable = false)
 	private String name;
 
@@ -32,16 +28,6 @@ public class Tag extends PanacheEntity
 	public Long getId()
 	{
 		return id;
-	}
-
-	public Organization getOrganization()
-	{
-		return organization;
-	}
-
-	public void setOrganization(Organization organization)
-	{
-		this.organization = organization;
 	}
 
 	public String getName()
