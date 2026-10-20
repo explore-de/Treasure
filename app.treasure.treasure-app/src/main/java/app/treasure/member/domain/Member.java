@@ -1,11 +1,8 @@
 package app.treasure.member.domain;
 
-import app.treasure.organization.domain.Organization;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
@@ -28,10 +25,6 @@ public class Member extends PanacheEntity
 	@Column(unique = true)
 	private String userName;
 
-	@ManyToOne(optional = false)
-	@JoinColumn(name = "organization_id", nullable = false)
-	private Organization organization;
-
 	/**
 	 * ID of the member who invited this member (if invited).
 	 */
@@ -45,16 +38,17 @@ public class Member extends PanacheEntity
 	private String inviteType;
 
 	/**
-	 * When the member joined the organization.
+	 * When the member joined.
 	 */
 	@Column(name = "joined_at")
 	private Instant joinedAt;
 
 	/**
-	 * Keycloak user ID for authentication mapping.
+	 * Stable user id at the identity provider: Keycloak's user id in dev, the
+	 * Entra object id (oid) on a stand.
 	 */
-	@Column(name = "keycloak_user_id", unique = true)
-	private String keycloakUserId;
+	@Column(name = "subject", unique = true)
+	private String subject;
 
 	public Long getId()
 	{
@@ -111,19 +105,17 @@ public class Member extends PanacheEntity
 		this.userName = userName;
 	}
 
-	public Organization getOrganization()
-	{
-		return organization;
-	}
-
-	public void setOrganization(Organization organization)
-	{
-		this.organization = organization;
-	}
-
 	public String getDisplayName()
 	{
 		return firstName + " " + lastName;
+	}
+
+	/** Two letters for avatars, e.g. "MS" for Maria Schmidt. */
+	public String getInitials()
+	{
+		String first = firstName != null && !firstName.isBlank() ? firstName.substring(0, 1) : "";
+		String last = lastName != null && !lastName.isBlank() ? lastName.substring(0, 1) : "";
+		return (first + last).toUpperCase();
 	}
 
 	public Long getInvitedByMemberId()
@@ -156,13 +148,13 @@ public class Member extends PanacheEntity
 		this.joinedAt = joinedAt;
 	}
 
-	public String getKeycloakUserId()
+	public String getSubject()
 	{
-		return keycloakUserId;
+		return subject;
 	}
 
-	public void setKeycloakUserId(String keycloakUserId)
+	public void setSubject(String subject)
 	{
-		this.keycloakUserId = keycloakUserId;
+		this.subject = subject;
 	}
 }
