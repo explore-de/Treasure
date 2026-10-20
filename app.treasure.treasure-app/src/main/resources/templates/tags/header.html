@@ -1,25 +1,26 @@
-<cds-header aria-label="Treasure Buchhaltung" style="background-color: var(--white)">
+<cds-header aria-label="Treasure" style="background-color: var(--white)">
   <cds-header-menu-button
-    button-label-active="Menü schließen"
-    button-label-inactive="Menü öffnen"
+    button-label-active="Close menu"
+    button-label-inactive="Open menu"
     onclick="toggleSideNav()">
   </cds-header-menu-button>
   <cds-header-name href="/devices" prefix="">
-    <img src="/svg/final.svg" alt="treasure" style="height: 34px; width: auto; justify-content: center; align-content: center; display: flex;">
+    <img src="/svg/final.svg" alt="Treasure" style="height: 34px; width: auto; display: block;">
   </cds-header-name>
   <cds-header-global-bar>
-    <cds-header-global-action                                                                                                                                                                                                                          
-    id="themeToggle"                                                                                                                                                                                                                                 
-    aria-label="Theme"
-    onclick="toggleTheme()">                                                                                                                                                                                                                         
-    <svg slot="icon" id="themeIcon" viewBox="0 0 24 24" width="20" height="20">
-      <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M12 3V5.25M18.364 5.63604L16.773 7.22703M21 12H18.75M18.364 18.364L16.773 16.773M12 18.75V21M7.22703 16.773L5.63604 18.364M5.25 12H3M7.22703 7.22703L5.63604 5.63604M15.75 12C15.75 14.0711 14.0711 15.75 12 15.75C9.92893 15.75 8.25 14.0711 8.25 12C8.25 9.92893 9.92893 8.25 12 8.25C14.0711 8.25 15.75 9.92893 15.75 12Z"/>
-    </svg>
-  </cds-header-global-action> 
+    <cds-header-global-action
+      id="themeToggle"
+      aria-label="Switch between light and dark theme"
+      tooltip-text="Theme"
+      onclick="toggleTheme()">
+      <svg slot="icon" id="themeIcon" viewBox="0 0 24 24" width="20" height="20">
+        <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M12 3V5.25M18.364 5.63604L16.773 7.22703M21 12H18.75M18.364 18.364L16.773 16.773M12 18.75V21M7.22703 16.773L5.63604 18.364M5.25 12H3M7.22703 7.22703L5.63604 5.63604M15.75 12C15.75 14.0711 14.0711 15.75 12 15.75C9.92893 15.75 8.25 14.0711 8.25 12C8.25 9.92893 9.92893 8.25 12 8.25C14.0711 8.25 15.75 9.92893 15.75 12Z"/>
+      </svg>
+    </cds-header-global-action>
     <cds-header-global-action
       id="profileButton"
-      aria-label="Profil"
-      tooltip-text="Profil"
+      aria-label="Account"
+      tooltip-text="Account"
       onclick="togglePanel('profilePanel')">
       <svg slot="icon" viewBox="0 0 32 32" width="20" height="20">
         <path d="M16 4a5 5 0 1 1-5 5 5 5 0 0 1 5-5m0-2a7 7 0 1 0 7 7 7 7 0 0 0-7-7ZM26 30h-2v-5a5 5 0 0 0-5-5h-6a5 5 0 0 0-5 5v5H6v-5a7 7 0 0 1 7-7h6a7 7 0 0 1 7 7Z"/>
@@ -28,7 +29,7 @@
   </cds-header-global-bar>
 </cds-header>
 
-<!-- Profile Panel -->
+<!-- Account panel -->
 <div id="profilePanel" class="header-panel">
   <div class="profile-section">
     <div class="profile-info">
@@ -36,8 +37,8 @@
         {inject:userContext.firstLetter}
       </div>
       <div class="profile-details">
-        <div class="profile-name">{inject:userContext.username ?: 'Benutzer'}</div>
-        <div class="profile-email">{inject:userContext.email ?: 'benutzer@treasure.local'}</div>
+        <div class="profile-name">{inject:userContext.username ?: 'User'}</div>
+        <div class="profile-email">{inject:userContext.email ?: ''}</div>
       </div>
     </div>
     {#if inject:userContext.roles.size() > 0}
@@ -49,65 +50,29 @@
     {/if}
   </div>
 
-  <ul class="profile-menu">
-    <li>
-      <a href="#" class="profile-menu-item" onclick="alert('Bald verfügbar'); return false;">
-        <svg viewBox="0 0 32 32">
-          <path d="M16 4a5 5 0 1 1-5 5 5 5 0 0 1 5-5m0-2a7 7 0 1 0 7 7 7 7 0 0 0-7-7ZM26 30h-2v-5a5 5 0 0 0-5-5h-6a5 5 0 0 0-5 5v5H6v-5a7 7 0 0 1 7-7h6a7 7 0 0 1 7 7Z"/>
-        </svg>
-        Profil bearbeiten
-        <span class="bald-tag">
-          <svg viewBox="0 0 32 32" width="12" height="12">
-            <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/>
-            <path d="M16 8a1.5 1.5 0 1 0 1.5 1.5A1.5 1.5 0 0 0 16 8ZM16 13a1 1 0 0 0-1 1v8a1 1 0 0 0 2 0v-8a1 1 0 0 0-1-1Z"/>
-          </svg>
-          Bald
-        </span>
-      </a>
-    </li>
-    <li>
-      <a href="#" class="profile-menu-item" onclick="alert('Bald verfügbar'); return false;">
-        <svg viewBox="0 0 32 32">
-          <path d="M28 16a12 12 0 0 0-.8-4.3l1.8-.7a14.2 14.2 0 0 1 0 10l-1.8-.7A12 12 0 0 0 28 16ZM16 28a12 12 0 0 1-4.3-.8l-.7 1.8a14.2 14.2 0 0 0 10 0l-.7-1.8A12 12 0 0 1 16 28ZM4 16a12 12 0 0 1 .8-4.3l-1.8-.7a14.2 14.2 0 0 0 0 10l1.8-.7A12 12 0 0 1 4 16ZM16 4a12 12 0 0 1 4.3.8l.7-1.8a14.2 14.2 0 0 0-10 0l.7 1.8A12 12 0 0 1 16 4Z"/>
-          <path d="M16 24a8 8 0 1 1 8-8 8 8 0 0 1-8 8Zm0-14a6 6 0 1 0 6 6 6 6 0 0 0-6-6Z"/>
-        </svg>
-        Einstellungen
-        <span class="bald-tag">
-          <svg viewBox="0 0 32 32" width="12" height="12">
-            <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/>
-            <path d="M16 8a1.5 1.5 0 1 0 1.5 1.5A1.5 1.5 0 0 0 16 8ZM16 13a1 1 0 0 0-1 1v8a1 1 0 0 0 2 0v-8a1 1 0 0 0-1-1Z"/>
-          </svg>
-          Bald
-        </span>
-      </a>
-    </li>
-  </ul>
-
   <div class="panel-footer">
     <a href="/logout">
       <svg viewBox="0 0 32 32" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 0.5rem;">
         <path d="M6 30h12a2 2 0 0 0 2-2v-3h-2v3H6V4h12v3h2V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v24a2 2 0 0 0 2 2Z"/>
         <path d="M20.586 20.586L24.172 17H10v-2h14.172l-3.586-3.586L22 10l6 6-6 6-1.414-1.414z"/>
       </svg>
-      Abmelden
+      Sign out
     </a>
   </div>
 </div>
 
 <script>
-  // Panel management
+  // Account panel: one panel open at a time, closes on outside click and Escape.
   let currentPanel = null;
 
   function togglePanel(panelId) {
     const panel = document.getElementById(panelId);
 
-    // Close other panels first
     if (currentPanel && currentPanel !== panel) {
       currentPanel.classList.remove('active');
       currentPanel.style.display = 'none';
     }
 
-    // Toggle current panel
     if (panel.classList.contains('active')) {
       panel.classList.remove('active');
       panel.style.display = 'none';
@@ -119,13 +84,10 @@
     }
   }
 
-  // Close panels when clicking outside
   document.addEventListener('click', function(event) {
     if (!currentPanel) return;
 
     const profileButton = document.getElementById('profileButton');
-
-    // Check if click is outside panel and buttons
     const clickedInside = currentPanel.contains(event.target) ||
                          profileButton.contains(event.target);
 
@@ -136,7 +98,6 @@
     }
   });
 
-  // Close panels on escape key
   document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape' && currentPanel) {
       currentPanel.classList.remove('active');

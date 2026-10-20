@@ -1,357 +1,83 @@
 {#include main.html}
-{#title}Edit device{/title}
+{#title}Edit {device.deviceName}{/title}
 
-<div class="breadcrumb">
-    <a href="/devices">Devices</a>
-    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-    </svg>
-    {device.deviceName}
-    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-    </svg>
-    <span>Edit</span>
+<nav class="breadcrumb" aria-label="Breadcrumb">
+  <a href="/devices">Devices</a>
+  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+  <span aria-current="page">{device.deviceName}</span>
+</nav>
+
+<div class="page-head">
+  <div>
+    <h1>Edit device</h1>
+    <p class="page-meta">
+      {device.deviceName}
+      {#if device.assignedTo != null}· assigned to {device.bookedName}{#else}· available{/if}
+    </p>
+  </div>
+  <div class="page-head-actions">
+    <button type="button" class="btn btn-secondary" data-open="historyDialog">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      History ({history.size})
+    </button>
+  </div>
 </div>
 
-<div class="page-header">
-    <div class="page-title">Edit Device: {device.deviceName}</div>
-</div>
-
-<form method="post" action="/devices/{device.id}/update">
-    {#authenticityToken /}
-
-    <div class="form-card">
-        <div class="form-card-header">
-            <div class="form-card-icon">
-                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
-                </svg>
-            </div>
-            <div class="form-card-header-text">
-                <h3>Device details</h3>
-                <p>Fill in the information</p>
-            </div>
-        </div>
-
-        <!-- Device Name -->
-        <div class="form-body-top">
-            <div class="field">
-                <label class="field-label">Device Name <span class="required">*</span></label>
-                <input class="field-input"
-                       type="text"
-                       maxlength="50"
-                       name="deviceName"
-                       placeholder="{device.deviceName == null || device.deviceName.trim.isEmpty ? 'e.g. MacBook Pro 14' : device.deviceName}"
-                       id="nameInput"
-                       oninput="validate()"
-                       value="{device.deviceName}">
-                <span class="field-error" id="nameError" style="display:none">
-          <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 8v4m0 4h.01"/>
-          </svg>
-          Device name cannot be empty
-        </span>
-            </div>
-        </div>
-
-        <!-- Serial Number -->
-        <div class="form-body-middle">
-            <div class="field">
-                <label class="field-label">Device Serial-Number</label>
-                <input class="field-input"
-                       type="text"
-                       maxlength="50"
-                       name="deviceSerialNumber"
-                       placeholder="{device.deviceSerialNumber == null || device.deviceSerialNumber.trim.isEmpty ? 'e.g. CNU1234567' : device.deviceSerialNumber}"
-                       value="{device.deviceSerialNumber}">
-            </div>
-        </div>
-
-        <!-- Group (suggestions + custom entry) -->
-        <div class="form-body-middle">
-            <div class="field">
-                <label class="field-label">Group</label>
-                <input class="field-input"
-                       type="text"
-                       maxlength="50"
-                       name="group"
-                       list="groupOptions"
-                       placeholder="{device.group == null || device.group.trim.isEmpty ? 'e.g. Laptops' : device.group}"
-                       value="{device.group}">
-                <datalist id="groupOptions">
-                    {#for g in groups}
-                    <option value="{g}">
-                        {/for}
-                </datalist>
-            </div>
-        </div>
-
-        <!-- Device Model -->
-        <div class="form-body-middle">
-            <div class="field">
-                <label class="field-label">Device Model</label>
-                <input class="field-input"
-                       type="text"
-                       maxlength="80"
-                       name="deviceModel"
-                       placeholder="{device.deviceModel == null || device.deviceModel.trim.isEmpty ? 'e.g. A1708' : device.deviceModel}"
-                       value="{device.deviceModel}">
-            </div>
-        </div>
-
-        <!-- Device Age -->
-        <div class="form-body-middle">
-            <div class="field">
-                <label class="field-label">Device Bought on the: </label>
-                <input class="field-input"
-                       type="text"
-                       maxlength="30"
-                       name="deviceAge"
-                       placeholder="{device.deviceAge == null || device.deviceAge.trim.isEmpty ? 'e.g. 19.7.2022' : device.deviceAge}"
-                       value="{device.deviceAge}">
-            </div>
-        </div>
-
-        <!-- Reg Company -->
-        <div class="form-body-middle">
-            <div class="field">
-                <label class="field-label">Which Company has it? </label>
-                <input class="field-input"
-                       type="text"
-                       maxlength="30"
-                       name="regCompany"
-                       placeholder="{device.regCompany == null || device.regCompany.trim.isEmpty ? 'e.g. EXP Software' : device.regCompany}"
-                       value="{device.regCompany}">
-            </div>
-        </div>
-
-        <!-- Device Number -->
-        <div class="form-body-middle">
-            <div class="field">
-                <label class="field-label">Device Number: </label>
-                <input class="field-input"
-                       type="text"
-                       maxlength="30"
-                       name="deviceNumber"
-                       placeholder="{device.deviceNumber == null || device.deviceNumber.trim.isEmpty ? 'e.g. Idk what you want' : device.deviceNumber}"
-                       value="{device.deviceNumber}">
-            </div>
-        </div>
-
-        <!-- Device Prozessor -->
-        <div class="form-body-middle">
-            <div class="field">
-                <label class="field-label">Device Prozessor: </label>
-                <input class="field-input"
-                       type="text"
-                       maxlength="30"
-                       name="deviceProzessor"
-                       placeholder="{device.deviceProzessor == null || device.deviceProzessor.trim.isEmpty ? 'e.g. Apple M1 Pro' : device.deviceProzessor}"
-                       value="{device.deviceProzessor}">
-            </div>
-        </div>
-
-        <!-- Device HDD Storage -->
-        <div class="form-body-middle">
-            <div class="field">
-                <label class="field-label">Device HDD Storage: </label>
-                <input class="field-input"
-                       type="text"
-                       maxlength="30"
-                       name="deviceHDDStorage"
-                       placeholder="{device.deviceHDDStorage == null || device.deviceHDDStorage.trim.isEmpty ? 'e.g. 1024GB' : device.deviceHDDStorage}"
-                       value="{device.deviceHDDStorage}">
-            </div>
-        </div>
-
-        <!-- Device RAM -->
-        <div class="form-body-middle">
-            <div class="field">
-                <label class="field-label">Device RAM: </label>
-                <input class="field-input"
-                       type="text"
-                       maxlength="30"
-                       name="deviceRAM"
-                       placeholder="{device.deviceRAM == null || device.deviceRAM.trim.isEmpty ? 'e.g. 16GB' : device.deviceRAM}"
-                       value="{device.deviceRAM}">
-            </div>
-        </div>
-
-        <!-- Device Model Date -->
-        <div class="form-body-middle">
-            <div class="field">
-                <label class="field-label">Device Model Date: </label>
-                <input class="field-input"
-                       type="text"
-                       maxlength="30"
-                       name="deviceModelDate"
-                       placeholder="{device.deviceModelDate == null || device.deviceModelDate.trim.isEmpty ? 'e.g. 2021-10-18' : device.deviceModelDate}"
-                       value="{device.deviceModelDate}">
-            </div>
-        </div>
-
-        <!-- Device Damage -->
-        <div class="form-body-middle">
-            <div class="field">
-                <label class="field-label">Device Damage</label>
-                <select class="field-input" name="deviceDamage">
-                    <option value="perfect" {#if device.deviceDamage == "perfect"}selected{/if}>perfect</option>
-                    <option value="lightly damaged" {#if device.deviceDamage == "lightly damaged"}selected{/if}>lightly damaged</option>
-                    <option value="heavily damaged" {#if device.deviceDamage == "heavily damaged"}selected{/if}>heavily damaged</option>
-                    <option value="broken" {#if device.deviceDamage == "broken"}selected{/if}>broken</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- Device Location -->
-        <div class="form-body-middle">
-            <div class="field">
-                <label class="field-label">Where is/will the Device be stored:</label>
-                <textarea class="field-input"
-                          name="deviceLocation"
-                          maxlength="500"
-                          rows="3"
-                          placeholder="{device.deviceLocation == null || device.deviceLocation.trim.isEmpty ? 'Room 1, Locker 2' : device.deviceLocation}">{device.deviceLocation}</textarea>
-            </div>
-        </div>
-
-        <!-- Extra Info -->
-        <div class="form-body-bottom">
-            <div class="field">
-                <label class="field-label">Extra Info</label>
-                <textarea class="field-input"
-                          name="extraInfo"
-                          maxlength="500"
-                          rows="3"
-                          placeholder="{device.extraInfo == null || device.extraInfo.trim.isEmpty ? 'Anything Important...' : device.extraInfo}">{device.extraInfo}</textarea>
-            </div>
-        </div>
-
-        <div class="form-actions">
-            <button type="submit" class="btn-save" onclick="return handleSave()">
-                <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                </svg>
-                Save device
-            </button>
-            <button type="button" class="btn-cancel" onclick="history.back()">Cancel</button>
-            <button type="button" class="btn-cancel" onclick="openHistory(event)">
-                View history
-            </button>
-            <span class="btn-save-hint">Fields marked * are required</span>
-        </div>
-    </div>
+<form method="post" action="/devices/{device.id}/update" class="form-card">
+  {#authenticityToken /}
+  {#deviceFormFields device=device groups=groups /}
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      Save changes
+    </button>
+    <a href="/devices" class="btn btn-secondary">Cancel</a>
+    <span class="hint">* required</span>
+  </div>
 </form>
 
-<dialog id="historyDialog" class="history-dialog">
-    <div class="history-header">
-        <div class="history-title">History: {device.deviceName}</div>
-        <button type="button" class="btn-cancel" onclick="closeHistory()">Close</button>
+<dialog id="historyDialog" class="modal" aria-labelledby="historyTitle">
+  <div class="modal-head">
+    <div>
+      <div class="modal-eyebrow">Change history</div>
+      <h2 class="modal-title" id="historyTitle">{device.deviceName}</h2>
     </div>
-    <div class="history-body">
-        {#if history == null || history.isEmpty}
-        <div class="history-empty">No history yet.</div>
-        {#else}
-        {#for h in history}
-        <div class="history-item">
-
-            <div class="history-meta">
-                {h.formattedAt} • {h.actorName} •
-                {#if h.eventType == 'UNASSIGNED'}
-                <span class="history-pill pill-unassigned">UNASSIGNED</span>
-                {#else if h.eventType == 'ASSIGNED'}
-                <span class="history-pill pill-assigned">ASSIGNED</span>
-                {#else if h.eventType == 'UPDATED'}
-                <span class="history-pill pill-updated">UPDATED</span>
-                {#else if h.eventType == 'CREATED'}
-                <span class="history-pill pill-created">CREATED</span>
-                {#else}
-                <span class="history-pill pill-default">{h.eventType}</span>
-                {/if}
-            </div>
-            {#if h.eventType == 'CREATED'}
-            <div class="history-text">Created with: {h.notes}</div>
-            {#else}
-            <div class="history-text">{h.fieldName}: "{h.oldValue}" → "{h.newValue}"</div>
-            {#if h.notes != null && !h.notes.isEmpty}
-            <div class="history-notes">{h.notes}</div>
-            {/if}
-            {/if}
+    <button type="button" class="btn btn-ghost btn-icon" data-close aria-label="Close">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="modal-body">
+    {#if history == null || history.isEmpty}
+    <p class="modal-note muted">No changes recorded yet.</p>
+    {#else}
+    <ul class="history-list">
+      {#for h in history}
+      <li class="history-item">
+        <div class="history-meta">
+          {#if h.eventType == 'UNASSIGNED'}<span class="pill pill-unassigned">Unassigned</span>
+          {#else if h.eventType == 'ASSIGNED'}<span class="pill pill-assigned">Assigned</span>
+          {#else if h.eventType == 'UPDATED'}<span class="pill pill-updated">Updated</span>
+          {#else if h.eventType == 'CREATED'}<span class="pill pill-created">Created</span>
+          {#else}<span class="pill pill-unassigned">{h.eventType}</span>{/if}
+          <span>{h.formattedAt}</span>
+          <span>by {h.actorName}</span>
         </div>
-        {/for}
+        {#if h.eventType == 'CREATED'}
+        <div class="history-text">Created with: {h.notes}</div>
+        {#else}
+        <div class="history-text">{h.fieldName}: "{h.oldValue}" → "{h.newValue}"</div>
+        {#if h.notes != null && !h.notes.isEmpty}
+        <div class="history-notes">{h.notes}</div>
         {/if}
-    </div>
+        {/if}
+      </li>
+      {/for}
+    </ul>
+    {/if}
+  </div>
+  <div class="modal-foot">
+    <button type="button" class="btn btn-secondary" data-close>Close</button>
+  </div>
 </dialog>
-
-{#moreScripts}
-
-<script>
-    function validate() {
-        const input = document.getElementById('nameInput');
-        const val = input.value.trim();
-        const err = document.getElementById('nameError');
-
-        if (val === '') {
-            err.style.display = 'flex';
-            input.classList.add('error');
-        } else {
-            err.style.display = 'none';
-            input.classList.remove('error');
-        }
-    }
-
-    function handleSave() {
-        const val = document.getElementById('nameInput').value.trim();
-        if (val === '') {
-            validate();
-            document.getElementById('nameInput').focus();
-            return false;
-        }
-        return true;
-    }
-    function openHistory(e) {
-        if (e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-        const dlg = document.getElementById('historyDialog');
-        if (!dlg) {
-            console.warn('historyDialog not found');
-            return;
-        }
-        if (typeof dlg.showModal === 'function') {
-            if (!dlg.open) dlg.showModal();
-        } else {
-            dlg.setAttribute('open', '');
-        }
-    }
-    function closeHistory(){
-        const dlg = document.getElementById('historyDialog');
-        if (!dlg) return;
-        if (typeof dlg.close === 'function') dlg.close();
-        else dlg.removeAttribute('open');
-    }
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeHistory();
-    });
-
-    document.addEventListener('click', (e) => {
-        const dlg = document.getElementById('historyDialog');
-        if (!dlg || !dlg.open) return;
-        const r = dlg.getBoundingClientRect();
-        const inDialog = (r.top <= e.clientY && e.clientY <= r.bottom && r.left <= e.clientX && e.clientX <= r.right);
-        if (!inDialog) dlg.close();
-    });
-
-    (function () {
-        const dlg = document.getElementById('historyDialog');
-        if (!dlg) return;
-        if (typeof dlg.showModal !== 'function') {
-            dlg.showModal = function () { dlg.setAttribute('open', ''); };
-            dlg.close = function () { dlg.removeAttribute('open'); };
-        }
-    })();
-</script>
-{/moreScripts}
 
 {/include}

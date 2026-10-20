@@ -1,260 +1,30 @@
 {#include main.html}
-{#title}New Device{/title}
+{#title}New device{/title}
 
-<div class="breadcrumb">
+<nav class="breadcrumb" aria-label="Breadcrumb">
   <a href="/devices">Devices</a>
-  <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-  </svg>
-  <span>New Device</span>
-</div>
+  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+  <span aria-current="page">New device</span>
+</nav>
 
-<div class="page-header">
-  <div class="page-title">New Device</div>
-  <div class="page-subtitle">Add a new device to the system</div>
-</div>
-
-<form method="post" action="/devices/create">
-  {#authenticityToken /}
-
-  <div class="form-card">
-    <div class="form-card-header">
-      <div class="form-card-icon">
-        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <rect x="2" y="3" width="20" height="14" rx="2"/>
-          <path d="M8 21h8M12 17v4"/>
-        </svg>
-      </div>
-      <div class="form-card-header-text">
-        <h3>Device details</h3>
-        <p>Fill in the information about the new device</p>
-      </div>
-    </div>
-
-    <!-- Device name -->
-    <div class="form-body-top">
-      <div class="field">
-        <label class="field-label">Device name <span class="required">*</span></label>
-        <input class="field-input"
-               type="text"
-               maxlength="50"
-               name="deviceName"
-               placeholder="e.g. MacBook Pro 14"
-               id="nameInput"
-               oninput="validate()">
-        <span class="field-error" id="nameError" style="display:none">
-          <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <circle cx="12" cy="12" r="10"/>
-            <path stroke-linecap="round" d="M12 8v4m0 4h.01"/>
-          </svg>
-          Device name cannot be empty
-        </span>
-      </div>
-    </div>
-
-    <!-- Serial number -->
-    <div class="form-body-middle">
-      <div class="field">
-        <label class="field-label">Device serial number</label>
-        <input class="field-input"
-               type="text"
-               maxlength="50"
-               name="deviceSerialNumber"
-               placeholder="e.g. CNU1234567">
-      </div>
-    </div>
-
-    <!-- Group -->
-    <div class="form-body-middle">
-      <div class="field">
-        <label class="field-label">Group</label>
-        <input class="field-input"
-               type="text"
-               maxlength="50"
-               name="group"
-               list="groupOptions"
-               placeholder="e.g. Laptops">
-        <datalist id="groupOptions">
-          {#for g in groups}
-          <option value="{g}"></option>
-          {/for}
-        </datalist>
-      </div>
-    </div>
-
-    <!-- Device Model -->
-    <div class="form-body-middle">
-      <div class="field">
-        <label class="field-label">Device Model</label>
-        <input class="field-input"
-               type="text"
-               maxlength="80"
-               name="deviceModel"
-               placeholder="e.g. A1708">
-      </div>
-    </div>
-
-    <!-- Device Age -->
-    <div class="form-body-middle">
-      <div class="field">
-        <label class="field-label">Device bought on the: </label>
-        <input class="field-input"
-               type="text"
-               maxlength="30"
-               name="deviceAge"
-               placeholder="e.g. 19.7.2022">
-      </div>
-    </div>
-
-    <!-- Reg Company -->
-    <div class="form-body-middle">
-      <div class="field">
-        <label class="field-label">Which Company has it? </label>
-        <input class="field-input"
-               type="text"
-               maxlength="30"
-               name="regCompany"
-               placeholder="e.g. EXP Software">
-      </div>
-    </div>
-
-    <!-- Device Number -->
-    <div class="form-body-middle">
-      <div class="field">
-        <label class="field-label">Device Number: </label>
-        <input class="field-input"
-               type="text"
-               maxlength="30"
-               name="deviceNumber"
-               placeholder="e.g. Idk what you want">
-      </div>
-    </div>
-
-    <!-- Device Prozessor -->
-    <div class="form-body-middle">
-      <div class="field">
-        <label class="field-label">Device Prozessor: </label>
-        <input class="field-input"
-               type="text"
-               maxlength="30"
-               name="deviceProzessor"
-               placeholder="e.g. Apple M1 Pro">
-      </div>
-    </div>
-
-    <!-- Device HDD Storage -->
-    <div class="form-body-middle">
-      <div class="field">
-        <label class="field-label">Device HDD Storage: </label>
-        <input class="field-input"
-               type="text"
-               maxlength="30"
-               name="deviceHDDStorage"
-               placeholder="e.g. 1024GB">
-      </div>
-    </div>
-
-    <!-- Device RAM -->
-    <div class="form-body-middle">
-      <div class="field">
-        <label class="field-label">Device RAM: </label>
-        <input class="field-input"
-               type="text"
-               maxlength="30"
-               name="deviceRAM"
-               placeholder="e.g. 16GB">
-      </div>
-    </div>
-
-    <!-- Device Model Date -->
-    <div class="form-body-middle">
-      <div class="field">
-        <label class="field-label">Device bought on the: </label>
-        <input class="field-input"
-               type="text"
-               maxlength="30"
-               name="deviceModelDate"
-               placeholder="e.g. 2021-10-18">
-      </div>
-    </div>
-
-    <!-- Device Damage -->
-    <div class="form-body-middle">
-      <div class="field">
-        <label class="field-label">Device Condition</label>
-        <select class="field-input" name="deviceDamage">
-          <option value="perfect" selected>perfect</option>
-          <option value="lightly damaged">lightly damaged</option>
-          <option value="heavily damaged">heavily damaged</option>
-          <option value="broken">broken</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Device Location -->
-    <div class="form-body-middle">
-      <div class="field">
-        <label class="field-label">Where is/will the Device be stored: </label>
-        <textarea class="field-input"
-                  name="deviceLocation"
-                  maxlength="500"
-                  rows="3"
-                  placeholder="Room 1, Locker 2"></textarea>
-      </div>
-      </div>
-
-    <!-- Extra Info -->
-    <div class="form-body-bottom">
-      <div class="field">
-        <label class="field-label">Extra Info</label>
-        <textarea class="field-input"
-                  name="extraInfo"
-                  maxlength="500"
-                  rows="3"
-                  placeholder="Anything important..."></textarea>
-      </div>
-    </div>
-
-    <div class="form-actions">
-      <button type="submit" class="btn-save" onclick="return handleSave()">
-        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-        </svg>
-        Save device
-      </button>
-      <button type="button" class="btn-cancel" onclick="history.back()">Cancel</button>
-      <span class="btn-save-hint">Fields marked * are required</span>
-    </div>
+<div class="page-head">
+  <div>
+    <h1>New device</h1>
+    <p class="page-meta">Only the name is required. Everything else can be added later.</p>
   </div>
+</div>
+
+<form method="post" action="/devices/create" class="form-card">
+  {#authenticityToken /}
+  {#deviceFormFields device=device groups=groups /}
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      Save device
+    </button>
+    <a href="/devices" class="btn btn-secondary">Cancel</a>
+    <span class="hint">* required</span>
   </div>
 </form>
-
-{#moreScripts}
-<script>
-  function validate() {
-    const val = document.getElementById('nameInput').value.trim();
-    const err = document.getElementById('nameError');
-    const input = document.getElementById('nameInput');
-
-    if (val === '') {
-      err.style.display = 'flex';
-      input.classList.add('error');
-    } else {
-      err.style.display = 'none';
-      input.classList.remove('error');
-    }
-  }
-
-  function handleSave() {
-    const val = document.getElementById('nameInput').value.trim();
-    if (val === '') {
-      validate();
-      document.getElementById('nameInput').focus();
-      return false;
-    }
-    return true;
-  }
-</script>
-{/moreScripts}
 
 {/include}

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
   <head>
     <script>
       (function () {
@@ -11,23 +11,23 @@
           window.__theme = t;
           if (t === 'dark') document.documentElement.classList.add('cds--g100');
         } catch (e) {}
+        // Side nav: decide expanded/collapsed now, so the content never jumps after paint.
+        window.__navExpanded = window.innerWidth >= 1550;
+        if (window.__navExpanded) document.documentElement.classList.add('side-nav-expanded');
       })();
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{#insert title/}</title>
+    <meta name="theme-color" content="#ff8200">
+    <title>{#insert title/} · Treasure</title>
 
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap">
     <link rel="stylesheet" id="theme-light" href="/css/carbon-styles.min.css">
-    <link rel="stylesheet" href="/css/treasure-core.css?v=18">
-    <link rel="stylesheet" href="/css/treasure-components.css?v=18">
-    <link rel="stylesheet" href="/css/treasure-pages.css?v=19">
+    <link rel="stylesheet" href="/css/treasure-core.css?v=21">
+    <link rel="stylesheet" href="/css/treasure-pages.css?v=21">
     <style>
       cds-header:not(:defined) {
         display: block;
@@ -64,27 +64,12 @@
         visibility: hidden;
       }
     </style>
-    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/ui-shell.min.js"></script>
-    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/button.min.js"></script>
-    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/text-input.min.js"></script>
-    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/number-input.min.js"></script>
-    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/select.min.js"></script>
-    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/date-picker.min.js"></script>
-    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/checkbox.min.js"></script>
-    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/textarea.min.js"></script>
-    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/tile.min.js"></script>
-    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/tag.min.js"></script>
-    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/notification.min.js"></script>
-    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/tree-view.min.js"></script>
-    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/dropdown.min.js"></script>
-    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/ai-label.min.js"></script>
-    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/data-table.min.js"></script>
-    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/file-uploader.min.js"></script>
-    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/loading.min.js"></script>
+    <!-- Carbon web components 2.65.0 (matches the vendored @carbon/styles 1.117.0): only the ones this app renders -->
+    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/version/v2.65.0/ui-shell.min.js"></script>
+    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/version/v2.65.0/notification.min.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
-    <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.11/dist/htmx.min.js"></script>
+    <script src="/js/devices.js?v=20" defer></script>
 
     {#insert moreStyles /}
     {#insert moreScripts /}
@@ -95,17 +80,29 @@
     </script>
     {#include tags/header.html /}
 
-    <cds-side-nav aria-label="Hauptnavigation" collapse-mode="fixed">
+    <cds-side-nav aria-label="Main navigation" collapse-mode="fixed">
       <cds-side-nav-items style="background-color: var(--white)">
-
+        <cds-side-nav-link href="/" {#if inject:vertxRequest.path == '/'}active{/if}>
+          Overview
+          <svg slot="title-icon" viewBox="0 0 32 32" width="20" height="20"><path d="M4 4h10v12H4zm14 0h10v8H18zM4 18h10v10H4zm14-4h10v14H18zM6 6v8h6V6zm14 0v4h6V6zM6 20v6h6v-6zm14-4v10h6V16z" fill="var(--text)"/></svg>
+        </cds-side-nav-link>
         <cds-side-nav-link href="/devices" {#if inject:vertxRequest.path.startsWith('/devices')}active{/if}>
           Devices
           <svg slot="title-icon" viewBox="0 0 32 32" width="20" height="20"><path d="M28 5H4a2 2 0 0 0-2 2v18a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Zm0 20H4V7h24ZM9 10h14v2H9zm0 5h14v2H9zm0 5h14v2H9z" fill="var(--text)"/></svg>
         </cds-side-nav-link>
-      </cds-side-nav-items>                                                                                                                                                                                                          
-    </cds-side-nav>   
+        <cds-side-nav-link href="/members" {#if inject:vertxRequest.path.startsWith('/members')}active{/if}>
+          Members
+          <svg slot="title-icon" viewBox="0 0 32 32" width="20" height="20"><path d="M16 4a5 5 0 1 1-5 5 5 5 0 0 1 5-5m0-2a7 7 0 1 0 7 7 7 7 0 0 0-7-7ZM26 30h-2v-5a5 5 0 0 0-5-5h-6a5 5 0 0 0-5 5v5H6v-5a7 7 0 0 1 7-7h6a7 7 0 0 1 7 7Z" fill="var(--text)"/></svg>
+        </cds-side-nav-link>
+      </cds-side-nav-items>
+    </cds-side-nav>
+    <script>
+      // Runs before the ui-shell module upgrades the element, so it renders expanded right away.
+      if (window.__navExpanded) document.querySelector('cds-side-nav').setAttribute('expanded', '');
+    </script>
 
     <div class="app-container">
+      {#include tags/flashNotifications.html /}
       <main class="content">
         {#insert /}
       </main>
@@ -142,12 +139,7 @@
         var sideNav = document.querySelector('cds-side-nav');
         if (sideNav) {
           function updateLayout() {
-            if (sideNav.expanded) {
-              document.body.classList.add('side-nav-expanded');
-            } else {
-              document.body.classList.remove('side-nav-expanded');
-            }
-            
+            document.documentElement.classList.toggle('side-nav-expanded', !!sideNav.expanded);
           }
 
           updateLayout();
@@ -159,7 +151,6 @@
               }
             });
           });
-
           observer.observe(sideNav, { attributes: true });
 
           var originalExpanded = sideNav.expanded;
@@ -173,90 +164,22 @@
         }
       });
 
-      function initTagHandling() {
-        var tagContainer = document.getElementById('tagContainer');
-        var tagsInput = document.getElementById('tagsInput');
-        var newTagInput = document.getElementById('newTagInput');
-        var addTagBtn = document.getElementById('addTagBtn');
-
-        if (!tagContainer || !tagsInput || !newTagInput || !addTagBtn) return;
-
-        tagContainer.addEventListener('cds-tag-closed', function(event) {
-          var tag = event.target;
-          var tagName = tag.dataset.tagName;
-          if (tagName) {
-            removeTagFromInput(tagName);
-            tag.remove();
-          }
-        });
-
-        function addNewTag() {
-          var tagName = newTagInput.value.trim().toLowerCase();
-          if (!tagName) return;
-
-          var existingTags = getTagsFromInput();
-          if (existingTags.includes(tagName)) {
-            newTagInput.value = '';
-            return;
-          }
-
-          existingTags.push(tagName);
-          tagsInput.value = existingTags.join(', ');
-
-          var tagElement = document.createElement('cds-tag');
-          tagElement.setAttribute('filter', '');
-          tagElement.setAttribute('size', 'md');
-          tagElement.setAttribute('type', 'gray');
-          tagElement.setAttribute('data-tag-name', tagName);
-          tagElement.setAttribute('title', 'Manuell hinzugefügt');
-          tagElement.textContent = tagName;
-          tagContainer.appendChild(tagElement);
-
-          newTagInput.value = '';
-          newTagInput.focus();
-        }
-
-        addTagBtn.addEventListener('click', addNewTag);
-
-        newTagInput.addEventListener('keypress', function(e) {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            addNewTag();
-          }
-        });
-
-        function getTagsFromInput() {
-          var value = tagsInput.value.trim();
-          if (!value) return [];
-          return value.split(',').map(function(t) { return t.trim().toLowerCase(); }).filter(function(t) { return t.length > 0; });
-        }
-
-        function removeTagFromInput(tagName) {
-          var tags = getTagsFromInput();
-          tags = tags.filter(function(t) { return t !== tagName.toLowerCase(); });
-          tagsInput.value = tags.join(', ');
-        }
-      }
-
-      document.addEventListener('DOMContentLoaded', initTagHandling);
-
-        (function responsiveSideNav() {
-        const BREAKPOINT = 1550;
+      (function responsiveSideNav() {
+        var BREAKPOINT = 1550;
 
         function apply() {
-        const sideNav = document.querySelector('cds-side-nav');
-        if (!sideNav) return;
-
-        sideNav.expanded = window.innerWidth >= BREAKPOINT;
-      }
+          var sideNav = document.querySelector('cds-side-nav');
+          if (!sideNav) return;
+          sideNav.expanded = window.innerWidth >= BREAKPOINT;
+        }
 
         document.addEventListener('DOMContentLoaded', apply);
 
-        let t;
-        window.addEventListener('resize', () => {
-        clearTimeout(t);
-        t = setTimeout(apply, 1);
-      });
+        var t;
+        window.addEventListener('resize', function() {
+          clearTimeout(t);
+          t = setTimeout(apply, 1);
+        });
       })();
     </script>
   </body>

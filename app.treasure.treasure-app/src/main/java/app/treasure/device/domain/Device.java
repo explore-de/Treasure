@@ -7,6 +7,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import app.treasure.member.domain.Member;
 
@@ -17,7 +18,6 @@ public class Device extends PanacheEntity
 	private String status;
 	private LocalDateTime pickupTime;
 	private String deviceSerialNumber;
-	private Boolean visible;
 
 	@ManyToOne
 	private Member assignedTo;
@@ -127,16 +127,6 @@ public class Device extends PanacheEntity
 		this.status = status;
 	}
 
-	public Boolean getVisible()
-	{
-		return visible;
-	}
-
-	public void setVisible(Boolean visible)
-	{
-		this.visible = visible;
-	}
-
 	public LocalDateTime getPickupTime()
 	{
 		return pickupTime;
@@ -244,5 +234,34 @@ public class Device extends PanacheEntity
 	public String getFormattedPickupTime()
 	{
 		return pickupTime != null ? pickupTime.format(formatter) : "";
+	}
+
+	/**
+	 * Whole days since the device was handed out; 0 when it is not assigned.
+	 */
+	public long getDaysHeld()
+	{
+		return pickupTime != null ? java.time.temporal.ChronoUnit.DAYS.between(pickupTime, LocalDateTime.now()) : 0;
+	}
+
+	/**
+	 * createdOn is stored as the ISO text of a LocalDateTime. Render it like
+	 * the pickup time; fall back to the raw value for rows that were written in
+	 * another format.
+	 */
+	public String getFormattedCreatedOn()
+	{
+		if (createdOn == null || createdOn.isBlank())
+		{
+			return "";
+		}
+		try
+		{
+			return LocalDateTime.parse(createdOn).format(formatter);
+		}
+		catch (DateTimeParseException e)
+		{
+			return createdOn;
+		}
 	}
 }
