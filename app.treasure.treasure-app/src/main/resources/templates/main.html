@@ -152,33 +152,27 @@
             });
           });
           observer.observe(sideNav, { attributes: true });
-
-          var originalExpanded = sideNav.expanded;
-          Object.defineProperty(sideNav, '_expanded', {
-            get: function() { return originalExpanded; },
-            set: function(value) {
-              originalExpanded = value;
-              updateLayout();
-            }
-          });
         }
       });
 
       (function responsiveSideNav() {
         var BREAKPOINT = 1550;
+        var wasWide = window.innerWidth >= BREAKPOINT;
 
-        function apply() {
+        // The initial state is set in the head script. Afterwards only react when the
+        // window crosses the breakpoint, so a manual toggle survives small resizes.
+        function onResize() {
+          var isWide = window.innerWidth >= BREAKPOINT;
+          if (isWide === wasWide) return;
+          wasWide = isWide;
           var sideNav = document.querySelector('cds-side-nav');
-          if (!sideNav) return;
-          sideNav.expanded = window.innerWidth >= BREAKPOINT;
+          if (sideNav) sideNav.expanded = isWide;
         }
-
-        document.addEventListener('DOMContentLoaded', apply);
 
         var t;
         window.addEventListener('resize', function() {
           clearTimeout(t);
-          t = setTimeout(apply, 1);
+          t = setTimeout(onResize, 100);
         });
       })();
     </script>
