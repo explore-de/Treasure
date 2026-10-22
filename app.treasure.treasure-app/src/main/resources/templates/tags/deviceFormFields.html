@@ -70,7 +70,7 @@
     </div>
     <div class="field">
       <label class="field-label" for="deviceModelDate">Model year</label>
-      <input class="field-input" type="text" id="deviceModelDate" name="deviceModelDate" maxlength="30"
+      <input class="field-input" type="number" id="deviceModelDate" name="deviceModelDate" min="1980" max="2100" step="1"
              autocomplete="off" placeholder="e.g. 2023" value="{device.deviceModelDate ?: ''}">
       <span class="field-hint">When this model was released.</span>
     </div>
@@ -82,8 +82,8 @@
   <div class="form-grid">
     <div class="field">
       <label class="field-label" for="deviceAge">Purchased on</label>
-      <input class="field-input" type="text" id="deviceAge" name="deviceAge" maxlength="30"
-             autocomplete="off" placeholder="e.g. 19.07.2023" value="{device.deviceAge ?: ''}">
+      <input class="field-input" type="date" id="deviceAge" name="deviceAge"
+             autocomplete="off" value="{device.deviceAge ?: ''}">
     </div>
     <div class="field">
       <label class="field-label" for="regCompany">Owning company</label>

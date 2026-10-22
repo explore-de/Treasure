@@ -86,7 +86,10 @@ erDiagram
 `TAG` holds every group name ever saved, so a group survives after the last
 device leaves it. `Device.deviceGroup` is a plain string matched by name; there is
 no foreign key to `TAG`. `Member.invited_by_member_id` is a leftover column that
-nothing writes. Full column list: `src/main/resources/db/migration`.
+nothing writes. `Device.createdOn`, `deviceAge` (purchase date) and `deviceModelDate`
+(model year) are a timestamp, a date and an integer since `V1.0.4`; that migration kept
+the old free-text values in `*_legacy` columns, to be dropped once the stand data has
+been checked. Full column list: `src/main/resources/db/migration`.
 
 ---
 

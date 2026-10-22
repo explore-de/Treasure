@@ -5,9 +5,9 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 import app.treasure.member.domain.Member;
 
@@ -22,19 +22,19 @@ public class Device extends PanacheEntity
 	@ManyToOne
 	private Member assignedTo;
 
-	private String createdOn;
+	private LocalDateTime createdOn;
 	private String deviceGroup;
 	private String extraInfo;
 	private String deviceModel;
 	private String deviceDamage;
-	private String deviceAge;
+	private LocalDate deviceAge;
 
 	private String regCompany;
 	private String deviceNumber;
 	private String deviceProzessor;
 	private String deviceHDDStorage;
 	private String deviceRAM;
-	private String deviceModelDate;
+	private Integer deviceModelDate;
 	private String deviceLocation;
 
 	public String getDeviceLocation()
@@ -47,12 +47,12 @@ public class Device extends PanacheEntity
 		this.deviceLocation = deviceLocation;
 	}
 
-	public String getDeviceModelDate()
+	public Integer getDeviceModelDate()
 	{
 		return deviceModelDate;
 	}
 
-	public void setDeviceModelDate(String deviceModelDate)
+	public void setDeviceModelDate(Integer deviceModelDate)
 	{
 		this.deviceModelDate = deviceModelDate;
 	}
@@ -157,12 +157,12 @@ public class Device extends PanacheEntity
 		this.assignedTo = assignedto;
 	}
 
-	public void setCreatedOn(String createdOn)
+	public void setCreatedOn(LocalDateTime createdOn)
 	{
 		this.createdOn = createdOn;
 	}
 
-	public String getCreatedOn()
+	public LocalDateTime getCreatedOn()
 	{
 		return createdOn;
 	}
@@ -207,12 +207,12 @@ public class Device extends PanacheEntity
 		return deviceDamage;
 	}
 
-	public void setDeviceAge(String deviceAge)
+	public void setDeviceAge(LocalDate deviceAge)
 	{
 		this.deviceAge = deviceAge;
 	}
 
-	public String getDeviceAge()
+	public LocalDate getDeviceAge()
 	{
 		return deviceAge;
 	}
@@ -244,24 +244,16 @@ public class Device extends PanacheEntity
 		return pickupTime != null ? java.time.temporal.ChronoUnit.DAYS.between(pickupTime, LocalDateTime.now()) : 0;
 	}
 
-	/**
-	 * createdOn is stored as the ISO text of a LocalDateTime. Render it like
-	 * the pickup time; fall back to the raw value for rows that were written in
-	 * another format.
-	 */
 	public String getFormattedCreatedOn()
 	{
-		if (createdOn == null || createdOn.isBlank())
-		{
-			return "";
-		}
-		try
-		{
-			return LocalDateTime.parse(createdOn).format(formatter);
-		}
-		catch (DateTimeParseException e)
-		{
-			return createdOn;
-		}
+		return createdOn != null ? createdOn.format(formatter) : "";
+	}
+
+	private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+
+	/** The purchase date as dd.MM.yyyy, or "" when it is not recorded. */
+	public String getFormattedDeviceAge()
+	{
+		return deviceAge != null ? deviceAge.format(dateFormatter) : "";
 	}
 }

@@ -1,6 +1,8 @@
 package app.treasure.device.api;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -114,6 +116,39 @@ public class DeviceResource extends Controller
 		return group == null || group.isBlank() ? null : group.trim();
 	}
 
+	private static final String INVALID_DATES_MESSAGE = "Purchased on must be a date and model year a four-digit year.";
+
+	/** The two typed form fields; blank means "not recorded". */
+	private record DateFields(LocalDate purchasedOn, Integer modelYear)
+	{
+	}
+
+	/**
+	 * Reads the date input (ISO yyyy-MM-dd) and the year input of the form.
+	 * Returns null when a value cannot be read, so the caller can show an
+	 * error.
+	 */
+	private DateFields parseDateFields(String deviceAge, String deviceModelDate)
+	{
+		try
+		{
+			LocalDate purchasedOn = deviceAge == null || deviceAge.isBlank() ? null : LocalDate.parse(deviceAge.trim());
+			Integer modelYear = deviceModelDate == null || deviceModelDate.isBlank() ? null
+				: Integer.valueOf(deviceModelDate.trim());
+			return new DateFields(purchasedOn, modelYear);
+		}
+		catch (DateTimeParseException | NumberFormatException e)
+		{
+			return null;
+		}
+	}
+
+	/** Text for history entries: "" for null, otherwise the ISO form. */
+	private String text(Object value)
+	{
+		return value == null ? "" : value.toString();
+	}
+
 	private Member currentMember()
 	{
 		String username = securityIdentity.getPrincipal().getName();
@@ -223,7 +258,7 @@ public class DeviceResource extends Controller
 			new DeviceFieldFilter(pz, Device::getDeviceProzessor, this::containsIgnoreCase),
 			new DeviceFieldFilter(hd, Device::getDeviceHDDStorage, this::containsIgnoreCase),
 			new DeviceFieldFilter(rm, Device::getDeviceRAM, this::containsIgnoreCase),
-			new DeviceFieldFilter(md, Device::getDeviceModelDate, this::containsIgnoreCase));
+			new DeviceFieldFilter(md, d -> text(d.getDeviceModelDate()), this::containsIgnoreCase));
 		List<Device> filtered = all.stream()
 			.filter(d -> filters.stream().allMatch(f -> f.matches(d)))
 			.toList();
@@ -300,26 +335,33 @@ public class DeviceResource extends Controller
 			seeOther("/devices/new");
 			return;
 		}
+		DateFields dates = parseDateFields(deviceAge, deviceModelDate);
+		if (dates == null)
+		{
+			flash(FlashKeys.ERROR, INVALID_DATES_MESSAGE);
+			seeOther("/devices/new");
+			return;
+		}
 
 		Device device = new Device();
 		device.setDeviceName(deviceName);
 		device.setDeviceSerialNumber(deviceSerialNumber);
 
 		device.setStatus("available");
-		device.setCreatedOn(String.valueOf(LocalDateTime.now()));
+		device.setCreatedOn(LocalDateTime.now());
 
 		String normalizedGroup = normalizeGroup(group);
 		device.setGroup(normalizedGroup);
 		device.setDeviceModel(deviceModel);
 		device.setExtraInfo(extraInfo);
 		device.setDeviceDamage(deviceDamage);
-		device.setDeviceAge(deviceAge);
+		device.setDeviceAge(dates.purchasedOn());
 		device.setRegCompany(regCompany);
 		device.setDeviceNumber(deviceNumber);
 		device.setDeviceProzessor(deviceProzessor);
 		device.setDeviceHDDStorage(deviceHDDStorage);
 		device.setDeviceRAM(deviceRAM);
-		device.setDeviceModelDate(deviceModelDate);
+		device.setDeviceModelDate(dates.modelYear());
 		device.setDeviceLocation(deviceLocation);
 
 		deviceRepository.persist(device);
@@ -331,13 +373,13 @@ public class DeviceResource extends Controller
 			+ ", group=" + n(normalizedGroup)
 			+ ", model=" + n(deviceModel)
 			+ ", damage=" + n(deviceDamage)
-			+ ", age=" + n(deviceAge)
+			+ ", age=" + text(dates.purchasedOn())
 			+ ", company=" + n(regCompany)
 			+ ", number=" + n(deviceNumber)
 			+ ", prozessor=" + n(deviceProzessor)
 			+ ", hdd=" + n(deviceHDDStorage)
 			+ ", ram=" + n(deviceRAM)
-			+ ", modelDate=" + n(deviceModelDate)
+			+ ", modelDate=" + text(dates.modelYear())
 			+ ", location=" + n(deviceLocation)
 			+ ", extraInfo=" + n(extraInfo);
 
@@ -374,6 +416,13 @@ public class DeviceResource extends Controller
 			seeOther("/devices/" + id + "/edit");
 			return;
 		}
+		DateFields dates = parseDateFields(deviceAge, deviceModelDate);
+		if (dates == null)
+		{
+			flash(FlashKeys.ERROR, INVALID_DATES_MESSAGE);
+			seeOther("/devices/" + id + "/edit");
+			return;
+		}
 
 		Device device = deviceRepository.findById(id);
 		if (device == null)
@@ -389,13 +438,13 @@ public class DeviceResource extends Controller
 		recordIfChanged(device, actor, "deviceModel", device.getDeviceModel(), deviceModel);
 		recordIfChanged(device, actor, "extraInfo", device.getExtraInfo(), extraInfo);
 		recordIfChanged(device, actor, "deviceDamage", device.getDeviceDamage(), deviceDamage);
-		recordIfChanged(device, actor, "deviceAge", device.getDeviceAge(), deviceAge);
+		recordIfChanged(device, actor, "deviceAge", text(device.getDeviceAge()), text(dates.purchasedOn()));
 		recordIfChanged(device, actor, "regCompany", device.getRegCompany(), regCompany);
 		recordIfChanged(device, actor, "deviceNumber", device.getDeviceNumber(), deviceNumber);
 		recordIfChanged(device, actor, "deviceProzessor", device.getDeviceProzessor(), deviceProzessor);
 		recordIfChanged(device, actor, "deviceHDDStorage", device.getDeviceHDDStorage(), deviceHDDStorage);
 		recordIfChanged(device, actor, "deviceRAM", device.getDeviceRAM(), deviceRAM);
-		recordIfChanged(device, actor, "deviceModelDate", device.getDeviceModelDate(), deviceModelDate);
+		recordIfChanged(device, actor, "deviceModelDate", text(device.getDeviceModelDate()), text(dates.modelYear()));
 		recordIfChanged(device, actor, "deviceLocation", device.getDeviceLocation(), deviceLocation);
 
 		device.setDeviceName(deviceName);
@@ -404,13 +453,13 @@ public class DeviceResource extends Controller
 		device.setDeviceModel(deviceModel);
 		device.setExtraInfo(extraInfo);
 		device.setDeviceDamage(deviceDamage);
-		device.setDeviceAge(deviceAge);
+		device.setDeviceAge(dates.purchasedOn());
 		device.setRegCompany(regCompany);
 		device.setDeviceNumber(deviceNumber);
 		device.setDeviceProzessor(deviceProzessor);
 		device.setDeviceHDDStorage(deviceHDDStorage);
 		device.setDeviceRAM(deviceRAM);
-		device.setDeviceModelDate(deviceModelDate);
+		device.setDeviceModelDate(dates.modelYear());
 		device.setDeviceLocation(deviceLocation);
 		rememberGroup(normalizedGroup);
 

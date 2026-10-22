@@ -6,8 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
@@ -283,6 +285,86 @@ class DeviceResourceTest
 		}
 	}
 
+	@Test
+	@TestSecurity(user = "maria", roles = "user")
+	void shouldStorePurchaseDateWhenCreatingDevice()
+	{
+		// given
+		String name = "PurchaseDateLaptop";
+		try
+		{
+			// when
+			postCreate(Map.of("deviceName", name, "deviceAge", "2023-07-19"));
+
+			// then
+			assertEquals(LocalDate.of(2023, 7, 19), findDeviceByName(name).getDeviceAge());
+		}
+		finally
+		{
+			deleteDevicesNamed(name);
+		}
+	}
+
+	@Test
+	@TestSecurity(user = "maria", roles = "user")
+	void shouldStoreModelYearWhenCreatingDevice()
+	{
+		// given
+		String name = "ModelYearLaptop";
+		try
+		{
+			// when
+			postCreate(Map.of("deviceName", name, "deviceModelDate", "2023"));
+
+			// then
+			assertEquals(2023, findDeviceByName(name).getDeviceModelDate());
+		}
+		finally
+		{
+			deleteDevicesNamed(name);
+		}
+	}
+
+	@Test
+	@TestSecurity(user = "maria", roles = "user")
+	void shouldRejectCreationWhenPurchaseDateIsNotADate()
+	{
+		// given
+		String name = "BadDateLaptop";
+		try
+		{
+			// when
+			postCreate(Map.of("deviceName", name, "deviceAge", "yesterday"));
+
+			// then
+			assertNull(findDeviceByName(name));
+		}
+		finally
+		{
+			deleteDevicesNamed(name);
+		}
+	}
+
+	@Test
+	@TestSecurity(user = "maria", roles = "user")
+	void shouldSetCreatedOnWhenCreatingDevice()
+	{
+		// given
+		String name = "CreatedOnLaptop";
+		try
+		{
+			// when
+			postCreate(name, "");
+
+			// then
+			assertNotNull(findDeviceByName(name).getCreatedOn());
+		}
+		finally
+		{
+			deleteDevicesNamed(name);
+		}
+	}
+
 	private String csrfToken()
 	{
 		return given()
@@ -306,14 +388,18 @@ class DeviceResourceTest
 
 	private Response postCreate(String deviceName, String group)
 	{
+		return postCreate(Map.of("deviceName", deviceName, "group", group));
+	}
+
+	private Response postCreate(Map<String, String> fields)
+	{
 		String csrfToken = csrfToken();
 		return given()
 			.redirects().follow(false)
 			.cookie("csrf-token", csrfToken)
 			.formParam("csrf-token", csrfToken)
 			.contentType("application/x-www-form-urlencoded; charset=UTF-8")
-			.formParam("deviceName", deviceName)
-			.formParam("group", group)
+			.formParams(fields)
 			.when().post("/devices/create");
 	}
 
