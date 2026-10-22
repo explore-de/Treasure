@@ -1,5 +1,7 @@
 package app.treasure.dashboard.api;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -42,6 +44,14 @@ public class DashboardResource extends Controller
 	 */
 	public record GroupCount(String name, long count, int percent)
 	{
+		/**
+		 * The name as a query-string value, so "R&D" or "Home office" survive
+		 * the link to the filtered device list.
+		 */
+		public String encodedName()
+		{
+			return URLEncoder.encode(name, StandardCharsets.UTF_8).replace("+", "%20");
+		}
 	}
 
 	@CheckedTemplate

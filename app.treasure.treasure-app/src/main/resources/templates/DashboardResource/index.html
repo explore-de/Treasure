@@ -44,7 +44,7 @@
         {#if g.name == 'No group'}
         <span class="bar-label muted">{g.name}</span>
         {#else}
-        <a class="bar-label" href="/devices?group={g.name}">{g.name}</a>
+        <a class="bar-label" href="/devices?group={g.encodedName}">{g.name}</a>
         {/if}
         <span class="bar"><span class="bar-fill" style="width: {g.percent}%"></span></span>
         <span class="bar-count">{g.count}</span>
