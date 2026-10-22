@@ -13,6 +13,8 @@ import app.treasure.member.domain.Member;
 import app.treasure.member.repository.MemberRepository;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import jakarta.transaction.Transactional.TxType;
 
 @QuarkusTest
 class MemberProvisioningServiceTest
@@ -76,5 +78,73 @@ class MemberProvisioningServiceTest
 		assertEquals("User", member.getLastName());
 		assertEquals(username, member.getEmail());
 		assertEquals("sub-123", member.getSubject());
+	}
+
+	@Test
+	void shouldDeriveNamesFromUsernameWhenTokenHasNoNameClaims()
+	{
+		// given
+		String username = "lena.meier@example.com";
+		JsonWebToken token = mock(JsonWebToken.class);
+		try
+		{
+			// when
+			Member member = provisioningService.ensureMember(username, token);
+
+			// then
+			assertEquals("Lena Meier", member.getDisplayName());
+		}
+		finally
+		{
+			deleteMember(username);
+		}
+	}
+
+	@Test
+	void shouldTakeLastNameFromUsernameWhenDisplayNameIsOneWord()
+	{
+		// given
+		String username = "pia.lang@example.com";
+		JsonWebToken token = mock(JsonWebToken.class);
+		when(token.getClaim("name")).thenReturn("Pia");
+		try
+		{
+			// when
+			Member member = provisioningService.ensureMember(username, token);
+
+			// then
+			assertEquals("Pia Lang", member.getDisplayName());
+		}
+		finally
+		{
+			deleteMember(username);
+		}
+	}
+
+	@Test
+	void shouldCreateMemberWhenOnlyASingleWordNameIsKnown()
+	{
+		// given
+		String username = "mononym@example.com";
+		JsonWebToken token = mock(JsonWebToken.class);
+		when(token.getClaim("name")).thenReturn("Mononym");
+		try
+		{
+			// when
+			Member member = provisioningService.ensureMember(username, token);
+
+			// then
+			assertEquals("Mononym Mononym", member.getDisplayName());
+		}
+		finally
+		{
+			deleteMember(username);
+		}
+	}
+
+	@Transactional(TxType.REQUIRES_NEW)
+	void deleteMember(String username)
+	{
+		memberRepository.delete("userName", username);
 	}
 }

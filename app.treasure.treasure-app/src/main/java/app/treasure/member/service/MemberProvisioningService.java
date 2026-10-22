@@ -1,6 +1,8 @@
 package app.treasure.member.service;
 
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -106,17 +108,28 @@ public class MemberProvisioningService
 	}
 
 	/**
-	 * "Maria Schmidt" becomes Maria / Schmidt; with no display name the
-	 * username is used.
+	 * Derives first and last name when the token has no name claims: from the
+	 * display name ("Maria Schmidt"), else from the username
+	 * ("maria.schmidt@example.com"). Both parts are always filled, because a
+	 * Member must have a first and a last name.
 	 */
 	private static String[] splitName(String displayName, String username)
 	{
-		String source = displayName != null && !displayName.isBlank() ? displayName.trim() : username;
-		int space = source.indexOf(' ');
-		if (space > 0)
+		String[] words = displayName == null || displayName.isBlank() ? new String[0] : displayName.trim().split("\\s+");
+		if (words.length >= 2)
 		{
-			return new String[] { source.substring(0, space), source.substring(space + 1).trim() };
+			return new String[] { words[0], String.join(" ", Arrays.copyOfRange(words, 1, words.length)) };
 		}
-		return new String[] { source, "" };
+		String localPart = username.contains("@") ? username.substring(0, username.indexOf('@')) : username;
+		List<String> parts = Arrays.stream(localPart.split("[._-]+")).filter(p -> !p.isBlank()).toList();
+		String first = words.length == 1 ? words[0] : capitalize(parts.isEmpty() ? username : parts.get(0));
+		String last = parts.size() >= 2 ? capitalize(parts.get(parts.size() - 1)) : first;
+		return new String[] { first, last };
+	}
+
+	/** "mustermann" becomes "Mustermann". */
+	private static String capitalize(String word)
+	{
+		return word.isEmpty() ? word : Character.toUpperCase(word.charAt(0)) + word.substring(1);
 	}
 }
