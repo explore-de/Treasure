@@ -42,7 +42,7 @@ Java language server. That fills `target/` but does not start the app.
 
 **Stack:**
 
-- **Quarkus 3.40.1**, Java 21
+- **Quarkus 3.40.1.1**, Java 25
 - **Renarde 3.1.10** - server-side web framework on Qute + RESTEasy Reactive
 - **Hibernate ORM Panache** with the repository pattern
 - **PostgreSQL**, schema owned by **Flyway** (`src/main/resources/db/migration`,
@@ -279,9 +279,9 @@ Carbon styles.
 ### Loading
 
 `main.html` loads the Carbon stylesheet from a vendored copy of
-`@carbon/styles` 1.117.0 (`/css/carbon-styles.min.css`) and only the web
-components the app renders from the IBM CDN, pinned to 2.65.0:
-`https://1.www.s81c.com/common/carbon/web-components/version/v2.65.0/<component>.min.js`
+`@carbon/styles` 1.118.0 (`/css/carbon-styles.min.css`) and only the web
+components the app renders from the IBM CDN, pinned to 2.66.0:
+`https://1.www.s81c.com/common/carbon/web-components/version/v2.66.0/<component>.min.js`
 for `ui-shell` (header and side nav) and `notification` (flash messages). Add a
 script there before using another `cds-*` element, and bump both the
 stylesheet and the pinned version together. htmx 2.0.11 and `/js/devices.js`

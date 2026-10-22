@@ -22,7 +22,7 @@ This project is committed to providing a welcoming and inclusive environment for
 
 ### Prerequisites
 
-- **Java 21** - Required for building and running the application
+- **Java 25** - Required for building and running the application
 - **Maven** - Maven wrapper (`mvnw`) is included in the project
 - **Git** - For version control
 
@@ -123,7 +123,7 @@ The formatter configuration is in `formatter/java.xml`. All code must pass valid
 
 ### Java Conventions
 
-- **Java 21** features are encouraged
+- **Java 25** features are encouraged
 - Use **SLF4J** for logging (never `System.out.println`)
 - Follow **feature-based packaging** structure
 - Prefer **constructor injection** over field injection

@@ -32,8 +32,8 @@ changed what and when.
 
 | Layer | Choice |
 |---|---|
-| Language | Java 21 |
-| Framework | Quarkus 3.40.1 |
+| Language | Java 25 |
+| Framework | Quarkus 3.40.1.1 |
 | Web / UI | Renarde 3.1.10 (server-side rendering with Qute) |
 | Persistence | Hibernate ORM with Panache, repository pattern |
 | Database | PostgreSQL, schema managed by Flyway |
@@ -45,7 +45,7 @@ changed what and when.
 
 ## Quick Start 🚀
 
-**Prerequisites:** JDK 21 and Docker — Quarkus Dev Services provisions PostgreSQL
+**Prerequisites:** JDK 25 and Docker — Quarkus Dev Services provisions PostgreSQL
 and Keycloak for you.
 
 ```shell
