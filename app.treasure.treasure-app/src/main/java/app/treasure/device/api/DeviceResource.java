@@ -30,6 +30,7 @@ import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.POST;
@@ -104,6 +105,15 @@ public class DeviceResource extends Controller
 		tagRepository.findOrCreate(group.trim());
 	}
 
+	/**
+	 * Trims the group name; blank means "no group" and is stored as null, so
+	 * the device and the Tag registry hold the same spelling.
+	 */
+	private String normalizeGroup(String group)
+	{
+		return group == null || group.isBlank() ? null : group.trim();
+	}
+
 	private Member currentMember()
 	{
 		String username = securityIdentity.getPrincipal().getName();
@@ -140,6 +150,25 @@ public class DeviceResource extends Controller
 		{
 			recordChange(device, actor, "UPDATED", field, o, nn, null);
 		}
+	}
+
+	/**
+	 * Hands the device to the member: status, pickup time and the history entry
+	 * change together, so single and bulk assignment behave the same.
+	 */
+	private void assignTo(Device device, Member member, Member actor)
+	{
+		String oldBooked = device.getBookedName();
+		String oldStatus = n(device.getStatus());
+		String oldPickup = device.getPickupTime() != null ? device.getPickupTime().toString() : "";
+
+		device.setAssignedTo(member);
+		device.setStatus("not available");
+		device.setPickupTime(LocalDateTime.now());
+
+		String notes = "status: " + oldStatus + " -> not available, pickupTime: " + oldPickup + " -> "
+			+ device.getPickupTime();
+		recordChange(device, actor, "ASSIGNED", "assignedTo", n(oldBooked), n(device.getBookedName()), notes);
 	}
 
 	@GET
@@ -238,6 +267,10 @@ public class DeviceResource extends Controller
 	public TemplateInstance edit(@PathParam("id") Long id)
 	{
 		Device device = deviceRepository.findById(id);
+		if (device == null)
+		{
+			throw new NotFoundException();
+		}
 		List<DeviceHistory> history = deviceHistoryRepository.forDevice(id);
 		return Templates.edit(device, loadKnownGroups(), history);
 	}
@@ -275,7 +308,8 @@ public class DeviceResource extends Controller
 		device.setStatus("available");
 		device.setCreatedOn(String.valueOf(LocalDateTime.now()));
 
-		device.setGroup(group);
+		String normalizedGroup = normalizeGroup(group);
+		device.setGroup(normalizedGroup);
 		device.setDeviceModel(deviceModel);
 		device.setExtraInfo(extraInfo);
 		device.setDeviceDamage(deviceDamage);
@@ -289,12 +323,12 @@ public class DeviceResource extends Controller
 		device.setDeviceLocation(deviceLocation);
 
 		deviceRepository.persist(device);
-		rememberGroup(group);
+		rememberGroup(normalizedGroup);
 
 		Member actor = currentMember();
 		String criteria = "deviceName=" + n(deviceName)
 			+ ", serial=" + n(deviceSerialNumber)
-			+ ", group=" + n(group)
+			+ ", group=" + n(normalizedGroup)
 			+ ", model=" + n(deviceModel)
 			+ ", damage=" + n(deviceDamage)
 			+ ", age=" + n(deviceAge)
@@ -350,7 +384,8 @@ public class DeviceResource extends Controller
 
 		recordIfChanged(device, actor, "deviceName", device.getDeviceName(), deviceName);
 		recordIfChanged(device, actor, "deviceSerialNumber", device.getDeviceSerialNumber(), deviceSerialNumber);
-		recordIfChanged(device, actor, "group", device.getGroup(), group);
+		String normalizedGroup = normalizeGroup(group);
+		recordIfChanged(device, actor, "group", device.getGroup(), normalizedGroup);
 		recordIfChanged(device, actor, "deviceModel", device.getDeviceModel(), deviceModel);
 		recordIfChanged(device, actor, "extraInfo", device.getExtraInfo(), extraInfo);
 		recordIfChanged(device, actor, "deviceDamage", device.getDeviceDamage(), deviceDamage);
@@ -365,7 +400,7 @@ public class DeviceResource extends Controller
 
 		device.setDeviceName(deviceName);
 		device.setDeviceSerialNumber(deviceSerialNumber);
-		device.setGroup(group);
+		device.setGroup(normalizedGroup);
 		device.setDeviceModel(deviceModel);
 		device.setExtraInfo(extraInfo);
 		device.setDeviceDamage(deviceDamage);
@@ -377,7 +412,7 @@ public class DeviceResource extends Controller
 		device.setDeviceRAM(deviceRAM);
 		device.setDeviceModelDate(deviceModelDate);
 		device.setDeviceLocation(deviceLocation);
-		rememberGroup(group);
+		rememberGroup(normalizedGroup);
 
 		LOG.info("Updated device: {} (id={})", deviceName, id);
 		flash(FlashKeys.SUCCESS, "Changes to \"" + deviceName + "\" were saved.");
@@ -450,17 +485,7 @@ public class DeviceResource extends Controller
 			{
 				continue;
 			}
-			String oldBooked = device.getBookedName();
-			String oldStatus = n(device.getStatus());
-			String oldPickup = device.getPickupTime() != null ? device.getPickupTime().toString() : "";
-
-			device.setAssignedTo(member);
-			device.setStatus("not available");
-			device.setPickupTime(LocalDateTime.now());
-
-			String notes = "status: " + oldStatus + " -> not available, pickupTime: " + oldPickup + " -> "
-				+ device.getPickupTime();
-			recordChange(device, actor, "ASSIGNED", "assignedTo", n(oldBooked), n(device.getBookedName()), notes);
+			assignTo(device, member, actor);
 			assigned++;
 		}
 		LOG.info("Assigned {} devices to {}", assigned, member.getUserName());
@@ -513,34 +538,18 @@ public class DeviceResource extends Controller
 		{
 			throw new NotFoundException();
 		}
-
-		Member actor = currentMember();
-		String oldBooked = device.getBookedName();
-		String oldStatus = n(device.getStatus());
-		String oldPickup = device.getPickupTime() != null ? device.getPickupTime().toString() : "";
 		Member member = memberRepository.findByUsername(assignedTo);
-
-		if (device.getAssignedTo() != null && device.getAssignedTo().equals(member))
+		if (member == null)
 		{
-			device.setAssignedTo(null);
-			device.setStatus("available");
-			device.setPickupTime(null);
+			LOG.warn("Refused to assign device {} to unknown member '{}'", id, assignedTo);
+			throw new BadRequestException("Unknown member: " + assignedTo);
 		}
-		else
+
+		if (!member.equals(device.getAssignedTo()))
 		{
-			device.setAssignedTo(member);
-			device.setStatus("not available");
-			device.setPickupTime(LocalDateTime.now());
+			assignTo(device, member, currentMember());
+			LOG.info("Device {} assigned to {}", id, member.getUserName());
 		}
-		String newBooked = device.getBookedName();
-		String newStatus = n(device.getStatus());
-		String newPickup = device.getPickupTime() != null ? device.getPickupTime().toString() : "";
-
-		String type = (newBooked == null || newBooked.isBlank()) ? "UNASSIGNED" : "ASSIGNED";
-		String notes = "status: " + oldStatus + " -> " + newStatus + ", pickupTime: " + oldPickup + " -> " + newPickup;
-		recordChange(device, actor, type, "assignedTo", n(oldBooked), n(newBooked), notes);
-
-		LOG.info("Device {} assignment changed: {} -> {}", id, n(oldBooked), n(newBooked));
 
 		return Templates.index$row(device, memberRepository.listAll());
 	}
@@ -576,9 +585,10 @@ public class DeviceResource extends Controller
 		return Templates.index$row(device, memberRepository.listAll());
 	}
 
+	/** True when the name has at least one letter or digit, in any script. */
 	private boolean hasVisibleCharacters(String value)
 	{
-		return value != null && value.matches(".*[a-zA-Z0-9а-яА-Я].*");
+		return value != null && value.codePoints().anyMatch(Character::isLetterOrDigit);
 	}
 
 	private String countOf(int count, String noun)

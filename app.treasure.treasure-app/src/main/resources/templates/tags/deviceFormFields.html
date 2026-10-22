@@ -93,6 +93,7 @@
     <div class="field">
       <label class="field-label" for="deviceDamage">Condition</label>
       <select class="field-input" id="deviceDamage" name="deviceDamage">
+        <option value="" {#if !device.deviceDamage}selected{/if}>Not recorded</option>
         <option value="perfect" {#if device.deviceDamage == 'perfect'}selected{/if}>Perfect</option>
         <option value="lightly damaged" {#if device.deviceDamage == 'lightly damaged'}selected{/if}>Lightly damaged</option>
         <option value="heavily damaged" {#if device.deviceDamage == 'heavily damaged'}selected{/if}>Heavily damaged</option>
