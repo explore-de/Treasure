@@ -41,7 +41,7 @@ This project is committed to providing a welcoming and inclusive environment for
 
 ## Development Setup
 
-The project uses Quarkus DevServices, which automatically starts required services (PostgreSQL, LocalStack S3, Keycloak) in containers. No manual setup required!
+The project uses Quarkus DevServices, which automatically starts required services (PostgreSQL, Keycloak, LocalStack) in containers. No manual setup required!
 
 ### Run in Development Mode
 
@@ -81,14 +81,13 @@ This starts the application with:
 
 ## Project Structure
 
-Treasure is a multi-module Maven project:
+Treasure is a single Maven project plus shared tooling:
 
 ```
 treasure/
-├── app.treasure.treasure-app/    # Main web application (Quarkus + Renarde)
-├── app.treasure.zugferd/         # ZugFerd e-invoice extraction service
-├── app.treasure.az-document-ai/  # Azure Document Intelligence service
-└── formatter/                 # Java code formatter configuration
+├── app.treasure.treasure-app/    # The web application (Quarkus + Renarde)
+├── formatter/                    # Java code formatter configuration
+└── .github/                      # CI workflows and Dependabot
 ```
 
 ### Main Application Structure
@@ -99,11 +98,12 @@ Feature-based package organization:
 app.treasure.<feature>/
 ├── api/          # Renarde controllers (web endpoints)
 ├── domain/       # JPA entities
-├── model/        # DTOs and input classes
+├── filter/       # Search / filter objects
 ├── repository/   # Data access layer
-├── service/      # Business logic
-└── workflow/     # Workflow tasks
+└── service/      # Business logic
 ```
+
+Current features: `dashboard`, `device`, `member`, `organization`, `shared`.
 
 ## Coding Standards
 
@@ -244,11 +244,11 @@ Longer description if needed with details about:
 
 **Example:**
 ```
-✨ (document): Add export to PDF functionality
+✨ (device): Add assignment filter
 
-- Implement PDF export using iText library
-- Add export button to document detail page
-- Include document metadata in PDF header
+- Add assignedTo filter to the device list
+- Show the filter chip in the advanced search panel
+- Cover the filter with a repository test
 ```
 
 ### Keep Your Fork Updated
@@ -345,4 +345,4 @@ Contributors with merged code are automatically added to the README using [All C
 
 **Thank you for contributing to Treasure!** 🎉
 
-Your contributions help make accounting easier for organizations worldwide.
+Your contributions help organizations keep track of their devices.
