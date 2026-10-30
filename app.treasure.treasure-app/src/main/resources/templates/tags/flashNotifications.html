@@ -1,17 +1,14 @@
+<div class="flash-stack" id="flashStack" aria-live="polite">
 {#if flash:success}
-  <cds-inline-notification
-    kind="success"
-    title="Erfolg"
-    subtitle="{flash:success}"
-    class="flash-notification">
-  </cds-inline-notification>
+  <cds-inline-notification kind="success" title="Done" subtitle="{flash:success}" low-contrast></cds-inline-notification>
 {/if}
-
 {#if flash:error}
-  <cds-inline-notification
-    kind="error"
-    title="Fehler"
-    subtitle="{flash:error}"
-    class="flash-notification">
-  </cds-inline-notification>
+  <cds-inline-notification kind="error" title="Something went wrong" subtitle="{flash:error}" low-contrast></cds-inline-notification>
 {/if}
+{#if flash:warning}
+  <cds-inline-notification kind="warning" title="Heads up" subtitle="{flash:warning}" low-contrast></cds-inline-notification>
+{/if}
+{#if flash:info}
+  <cds-inline-notification kind="info" title="Note" subtitle="{flash:info}" low-contrast></cds-inline-notification>
+{/if}
+</div>

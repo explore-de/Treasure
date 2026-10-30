@@ -22,7 +22,7 @@ This project is committed to providing a welcoming and inclusive environment for
 
 ### Prerequisites
 
-- **Java 21** - Required for building and running the application
+- **Java 25** - Required for building and running the application
 - **Maven** - Maven wrapper (`mvnw`) is included in the project
 - **Git** - For version control
 
@@ -41,7 +41,7 @@ This project is committed to providing a welcoming and inclusive environment for
 
 ## Development Setup
 
-The project uses Quarkus DevServices, which automatically starts required services (PostgreSQL, Keycloak, LocalStack) in containers. No manual setup required!
+The project uses Quarkus DevServices, which automatically starts required services (PostgreSQL, Keycloak) in containers. No manual setup required!
 
 ### Run in Development Mode
 
@@ -52,7 +52,7 @@ cd app.treasure.treasure-app
 
 This starts the application with:
 - Live reload on code changes
-- DevServices for PostgreSQL, S3 (LocalStack), and Keycloak
+- DevServices for PostgreSQL and Keycloak
 - Application at http://localhost:8080
 - Dev UI at http://localhost:8080/q/dev
 
@@ -103,7 +103,7 @@ app.treasure.<feature>/
 └── service/      # Business logic
 ```
 
-Current features: `dashboard`, `device`, `member`, `organization`, `shared`.
+Current features: `dashboard`, `device`, `member`, `shared`.
 
 ## Coding Standards
 
@@ -123,7 +123,7 @@ The formatter configuration is in `formatter/java.xml`. All code must pass valid
 
 ### Java Conventions
 
-- **Java 21** features are encouraged
+- **Java 25** features are encouraged
 - Use **SLF4J** for logging (never `System.out.println`)
 - Follow **feature-based packaging** structure
 - Prefer **constructor injection** over field injection

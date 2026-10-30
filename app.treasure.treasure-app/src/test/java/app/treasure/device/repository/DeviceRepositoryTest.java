@@ -31,7 +31,7 @@ class DeviceRepositoryTest
 		phone.setDeviceName("Phone");
 		deviceRepository.persist(phone);
 
-		List<Device> all = deviceRepository.findAllDevices();
+		List<Device> all = deviceRepository.listAll();
 
 		assertEquals(before + 2, all.size());
 	}

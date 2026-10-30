@@ -4,8 +4,6 @@ import java.util.Set;
 
 import app.treasure.member.domain.Member;
 import app.treasure.member.repository.MemberRepository;
-import app.treasure.organization.domain.Organization;
-import app.treasure.shared.security.OrganizationContext;
 import app.treasure.shared.security.Roles;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.context.RequestScoped;
@@ -22,9 +20,6 @@ public class UserContext
 {
 	@Inject
 	SecurityIdentity securityIdentity;
-
-	@Inject
-	OrganizationContext organizationContext;
 
 	@Inject
 	MemberRepository memberRepository;
@@ -75,26 +70,5 @@ public class UserContext
 	public boolean isSuperAdmin()
 	{
 		return hasRole(Roles.SUPER_ADMIN);
-	}
-
-	/**
-	 * Gets the current organization for the authenticated user.
-	 *
-	 * @return The current organization, or null if not available
-	 */
-	public Organization getCurrentOrganization()
-	{
-		return organizationContext.getCurrentOrganization();
-	}
-
-	/**
-	 * Gets the display name of the current organization.
-	 *
-	 * @return The organization display name, or null if not available
-	 */
-	public String getCurrentOrganizationName()
-	{
-		Organization org = getCurrentOrganization();
-		return org != null ? org.getDisplayName() : null;
 	}
 }

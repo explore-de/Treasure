@@ -1,0 +1,120 @@
+{@app.treasure.device.domain.Device device}
+{@java.util.List<String> groups}
+<div class="form-section">
+  <h2 class="form-section-title">Basics</h2>
+  <p class="form-section-hint">How the device appears in the list. Only the name is required.</p>
+  <div class="form-grid">
+    <div class="field span-2">
+      <label class="field-label" for="deviceName">Device name <span class="required" aria-hidden="true">*</span></label>
+      <input class="field-input" type="text" id="deviceName" name="deviceName" maxlength="50" required
+             autocomplete="off" placeholder="e.g. MacBook Pro 14" value="{device.deviceName ?: ''}">
+      <span class="field-error">A device name is required.</span>
+    </div>
+    <div class="field">
+      <label class="field-label" for="deviceSerialNumber">Serial number</label>
+      <input class="field-input" type="text" id="deviceSerialNumber" name="deviceSerialNumber" maxlength="50"
+             autocomplete="off" placeholder="e.g. C02XK1ABJG5H" value="{device.deviceSerialNumber ?: ''}">
+    </div>
+    <div class="field">
+      <label class="field-label" for="deviceNumber">Inventory number</label>
+      <input class="field-input" type="text" id="deviceNumber" name="deviceNumber" maxlength="30"
+             autocomplete="off" placeholder="e.g. LT-001" value="{device.deviceNumber ?: ''}">
+      <span class="field-hint">Your own internal number for this device.</span>
+    </div>
+    <div class="field">
+      <label class="field-label" for="group">Group</label>
+      <input class="field-input" type="text" id="group" name="group" maxlength="50" list="groupOptions"
+             placeholder="e.g. Laptops" value="{device.group ?: ''}">
+      <datalist id="groupOptions">
+        {#for g in groups}
+        <option value="{g}"></option>
+        {/for}
+      </datalist>
+      {#if groups.isEmpty}
+      <span class="field-hint">No groups yet. The first one you type creates it; groups can be filtered in the list.</span>
+      {#else}
+      <span class="field-hint">Type a new group or pick one you already use:</span>
+      <div class="group-chips" aria-label="Existing groups">
+        {#for g in groups}
+        <button type="button" class="chip chip-button" data-group="{g}">{g}</button>
+        {/for}
+      </div>
+      {/if}
+    </div>
+    <div class="field">
+      <label class="field-label" for="deviceModel">Model</label>
+      <input class="field-input" type="text" id="deviceModel" name="deviceModel" maxlength="80"
+             autocomplete="off" placeholder="e.g. A2779" value="{device.deviceModel ?: ''}">
+    </div>
+  </div>
+</div>
+
+<div class="form-section">
+  <h2 class="form-section-title">Hardware</h2>
+  <p class="form-section-hint">Specifications, useful when someone needs a device with a certain spec.</p>
+  <div class="form-grid">
+    <div class="field">
+      <label class="field-label" for="deviceProzessor">Processor</label>
+      <input class="field-input" type="text" id="deviceProzessor" name="deviceProzessor" maxlength="30"
+             autocomplete="off" placeholder="e.g. Apple M2 Pro" value="{device.deviceProzessor ?: ''}">
+    </div>
+    <div class="field">
+      <label class="field-label" for="deviceRAM">Memory (RAM)</label>
+      <input class="field-input" type="text" id="deviceRAM" name="deviceRAM" maxlength="30"
+             autocomplete="off" placeholder="e.g. 16 GB" value="{device.deviceRAM ?: ''}">
+    </div>
+    <div class="field">
+      <label class="field-label" for="deviceHDDStorage">Storage</label>
+      <input class="field-input" type="text" id="deviceHDDStorage" name="deviceHDDStorage" maxlength="30"
+             autocomplete="off" placeholder="e.g. 1 TB SSD" value="{device.deviceHDDStorage ?: ''}">
+    </div>
+    <div class="field">
+      <label class="field-label" for="deviceModelDate">Model year</label>
+      <input class="field-input" type="number" id="deviceModelDate" name="deviceModelDate" min="1980" max="2100" step="1"
+             autocomplete="off" placeholder="e.g. 2023" value="{device.deviceModelDate ?: ''}">
+      <span class="field-hint">When this model was released.</span>
+    </div>
+  </div>
+</div>
+
+<div class="form-section">
+  <h2 class="form-section-title">Purchase and condition</h2>
+  <div class="form-grid">
+    <div class="field">
+      <label class="field-label" for="deviceAge">Purchased on</label>
+      <input class="field-input" type="date" id="deviceAge" name="deviceAge"
+             autocomplete="off" value="{device.deviceAge ?: ''}">
+    </div>
+    <div class="field">
+      <label class="field-label" for="regCompany">Owning company</label>
+      <input class="field-input" type="text" id="regCompany" name="regCompany" maxlength="30"
+             autocomplete="off" placeholder="e.g. EXP Software" value="{device.regCompany ?: ''}">
+    </div>
+    <div class="field">
+      <label class="field-label" for="deviceDamage">Condition</label>
+      <select class="field-input" id="deviceDamage" name="deviceDamage">
+        <option value="" {#if !device.deviceDamage}selected{/if}>Not recorded</option>
+        <option value="perfect" {#if device.deviceDamage == 'perfect'}selected{/if}>Perfect</option>
+        <option value="lightly damaged" {#if device.deviceDamage == 'lightly damaged'}selected{/if}>Lightly damaged</option>
+        <option value="heavily damaged" {#if device.deviceDamage == 'heavily damaged'}selected{/if}>Heavily damaged</option>
+        <option value="broken" {#if device.deviceDamage == 'broken'}selected{/if}>Broken</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="form-section">
+  <h2 class="form-section-title">Location and notes</h2>
+  <div class="form-grid">
+    <div class="field">
+      <label class="field-label" for="deviceLocation">Storage location</label>
+      <textarea class="field-input" id="deviceLocation" name="deviceLocation" maxlength="500" rows="3"
+                placeholder="e.g. Room 1, locker 2">{device.deviceLocation ?: ''}</textarea>
+    </div>
+    <div class="field">
+      <label class="field-label" for="extraInfo">Notes</label>
+      <textarea class="field-input" id="extraInfo" name="extraInfo" maxlength="500" rows="3"
+                placeholder="Anything the next person should know">{device.extraInfo ?: ''}</textarea>
+    </div>
+  </div>
+</div>

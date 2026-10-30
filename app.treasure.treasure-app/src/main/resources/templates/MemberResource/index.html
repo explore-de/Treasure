@@ -1,0 +1,92 @@
+{#include main.html}
+{#title}Members{/title}
+
+<div class="page-head">
+  <div>
+    <h1>Members</h1>
+    <p class="page-meta">
+      {rows.size} {#if rows.size == 1}member{#else}members{/if} · {heldTotal} {#if heldTotal == 1}device{#else}devices{/if} held
+    </p>
+  </div>
+  <div class="page-head-actions">
+    <a href="/devices?status=available" class="btn btn-secondary">Available devices ({available.size})</a>
+  </div>
+</div>
+
+<div class="table-card">
+  {#if rows.isEmpty}
+  <div class="empty-state">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+    <h2>No members here</h2>
+    <p>Members appear when a Keycloak user signs in for the first time.</p>
+  </div>
+  {#else}
+  <table class="device-table">
+    <thead>
+      <tr>
+        <th>Member</th>
+        <th>Devices held</th>
+        <th class="col-actions"><span class="sr-only">Actions</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {#for row in rows}
+      <tr>
+        <td>
+          <div class="person">
+            <span class="avatar" aria-hidden="true">{row.member.initials}</span>
+            <div>
+              <div class="person-name">{row.member.displayName}</div>
+              <div class="person-sub">{row.member.userName}{#if row.member.email} · {row.member.email}{/if}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          {#if row.devices.isEmpty}
+          <span class="muted">—</span>
+          {#else}
+          <div class="chips chips-inline">
+            {#for d in row.devices}
+            <span class="chip chip-device">
+              <a href="/devices/{d.id}/edit" title="Since {d.formattedPickupTime}">{d.deviceName}</a>
+              <form method="post" action="/devices/unassign-many">
+                {#authenticityToken /}
+                <input type="hidden" name="ids" value="{d.id}">
+                <input type="hidden" name="redirectUrl" value="/members">
+                <button type="submit" title="Unassign {d.deviceName}" aria-label="Unassign {d.deviceName}">×</button>
+              </form>
+            </span>
+            {/for}
+          </div>
+          {/if}
+        </td>
+        <td class="col-actions">
+          <form method="post" action="/devices/assign-many" class="menu-wrap">
+            {#authenticityToken /}
+            <input type="hidden" name="ids">
+            <input type="hidden" name="redirectUrl" value="/members">
+            <input type="hidden" name="assignedTo" value="{row.member.userName}">
+            <button type="button" class="btn btn-secondary btn-sm" data-menu="assignMenu-member-{row.member.id}" aria-haspopup="menu" aria-expanded="false">
+              Assign device
+              <svg class="caret" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="menu" id="assignMenu-member-{row.member.id}" role="menu">
+              <div class="menu-title">Available devices</div>
+              {#if available.isEmpty}
+              <div class="menu-empty">Nothing is available right now.</div>
+              {#else}
+              {#for d in available}
+              <button type="button" role="menuitem" data-pick-name="ids" data-pick-value="{d.id}">{d.deviceName}</button>
+              {/for}
+              {/if}
+            </div>
+          </form>
+        </td>
+      </tr>
+      {/for}
+    </tbody>
+  </table>
+  {/if}
+</div>
+
+{/include}

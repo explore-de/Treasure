@@ -3,8 +3,6 @@ package app.treasure.shared.bootstrap;
 import app.treasure.member.domain.Member;
 import app.treasure.member.repository.MemberRepository;
 import app.treasure.member.service.KeycloakAdminService;
-import app.treasure.organization.domain.Organization;
-import app.treasure.organization.repository.OrganizationRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -14,12 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Bootstrap service that ensures the application has the necessary initial
- * data: organizations and users with Member records.
+ * data: users with Member records.
  */
 @ApplicationScoped
 public class BootstrapService
@@ -27,33 +24,10 @@ public class BootstrapService
 	private static final Logger LOG = LoggerFactory.getLogger(BootstrapService.class);
 
 	@Inject
-	OrganizationRepository organizationRepository;
-
-	@Inject
 	MemberRepository memberRepository;
 
 	@Inject
 	KeycloakAdminService keycloakAdminService;
-
-	// Organization A config
-	@ConfigProperty(name = "treasure.bootstrap.org-a.name")
-	String orgAName;
-
-	@ConfigProperty(name = "treasure.bootstrap.org-a.slug")
-	String orgASlug;
-
-	@ConfigProperty(name = "treasure.bootstrap.org-a.display-name")
-	String orgADisplayName;
-
-	// Organization B config
-	@ConfigProperty(name = "treasure.bootstrap.org-b.name")
-	String orgBName;
-
-	@ConfigProperty(name = "treasure.bootstrap.org-b.slug")
-	String orgBSlug;
-
-	@ConfigProperty(name = "treasure.bootstrap.org-b.display-name")
-	String orgBDisplayName;
 
 	// User 1: Super Admin config
 	@ConfigProperty(name = "treasure.bootstrap.users.admin.username")
@@ -71,9 +45,6 @@ public class BootstrapService
 	@ConfigProperty(name = "treasure.bootstrap.users.admin.roles")
 	List<String> adminRoles;
 
-	@ConfigProperty(name = "treasure.bootstrap.users.admin.organization")
-	String adminOrganization;
-
 	// User 2: Maria config
 	@ConfigProperty(name = "treasure.bootstrap.users.maria.username")
 	String mariaUsername;
@@ -89,9 +60,6 @@ public class BootstrapService
 
 	@ConfigProperty(name = "treasure.bootstrap.users.maria.roles")
 	List<String> mariaRoles;
-
-	@ConfigProperty(name = "treasure.bootstrap.users.maria.organization")
-	String mariaOrganization;
 
 	// User 3: Thomas config
 	@ConfigProperty(name = "treasure.bootstrap.users.thomas.username")
@@ -109,29 +77,9 @@ public class BootstrapService
 	@ConfigProperty(name = "treasure.bootstrap.users.thomas.roles")
 	List<String> thomasRoles;
 
-	@ConfigProperty(name = "treasure.bootstrap.users.thomas.organization")
-	String thomasOrganization;
-
 	private record UserConfig(String username, String email, String firstName, String lastName,
-		List<String> roles, String organizationSlug)
+		List<String> roles)
 	{
-	}
-
-	@Transactional
-	public List<Organization> bootstrapOrganizations()
-	{
-		LOG.info("Bootstrapping organizations...");
-
-		List<Organization> orgs = new ArrayList<>();
-
-		Organization orgA = ensureOrganization(orgASlug, orgAName, orgADisplayName);
-		orgs.add(orgA);
-
-		Organization orgB = ensureOrganization(orgBSlug, orgBName, orgBDisplayName);
-		orgs.add(orgB);
-
-		LOG.info("Bootstrapped {} organizations", orgs.size());
-		return orgs;
 	}
 
 	@Transactional
@@ -139,12 +87,10 @@ public class BootstrapService
 	{
 		LOG.info("Bootstrapping users...");
 
-		List<UserConfig> users = List.of(new UserConfig(adminUsername, adminEmail, adminFirstName,
-			adminLastName, adminRoles, adminOrganization),
-			new UserConfig(mariaUsername, mariaEmail, mariaFirstName, mariaLastName, mariaRoles,
-				mariaOrganization),
-			new UserConfig(thomasUsername, thomasEmail, thomasFirstName, thomasLastName, thomasRoles,
-				thomasOrganization));
+		List<UserConfig> users = List.of(
+			new UserConfig(adminUsername, adminEmail, adminFirstName, adminLastName, adminRoles),
+			new UserConfig(mariaUsername, mariaEmail, mariaFirstName, mariaLastName, mariaRoles),
+			new UserConfig(thomasUsername, thomasEmail, thomasFirstName, thomasLastName, thomasRoles));
 
 		for (UserConfig userConfig : users)
 		{
@@ -156,14 +102,6 @@ public class BootstrapService
 
 	private void bootstrapUser(UserConfig config)
 	{
-		Organization org = organizationRepository.findBySlug(config.organizationSlug());
-		if (org == null)
-		{
-			LOG.error("Cannot bootstrap user {} - organization '{}' not found", config.username(),
-				config.organizationSlug());
-			return;
-		}
-
 		Member existingMember = memberRepository.findByUsername(config.username());
 		if (existingMember != null)
 		{
@@ -178,7 +116,7 @@ public class BootstrapService
 			return;
 		}
 
-		createIfNotExisting(config, org, keycloakUserId);
+		createIfNotExisting(config, keycloakUserId);
 	}
 
 	private String findOrCreateKeycloakUser(UserConfig config, int maxRetries)
@@ -247,7 +185,7 @@ public class BootstrapService
 	}
 
 	@Transactional(TxType.REQUIRES_NEW)
-	void createIfNotExisting(UserConfig config, Organization org, String keycloakUserId)
+	void createIfNotExisting(UserConfig config, String keycloakUserId)
 	{
 		Member existingByUsername = memberRepository.findByUsername(config.username());
 		if (existingByUsername != null)
@@ -263,8 +201,7 @@ public class BootstrapService
 			newMember.setEmail(config.email());
 			newMember.setFirstName(config.firstName());
 			newMember.setLastName(config.lastName());
-			newMember.setOrganization(org);
-			newMember.setKeycloakUserId(keycloakUserId);
+			newMember.setSubject(keycloakUserId);
 
 			newMember.setInviteType("BOOTSTRAP");
 			newMember.setJoinedAt(Instant.now());
@@ -289,24 +226,5 @@ public class BootstrapService
 				throw e;
 			}
 		}
-	}
-
-	private Organization ensureOrganization(String slug, String name, String displayName)
-	{
-		Organization org = organizationRepository.findBySlug(slug);
-		if (org != null)
-		{
-			LOG.debug("Organization already exists: {}", org.getName());
-			return org;
-		}
-
-		org = new Organization();
-		org.setName(name);
-		org.setSlug(slug);
-		org.setDisplayName(displayName);
-		organizationRepository.persist(org);
-
-		LOG.info("Created organization: {} (slug: {})", org.getName(), org.getSlug());
-		return org;
 	}
 }

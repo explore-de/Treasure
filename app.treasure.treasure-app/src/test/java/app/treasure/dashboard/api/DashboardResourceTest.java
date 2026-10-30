@@ -13,13 +13,23 @@ class DashboardResourceTest
 {
 	@Test
 	@TestSecurity(user = "maria", roles = "user")
-	void shouldRedirectRootToDevices()
+	void shouldShowOverview()
+	{
+		given()
+			.when().get("/")
+			.then()
+			.statusCode(200)
+			.body(containsString("Overview"))
+			.body(containsString("Devices per group"));
+	}
+
+	@Test
+	void shouldRequireLogin()
 	{
 		given()
 			.redirects().follow(false)
 			.when().get("/")
 			.then()
-			.statusCode(303)
-			.header("Location", containsString("/devices"));
+			.statusCode(302);
 	}
 }

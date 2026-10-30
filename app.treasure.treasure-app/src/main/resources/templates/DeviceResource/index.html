@@ -1,937 +1,283 @@
 {#include main.html}
 {#title}Devices{/title}
-<div class="top-list-buttons">
-    <a href="/devices/new" style="text-decoration: none;">
-        <button class="btn-primary">
-            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"
-                 style="position: relative;">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-            </svg>
-            New device
-        </button>
+
+<div class="page-head">
+  <div>
+    <h1>Devices</h1>
+    <p class="page-meta">{devices.size} {#if devices.size == 1}device{#else}devices{/if} in this list</p>
+  </div>
+  <div class="page-head-actions">
+    <a href="/devices/new" class="btn btn-primary">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+      New device
     </a>
-    <div class="search-wrap" style="position: relative;">
-        <form method="get" action="/devices" id="quickSearchForm">
-            <input type="text" class="search" id="quickSearchInput" placeholder="Search for Name"
-                   style="padding-left: 40px;">
-            <button type="button" class="search-clean" onclick="clearSearch()">
-                <svg width="40" height="50" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                     style="justify-content: center; align-items: center; padding-bottom: 0">
-                    <path d="M8 8L16 16" stroke="gray" stroke-width="1.5" stroke-linecap="round"
-                          stroke-linejoin="round"/>
-                    <path d="M16 8L8 16" stroke="gray" stroke-width="1.5" stroke-linecap="round"
-                          stroke-linejoin="round"/>
-                </svg>
-            </button>
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 style="position: absolute; left: 10px; bottom: 30%; pointer-events: none;" fill="none" width="22"
-                 height="22" viewBox="0 0 24 24" stroke-width="2" stroke="gray">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
-            </svg>
-        </form>
-    </div>
-    <button type="button" class="dropdown-btn" id="advancedToggle"
-            aria-expanded="false" aria-controls="advancedSearchRow">
-        Advanced Search
+  </div>
+</div>
+
+<div class="toolbar">
+  <form method="get" action="/devices" class="search-form" id="quickSearchForm" role="search">
+    <svg class="search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+    <input type="search" class="search-input" id="quickSearchInput" name="name" autocomplete="off"
+           placeholder="Search by name and press Enter" aria-label="Search devices by name">
+    <button type="button" class="search-clear" id="quickSearchClear" aria-label="Clear search">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
     </button>
-    <div class="bulk-actions" id="bulkActions">
-        <form id="bulkAssignForm" method="post" action="/devices/assign-many" style="display:inline-block;">
-            {#authenticityToken /}
-            <input type="hidden" name="ids" id="bulkAssignIds">
-            <input type="hidden" name="redirectUrl" id="bulkAssignRedirect">
-            <input type="hidden" name="assignedTo" id="bulkAssignAssignedTo">
+  </form>
+  <button type="button" class="btn btn-secondary" id="filterToggle" aria-expanded="false" aria-controls="filterPanel">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18l-7 8v6l-4 2v-8L3 4z"/></svg>
+    Filters
+    <span class="filter-count" id="filterCount"></span>
+  </button>
+</div>
 
-            <div class="assign-wrap" style="display:inline-block;">
-                <button type="button" class="btn-bulk-assign" onclick="toggleDropdown('bulkAssignDropdown')">
-                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                         stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                    </svg>
-                    Assign selected
-                </button>
+<section class="filter-panel" id="filterPanel" aria-label="Filters">
+  <div class="filter-grid">
+    <label>Name <input type="text" data-filter="name" placeholder="e.g. MacBook"></label>
+    <label>Status
+      <select data-filter="status">
+        <option value="">Any</option>
+        <option value="available">Available</option>
+        <option value="not available">Not available</option>
+      </select>
+    </label>
+    <label>Assigned to <input type="text" data-filter="assignedTo" placeholder="e.g. Maria"></label>
+    <label>Group <input type="text" data-filter="group" placeholder="e.g. Laptops"></label>
+    <label>Serial number <input type="text" data-filter="serial" placeholder="e.g. C02"></label>
+    <label>Inventory number <input type="text" data-filter="deviceNumber" placeholder="e.g. LT-001"></label>
+    <label>Model <input type="text" data-filter="model" placeholder="e.g. A2779"></label>
+    <label>Condition
+      <select data-filter="damage">
+        <option value="">Any</option>
+        <option value="perfect">Perfect</option>
+        <option value="lightly damaged">Lightly damaged</option>
+        <option value="heavily damaged">Heavily damaged</option>
+        <option value="broken">Broken</option>
+      </select>
+    </label>
+    <label>Owning company <input type="text" data-filter="company" placeholder="e.g. EXP Software"></label>
+    <label>Processor <input type="text" data-filter="deviceProzessor" placeholder="e.g. M2"></label>
+    <label>Memory (RAM) <input type="text" data-filter="deviceRAM" placeholder="e.g. 16 GB"></label>
+    <label>Storage <input type="text" data-filter="deviceHDDStorage" placeholder="e.g. 1 TB"></label>
+    <label>Model year <input type="text" data-filter="deviceModelDate" placeholder="e.g. 2023"></label>
+  </div>
+  <div class="filter-actions">
+    <button type="button" class="btn btn-primary btn-sm" id="applyFilters">Apply filters</button>
+    <button type="button" class="btn btn-ghost btn-sm" id="clearFilters">Clear all</button>
+    <span class="hint">A device must match every active filter.</span>
+  </div>
+</section>
 
-                <div class="assign-dropdown" id="bulkAssignDropdown" style="display:none">
-                    {#for member in members}
-                    <div onclick="
-                    updateBulkActions();
-                    document.getElementById('bulkAssignAssignedTo').value='{member.userName}';
-                    document.getElementById('bulkAssignForm').submit();
-                    ">
-                        {member.firstName} {member.lastName}
-                    </div>
-                    {/for}
-                </div>
-            </div>
-        </form>
+<div class="chips" id="activeFilters" hidden>
+  <span class="muted">Filtered by</span>
+  <span class="chip-list" id="chipList"></span>
+  <button type="button" class="btn btn-ghost btn-sm" id="clearChips">Clear all</button>
+</div>
 
-        <form id="bulkUnassignForm" method="post" action="/devices/unassign-many"
-              style="display:inline-block; margin-left:10px;">
-            {#authenticityToken /}
-            <input type="hidden" name="ids" id="bulkUnassignIds">
-            <input type="hidden" name="redirectUrl" id="bulkUnassignRedirect">
-            <button type="submit" class="btn-bulk-unassign">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                     stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M22 11h-6m-3-4a4 4 0 11-8 0 4 4 0 018 0zM2 20a6 6 0 0112 0v1H2v-1z"/>
-                </svg>
-                Unassign selected
-            </button>
-        </form>
-
-        <form id="bulkDeleteForm" method="post" action="/devices/delete-many"
-              style="display:inline-block; margin-left:10px;"
-              onsubmit="return confirmBulkDelete();">
-            {#authenticityToken /}
-            <input type="hidden" name="ids" id="bulkDeleteIds">
-            <input type="hidden" name="redirectUrl" id="bulkDeleteRedirect">
-            <button type="submit" class="btn-bulk-delete">
-                Delete selected
-            </button>
-        </form>
+<div class="bulk-bar" id="bulkBar" role="region" aria-label="Actions for selected devices">
+  <span class="bulk-count"><span id="bulkCount">0</span> selected</span>
+  <form method="post" action="/devices/assign-many" id="bulkAssignForm" class="menu-wrap">
+    {#authenticityToken /}
+    <input type="hidden" name="ids">
+    <input type="hidden" name="redirectUrl">
+    <input type="hidden" name="assignedTo">
+    <button type="button" class="btn btn-secondary btn-sm" data-menu="bulkAssignMenu" aria-haspopup="menu" aria-expanded="false">
+      Assign to
+      <svg class="caret" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+    </button>
+    <div class="menu" id="bulkAssignMenu" role="menu">
+      <div class="menu-title">Members</div>
+      {#for member in members}
+      <button type="button" role="menuitem" data-assign="{member.userName}">{member.firstName} {member.lastName}</button>
+      {/for}
     </div>
+  </form>
+  <form method="post" action="/devices/unassign-many" id="bulkUnassignForm">
+    {#authenticityToken /}
+    <input type="hidden" name="ids">
+    <input type="hidden" name="redirectUrl">
+    <button type="submit" class="btn btn-secondary btn-sm">Unassign</button>
+  </form>
+  <form method="post" action="/devices/delete-many" id="bulkDeleteForm" data-confirm="bulk">
+    {#authenticityToken /}
+    <input type="hidden" name="ids">
+    <input type="hidden" name="redirectUrl">
+    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+  </form>
+  <button type="button" class="btn btn-ghost btn-sm push-right" id="clearSelection">Clear selection</button>
 </div>
-<div class="advanced-search-row" id="advancedSearchRow">
-    <div class="advanced-search-panel">
-        <div class="adv-grid">
-            <div class="tag-creator">
-                <label>Name: </label>
-                <input type="text" id="advName" placeholder="e.g. MacBook"/>
-                <button type="button" class="tag-creator-add" id="addNameBtn">Add</button>
-            </div>
-            <div class="tag-creator">
-                <label>Status: </label>
-                <select id="advStatus">
-                    <option value="">--</option>
-                    <option value="available">available</option>
-                    <option value="not available">not available</option>
-                </select>
-                <button type="button" class="tag-creator-add" id="addStatusBtn">Add</button>
-            </div>
-            <div class="tag-creator">
-                <label>Assigned To: </label>
-                <input type="text" id="advAssignedTo" placeholder="e.g. Max">
-                <button type="button" class="tag-creator-add" id="addAssignedToBtn">Add</button>
-            </div>
-            <div class="tag-creator">
-                <label>Serial Number: </label>
-                <input type="text" id="advSerial" placeholder="e.g. C02...">
-                <button type="button" class="tag-creator-add" id="addSerialBtn">Add</button>
-            </div>
-            <div class="tag-creator">
-                <label>Group: </label>
-                <input type="text" id="advGroup" placeholder="e.g. Apple">
-                <button type="button" class="tag-creator-add" id="addGroupBtn">Add</button>
-            </div>
-            <div class="tag-creator">
-                <label>Model: </label>
-                <input type="text" id="advModel" placeholder="e.g. A1708">
-                <button type="button" class="tag-creator-add" id="addModelBtn">Add</button>
-            </div>
-            <div class="tag-creator">
-                <label>Damage: </label>
-                <select id="advDamage">
-                    <option value="" selected>--</option>
-                    <option value="perfect">perfect</option>
-                    <option value="lightly damaged">lightly damaged</option>
-                    <option value="heavily damaged">heavily damaged</option>
-                    <option value="broken">broken</option>
-                </select>
-                <button type="button" class="tag-creator-add" id="addDamageBtn">Add</button>
-            </div>
-            <div class="tag-creator">
-                <label>Company: </label>
-                <input type="text" id="advCompany" placeholder="e.g. EXP Software">
-                <button type="button" class="tag-creator-add" id="addCompanyBtn">Add</button>
-            </div>
-            <div class="tag-creator">
-                <label>Device Number: </label>
-                <input type="text" id="advDeviceNumber" placeholder="e.g. LG7HF3X2R0">
-                <button type="button" class="tag-creator-add" id="addDeviceNumberBtn">Add</button>
-            </div>
-            <div class="tag-creator">
-                <label>Device Prozessor: </label>
-                <input type="text" id="advDeviceProzessor" placeholder="e.g. Apple M1 Pro">
-                <button type="button" class="tag-creator-add" id="addDeviceProzessorBtn">Add</button>
-            </div>
-            <div class="tag-creator">
-                <label>Device HDD Storage: </label>
-                <input type="text" id="advDeviceHDDStorage" placeholder="e.g. 1024GB">
-                <button type="button" class="tag-creator-add" id="addDeviceHDDStorageBtn">Add</button>
-            </div>
-            <div class="tag-creator">
-                <label>Device RAM: </label>
-                <input type="text" id="advDeviceRAM" placeholder="e.g. 16GB">
-                <button type="button" class="tag-creator-add" id="addDeviceRAMBtn">Add</button>
-            </div>
-            <div class="tag-creator">
-                <label>Device Model Date: </label>
-                <input type="text" id="advDeviceModelDate" placeholder="e.g. 2021-10-18">
-                <button type="button" class="tag-creator-add" id="addDeviceModelDateBtn">Add</button>
-            </div>
-        </div>
+
+<div class="table-card">
+  {#if devices.isEmpty}
+  <div class="empty-state" id="emptyNone">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+    <h2>No devices yet</h2>
+    <p>Add your first device to start tracking who has it.</p>
+    <a href="/devices/new" class="btn btn-primary">New device</a>
+  </div>
+  <div class="empty-state" id="emptyFiltered" hidden>
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+    <h2>No devices match these filters</h2>
+    <p>Try removing a filter or searching for a different name.</p>
+    <button type="button" class="btn btn-secondary" id="clearFromEmpty" data-clear-filters>Clear all filters</button>
+  </div>
+  {#else}
+  <table class="device-table">
+    <thead>
+      <tr>
+        <th class="col-select"><input type="checkbox" class="checkbox" id="selectAll" aria-label="Select all devices"></th>
+        <th>Name</th>
+        <th>Status</th>
+        <th>Assigned to</th>
+        <th class="col-optional">Pickup time</th>
+        <th class="col-optional">Group</th>
+        <th class="col-actions"><span class="sr-only">Actions</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {#for device in devices}
+      {#fragment id=row}
+      <tr id="device-row-{device.id}">
+        <td class="col-select">
+          <input type="checkbox" class="checkbox row-select" data-id="{device.id}" aria-label="Select {device.deviceName}">
+        </td>
+        <td>
+          <button type="button" class="device-name" title="Show details"
+                  data-details
+                  data-id="{device.id}"
+                  data-name="{device.deviceName ?: ''}"
+                  data-status="{device.status ?: ''}"
+                  data-assigned="{device.bookedName}"
+                  data-pickup="{device.formattedPickupTime}"
+                  data-group="{device.group ?: ''}"
+                  data-serial="{device.deviceSerialNumber ?: ''}"
+                  data-number="{device.deviceNumber ?: ''}"
+                  data-model="{device.deviceModel ?: ''}"
+                  data-modeldate="{device.deviceModelDate ?: ''}"
+                  data-prozessor="{device.deviceProzessor ?: ''}"
+                  data-ram="{device.deviceRAM ?: ''}"
+                  data-hdd="{device.deviceHDDStorage ?: ''}"
+                  data-damage="{device.deviceDamage ?: ''}"
+                  data-age="{device.formattedDeviceAge}"
+                  data-company="{device.regCompany ?: ''}"
+                  data-location="{device.deviceLocation ?: ''}"
+                  data-created="{device.formattedCreatedOn}"
+                  data-extra="{device.extraInfo ?: ''}">{device.deviceName}</button>
+          {#if device.deviceSerialNumber}<span class="device-serial">{device.deviceSerialNumber}</span>{/if}
+        </td>
+        <td>
+          {#if device.status == 'available'}
+          <span class="badge badge-available"><span class="badge-dot"></span>Available</span>
+          {#else}
+          <span class="badge badge-unavailable"><span class="badge-dot"></span>Not available</span>
+          {/if}
+        </td>
+        <td>{#if device.assignedTo != null}{device.bookedName}{#else}<span class="muted">—</span>{/if}</td>
+        <td class="col-optional">{#if device.pickupTime != null}{device.formattedPickupTime}{#else}<span class="muted">—</span>{/if}</td>
+        <td class="col-optional">{#if device.group}{device.group}{#else}<span class="muted">—</span>{/if}</td>
+        <td class="col-actions">
+          <div class="row-actions">
+            {#if device.assignedTo != null}
+            <form method="post" action="/devices/{device.id}/unassign"
+                  hx-post="/devices/{device.id}/unassign" hx-target="closest tr" hx-swap="outerHTML">
+              {#authenticityToken /}
+              <button type="submit" class="btn btn-secondary btn-sm">Unassign</button>
+            </form>
+            {#else}
+            <form method="post" action="/devices/{device.id}/assign" class="menu-wrap"
+                  hx-post="/devices/{device.id}/assign" hx-target="closest tr" hx-swap="outerHTML">
+              {#authenticityToken /}
+              <input type="hidden" name="assignedTo">
+              <button type="button" class="btn btn-primary btn-sm" data-menu="assignMenu-{device.id}" aria-haspopup="menu" aria-expanded="false">
+                Assign
+                <svg class="caret" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+              </button>
+              <div class="menu" id="assignMenu-{device.id}" role="menu">
+                <div class="menu-title">Assign to</div>
+                {#for member in members}
+                <button type="button" role="menuitem" data-assign="{member.userName}">{member.firstName} {member.lastName}</button>
+                {/for}
+              </div>
+            </form>
+            {/if}
+            <a href="/devices/{device.id}/edit" class="btn btn-ghost btn-icon" title="Edit" aria-label="Edit {device.deviceName}">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            </a>
+            <form method="post" action="/devices/{device.id}/delete" data-confirm="single" data-device-name="{device.deviceName}">
+              {#authenticityToken /}
+              <input type="hidden" name="redirectUrl">
+              <button type="submit" class="btn btn-danger btn-icon" title="Delete" aria-label="Delete {device.deviceName}">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {/fragment}
+      {/for}
+    </tbody>
+  </table>
+  {/if}
+</div>
+
+<dialog id="detailsDialog" class="modal" aria-labelledby="detailsTitle">
+  <div class="modal-head">
+    <div>
+      <div class="modal-eyebrow">Device details</div>
+      <h2 class="modal-title" id="detailsTitle" data-field="name"></h2>
     </div>
-</div>
-<div class="tagbar" id="tagbar" hidden>
-    <div class="taglist" id="taglist"></div>
-    <button type="button" class="tag" id="clearFiltersBtn">Clear</button>
-</div>
-<div class="table-wrap" style="margin-top: 10px;">
-    <table>
-        <thead>
-        <tr>
-            <th class="select"></th>
-            <th class="name-table">Name</th>
-            <th>Status</th>
-            <th>Assigned To</th>
-            <th>Pickup time</th>
-            <th>Group</th>
-            <th class="empty-table"></th>
-        </tr>
-        </thead>
-        <tbody>
-        {#for device in devices}
-        {#fragment id=row}
-        <tr id="device-row-{device.id}">
-            <td class="select-checkbox">
-                <input data-id="{device.id}" class="checkbox" type="checkbox" onclick="">
-                {#authenticityToken /}
-                </td>
-            <td class="td-deviceName">{device.deviceName}</td>
-            <td>
-                {#if device.status == "available"}
-                <span class="badge badge-available">
-            <span class="badge-dot"></span>
-            Available
-          </span>
-                {#else}
-                <span class="badge badge-unavailable">
-              <span class="badge-dot"></span>
-              Not available
-          </span>
-                {/if}
-            </td>
-            <td>{device.bookedName}</td>
-            <td>{device.formattedPickupTime}</td>
-            <td>{device.group}</td>
-            <td>
-                <div class="actions">
-                    <button class="btn-edit" onclick="openDeviceModal(this)"
-                            data-id="{device.id}"
-                            data-name="{device.deviceName ?: ''}"
-                            data-status="{device.status ?: ''}"
-                            data-assigned="{device.bookedName}"
-                            data-pickup="{device.formattedPickupTime}"
-                            data-group="{device.group ?: ''}"
-                            data-serial="{device.deviceSerialNumber ?: ''}"
-                            data-number="{device.deviceNumber ?: ''}"
-                            data-model="{device.deviceModel ?: ''}"
-                            data-modeldate="{device.deviceModelDate ?: ''}"
-                            data-prozessor="{device.deviceProzessor ?: ''}"
-                            data-ram="{device.deviceRAM ?: ''}"
-                            data-hdd="{device.deviceHDDStorage ?: ''}"
-                            data-damage="{device.deviceDamage ?: ''}"
-                            data-age="{device.deviceAge ?: ''}"
-                            data-company="{device.regCompany ?: ''}"
-                            data-location="{device.deviceLocation ?: ''}"
-                            data-created="{device.createdOn ?: ''}"
-                            data-extra="{device.extraInfo ?: ''}">
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                             stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                        </svg>
-                        Details
-                    </button>
-                    {#if device.assignedTo != null}
-                    <form method="post" action="/devices/{device.id}/unassign"
-                          hx-post="/devices/{device.id}/unassign"
-                          hx-target="closest tr"
-                          hx-swap="outerHTML">
-                        {#authenticityToken /}
-                        <button type="submit" class="btn-unassign">
-                            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                 stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                      d="M22 11h-6m-3-4a4 4 0 11-8 0 4 4 0 018 0zM2 20a6 6 0 0112 0v1H2v-1z"/>
-                            </svg>
-                            Unassign
-                        </button>
-                    </form>
-                    {#else}
-                    <div class="assign-wrap">
-                        <form method="post" action="/devices/{device.id}/assign"
-                              hx-post="/devices/{device.id}/assign"
-                              hx-target="closest tr"
-                              hx-swap="outerHTML">
-                            {#authenticityToken /}
-                            <input type="hidden" name="assignedTo" id="assignedTo-{device.id}">
-                            <button type="button" class="btn-assign"
-                                    onclick="toggleDropdown('dropdown-{device.id}')">
-                                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                     stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                          d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
-                                </svg>
-                                Assign
-                            </button>
-                            <div class="assign-dropdown" id="dropdown-{device.id}" style="display:none">
-                                {#for member in members}
-                                <div onclick="document.getElementById('assignedTo-{device.id}').value='{member.userName}';
-                                this.closest('form').requestSubmit();">
-                                    {member.firstName} {member.lastName}
-                                </div>
-                                {/for}
-                            </div>
-                        </form>
-                    </div>
-                    {/else}
-                    {/if}
-                    <button class="btn-edit" onclick="window.location='/devices/{device.id}/edit'">
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                             stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                        </svg>
-                        Edit
-                    </button>
-                    <form method="post" action="/devices/{device.id}/delete"
-                          data-device-name="{device.deviceName}"
-                          onsubmit=" this.querySelector('[name=redirectUrl]').value = window.location.pathname + window.location.search;
-                          return confirmDelete(this);">
-                        {#authenticityToken /}
-                        <input type="hidden" name="redirectUrl">
-                        {#authenticityToken /}
-                        <button type="submit" class="btn-delete">
-                            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                 stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                            </svg>
-                            Delete
-                        </button>
-                    </form>
-                </div>
-            </td>
-        </tr>
-        {/fragment}
-        {/for}
-        </tbody>
-    </table>
-</div>
-
-<div class="device-modal" id="deviceModal" hidden>
-    <div class="device-modal-backdrop" onclick="closeDeviceModal()"></div>
-    <div class="device-modal-box" role="dialog" aria-modal="true" aria-labelledby="dmTitle">
-        <div class="device-modal-head">
-            <div>
-                <div class="dm-eyebrow">Device details</div>
-                <h2 class="dm-title" id="dmTitle" data-field="name"></h2>
-            </div>
-            <button type="button" class="device-modal-close" onclick="closeDeviceModal()" aria-label="Close">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
-
-        <div class="device-modal-body">
-            <div class="dm-section">Assignment</div>
-            <div class="dm-grid">
-                <div class="dm-item">
-                    <span class="dm-label">Status</span>
-                    <span class="dm-value" id="dmStatus" data-field="status"></span>
-                </div>
-                <div class="dm-item">
-                    <span class="dm-label">Assigned to</span>
-                    <span class="dm-value" data-field="assigned"></span>
-                </div>
-                <div class="dm-item">
-                    <span class="dm-label">Pickup time</span>
-                    <span class="dm-value" data-field="pickup"></span>
-                </div>
-                <div class="dm-item">
-                    <span class="dm-label">Location</span>
-                    <span class="dm-value" data-field="location"></span>
-                </div>
-            </div>
-
-            <div class="dm-section">Identification</div>
-            <div class="dm-grid">
-                <div class="dm-item">
-                    <span class="dm-label">Serial number</span>
-                    <span class="dm-value" data-field="serial"></span>
-                </div>
-                <div class="dm-item">
-                    <span class="dm-label">Device number</span>
-                    <span class="dm-value" data-field="number"></span>
-                </div>
-                <div class="dm-item">
-                    <span class="dm-label">Group</span>
-                    <span class="dm-value" data-field="group"></span>
-                </div>
-                <div class="dm-item">
-                    <span class="dm-label">Company</span>
-                    <span class="dm-value" data-field="company"></span>
-                </div>
-            </div>
-
-            <div class="dm-section">Hardware</div>
-            <div class="dm-grid">
-                <div class="dm-item">
-                    <span class="dm-label">Model</span>
-                    <span class="dm-value" data-field="model"></span>
-                </div>
-                <div class="dm-item">
-                    <span class="dm-label">Model date</span>
-                    <span class="dm-value" data-field="modeldate"></span>
-                </div>
-                <div class="dm-item">
-                    <span class="dm-label">Processor</span>
-                    <span class="dm-value" data-field="prozessor"></span>
-                </div>
-                <div class="dm-item">
-                    <span class="dm-label">RAM</span>
-                    <span class="dm-value" data-field="ram"></span>
-                </div>
-                <div class="dm-item">
-                    <span class="dm-label">HDD storage</span>
-                    <span class="dm-value" data-field="hdd"></span>
-                </div>
-                <div class="dm-item">
-                    <span class="dm-label">Age</span>
-                    <span class="dm-value" data-field="age"></span>
-                </div>
-                <div class="dm-item">
-                    <span class="dm-label">Damage</span>
-                    <span class="dm-value" data-field="damage"></span>
-                </div>
-                <div class="dm-item">
-                    <span class="dm-label">Created on</span>
-                    <span class="dm-value" data-field="created"></span>
-                </div>
-            </div>
-
-            <div class="dm-section">Extra info</div>
-            <p class="dm-extra" data-field="extra"></p>
-        </div>
-
-        <div class="device-modal-foot">
-            <button type="button" class="dm-btn dm-btn-ghost" onclick="closeDeviceModal()">
-                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-                Close
-            </button>
-            <button type="button" class="dm-btn dm-btn-ghost" id="dmEditBtn">
-                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                </svg>
-                Edit
-            </button>
-        </div>
+    <button type="button" class="btn btn-ghost btn-icon" data-close aria-label="Close">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="modal-section">Assignment</div>
+    <div class="detail-grid">
+      <div class="detail-item"><span class="detail-label">Status</span><span id="detailStatus" class="badge"></span></div>
+      <div class="detail-item"><span class="detail-label">Assigned to</span><span class="detail-value" data-field="assigned"></span></div>
+      <div class="detail-item"><span class="detail-label">Pickup time</span><span class="detail-value" data-field="pickup"></span></div>
+      <div class="detail-item"><span class="detail-label">Storage location</span><span class="detail-value" data-field="location"></span></div>
     </div>
-</div>
-
-{#moreScripts}
-<script>
-    let selected = [];
-
-    function updateBulkActions() {
-        const bar = document.getElementById("bulkActions");
-        if (!bar) return;
-
-        bar.classList.toggle("is-open", selected.length > 0);
-
-        const idsCsv = selected.join(",");
-        const redirect = window.location.pathname + window.location.search;
-
-        const aIds = document.getElementById("bulkAssignIds");
-        const dIds = document.getElementById("bulkDeleteIds");
-        const uIds = document.getElementById("bulkUnassignIds");
-        const aRed = document.getElementById("bulkAssignRedirect");
-        const dRed = document.getElementById("bulkDeleteRedirect");
-        const uRed = document.getElementById("bulkUnassignRedirect");
-
-        if (aIds) aIds.value = idsCsv;
-        if (dIds) dIds.value = idsCsv;
-        if (uIds) uIds.value = idsCsv;
-        if (aRed) aRed.value = redirect;
-        if (dRed) dRed.value = redirect;
-        if (uRed) uRed.value = redirect;
-    }
-
-    function confirmBulkDelete() {
-        if (!selected || selected.length === 0) return false;
-        var ids = [];
-        for (var i = 0; i < selected.length; i++) {
-            if (ids.indexOf(selected[i]) === -1) ids.push(selected[i]);
-        }
-        var names = [];
-        for (var j = 0; j < ids.length; j++) {
-            var id = ids[j];
-            var cb = document.querySelector('.checkbox[data-id="' + id + '"]');
-            var tr = cb ? cb.closest("tr") : null;
-            var nameEl = tr ? tr.querySelector(".td-deviceName") : null;
-
-            var name = nameEl ? nameEl.textContent : id;
-            if (name && name.trim) name = name.trim();
-
-            names.push(name);
-        }
-
-        return confirm("Continue Deleting " + ids.length + " devices? (" + names.join(", ") + ")");
-    }
-
-    function getParams() {
-        return new URLSearchParams(window.location.search);
-    }
-
-    function DOMContenLoaded(){
-        document.querySelectorAll('.checkbox')
-            .forEach(cb => cb.addEventListener("change", (e) => {
-                if (e.target.checked) {
-                    /*
-                    selected.push(e.target.dataset.id);
-                    console.log("added: ", selected);
-                     */
-                } else {
-                    selected = selected.filter(i => i !== e.target.dataset.id);
-                    console.log("removed: ", selected);
-                }
-            }));
-    }
-
-    function navigateWithParams(p) {
-        const qs = p.toString();
-        window.location.href = window.location.pathname + (qs ? "?" + qs : "");
-    }
-
-    function norm(v) {
-        return (v || "").trim();
-    }
-
-    function addParam(key, value) {
-        const v = norm(value);
-        if (!v) return;
-
-        const p = getParams();
-        const existing = p.getAll(key);
-
-        // optional: avoid duplicates
-        if (!existing.includes(v)) {
-            p.append(key, v);
-        }
-        p.delete("searchName");
-
-        navigateWithParams(p);
-    }
-
-    function removeOneParam(key, value) {
-        const p = getParams();
-        const all = p.getAll(key);
-        p.delete(key);
-
-        let removed = false;
-        for (const v of all) {
-            if (!removed && v === value) {
-                removed = true;
-                continue;
-            }
-            p.append(key, v);
-        }
-        navigateWithParams(p);
-    }
-
-    function makeTag(label, key, value) {
-        const el = document.createElement("div");
-        el.className = "tag";
-
-        const typeSpan = document.createElement("span");
-        typeSpan.className = "tag-type";
-        typeSpan.textContent = label + ":";
-
-        const valueSpan = document.createElement("span");
-        valueSpan.className = "tag-value";
-        valueSpan.textContent = value;
-
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.setAttribute("aria-label", "Remove");
-        btn.textContent = "×";
-        btn.addEventListener("click", () => removeOneParam(key, value));
-
-        el.appendChild(typeSpan);
-        el.appendChild(valueSpan);
-        el.appendChild(btn);
-        return el;
-    }
-
-    function renderTags() {
-        const tagbar = document.getElementById("tagbar");
-        const taglist = document.getElementById("taglist");
-        if (!tagbar || !taglist) return;
-
-        const p = new URLSearchParams(window.location.search);
-
-        const entries = [                                                                                   // !!--IMPORTANT--!!
-            { key: "searchName", label: "Search", values: p.getAll("searchName")},                          // !!--IMPORTANT--!!
-            { key: "name", label: "Name", values: p.getAll("name")},                                        // AFTER REFORMATING IT WILL CAUSE AN ERROR
-            { key: "status", label: "Status", values: p.getAll("status")},                                  // TO FIX IT PUT A SPACE BETWEEN { AND key
-            { key: "assignedTo", label: "Booked", values: p.getAll("assignedTo")},                              // FOR EXAMPLE:
-            { key: "serial", label: "Serial", values: p.getAll("serial")},                                  // { key: "name", label: "Name", values: p.getAll("name")}
-            { key: "group", label: "Group", values: p.getAll("group")},                                     // (I cant even put a wrong example here cause that will crash too)
-            { key: "model", label: "Model", values: p.getAll("model")},                                     //
-            { key: "damage", label: "Damage", values: p.getAll("damage")},                                  //
-            { key: "company", label: "Company", values: p.getAll("company")},                               //
-            { key: "deviceNumber", label: "DeviceNumber", values: p.getAll("deviceNumber")},                //
-            { key: "deviceProzessor", label: "DeviceProzessor", values: p.getAll("deviceProzessor")},       //
-            { key: "deviceHDDStorage", label: "DeviceHDDStorage", values: p.getAll("deviceHDDStorage")},    //
-            { key: "deviceRAM", label: "DeviceRAM", values: p.getAll("deviceRAM")},                         //
-            { key: "deviceModelDate", label: "DeviceModelDate", values: p.getAll("deviceModelDate")}        //
-        ];
-
-        taglist.innerHTML = "";
-
-        const total = entries.reduce((acc, e) => acc + e.values.length, 0);
-        if (total === 0) {
-            tagbar.hidden = true;
-            return;
-        }
-
-        tagbar.hidden = false;
-        entries.forEach(e => e.values.forEach(v => taglist.appendChild(makeTag(e.label, e.key, v))));
-    }
-
-    function clearAllFilters() {
-        const p = getParams();
-        p.delete("name");
-        p.delete("status");
-        p.delete("assignedTo");
-        p.delete("serial");
-        p.delete("group");
-        p.delete("model");
-        p.delete("damage");
-        p.delete("searchName");
-        p.delete("company");
-        p.delete("deviceNumber");
-        p.delete("deviceProzessor");
-        p.delete("deviceHDDStorage");
-        p.delete("deviceRAM");
-        p.delete("deviceModelDate")
-        navigateWithParams(p);
-    }
-
-    function hookAdvancedAdders() {
-        const nameInp = document.getElementById("advName");
-
-        const statusSel = document.getElementById("advStatus");
-        const assignedToInp = document.getElementById("advAssignedTo");
-        const serialInp = document.getElementById("advSerial");
-        const groupInp = document.getElementById("advGroup");
-        const modelInp = document.getElementById("advModel");
-        const damageSel = document.getElementById("advDamage");
-        const companyInp = document.getElementById("advCompany");
-        const deviceNumberInp = document.getElementById("advDeviceNumber");
-        const deviceProzessorInp = document.getElementById("advDeviceProzessor");
-        const deviceHDDStorageInp = document.getElementById("advDeviceHDDStorage");
-        const deviceRAMInp = document.getElementById("advDeviceRAM");
-        const deviceModelDateInp = document.getElementById("advDeviceModelDate");
-
-        const addNameBtn = document.getElementById("addNameBtn");
-        const addStatusBtn = document.getElementById("addStatusBtn");
-        const addAssignedToBtn = document.getElementById("addAssignedToBtn");
-        const addSerialBtn = document.getElementById("addSerialBtn");
-        const addGroupBtn = document.getElementById("addGroupBtn");
-        const addModelBtn = document.getElementById("addModelBtn");
-        const addDamageBtn = document.getElementById("addDamageBtn");
-        const addCompanyBtn = document.getElementById("addCompanyBtn");
-        const addDeviceNumberBtn = document.getElementById("addDeviceNumberBtn");
-        const addDeviceProzessorBtn = document.getElementById("addDeviceProzessorBtn");
-        const addDeviceHDDStorageBtn = document.getElementById("addDeviceHDDStorageBtn");
-        const addDeviceRAMBtn = document.getElementById("addDeviceRAMBtn");
-        const addDeviceModelDateBtn = document.getElementById("addDeviceModelDateBtn");
-
-        if (addNameBtn && nameInp) {
-            addNameBtn.addEventListener("click", function () {
-                addParam("name", nameInp.value);
-            });
-        }
-
-        if (addStatusBtn && statusSel) {
-            addStatusBtn.addEventListener("click", function () {
-                addParam("status", statusSel.value);
-            });
-        }
-
-        if (addAssignedToBtn && assignedToInp) {
-            addAssignedToBtn.addEventListener("click", function () {
-                addParam("assignedTo", assignedToInp.value);
-            });
-        }
-
-        if (addSerialBtn && serialInp) {
-            addSerialBtn.addEventListener("click", function () {
-                addParam("serial", serialInp.value);
-            });
-        }
-
-        if (addGroupBtn && groupInp) {
-            addGroupBtn.addEventListener("click", function () {
-                addParam("group", groupInp.value);
-            });
-        }
-
-        if (addModelBtn && modelInp) {
-            addModelBtn.addEventListener("click", function () {
-                addParam("model", modelInp.value);
-            });
-        }
-
-        if (addDamageBtn && damageSel) {
-            addDamageBtn.addEventListener("click", function () {
-                addParam("damage", damageSel.value);
-            });
-        }
-
-        if (addCompanyBtn && companyInp) {
-            addCompanyBtn.addEventListener("click", function () {
-                addParam("company", companyInp.value);
-            });
-        }
-
-        if (addDeviceNumberBtn && deviceNumberInp) {
-            addDeviceNumberBtn.addEventListener("click", function () {
-                addParam("deviceNumber", deviceNumberInp.value);
-            });
-        }
-
-        if (addDeviceProzessorBtn && deviceProzessorInp) {
-            addDeviceProzessorBtn.addEventListener("click", function () {
-                addParam("deviceProzessor", deviceProzessorInp.value);
-            });
-        }
-
-        if (addDeviceHDDStorageBtn && deviceHDDStorageInp) {
-            addDeviceHDDStorageBtn.addEventListener("click", function () {
-                addParam("deviceHDDStorage", deviceHDDStorageInp.value);
-            });
-        }
-
-        if (addDeviceRAMBtn && deviceRAMInp) {
-            addDeviceRAMBtn.addEventListener("click", function () {
-                addParam("deviceRAM", deviceRAMInp.value);
-            });
-        }
-
-        if (addDeviceModelDateBtn && deviceModelDateInp) {
-            addDeviceModelDateBtn.addEventListener("click", function () {
-                addParam("deviceModelDate", deviceModelDateInp.value);
-            });
-        }
-
-        function bindEnter(input, key) {
-            if (!input) return;
-            input.addEventListener("keydown", function (e) {
-                if (e.key === "Enter") {
-                    e.preventDefault();
-                    addParam(key, input.value);
-                }
-            });
-        }
-
-        bindEnter(nameInp, "name");
-        bindEnter(assignedToInp, "assignedTo");
-        bindEnter(serialInp, "serial");
-        bindEnter(groupInp, "group");
-        bindEnter(modelInp, "model");
-        bindEnter(companyInp, "company");
-        bindEnter(deviceNumberInp, "deviceNumber");
-        bindEnter(deviceProzessorInp, "deviceProzessor");
-        bindEnter(deviceHDDStorageInp, "deviceHDDStorage");
-        bindEnter(deviceRAMInp, "deviceRAM");
-        bindEnter(deviceModelDateInp, "deviceModelDate");
-    }
-
-    function hookQuickSearch() {
-        const form = document.getElementById("quickSearchForm");
-        const input = document.getElementById("quickSearchInput");
-        if (!form || !input) return;
-
-        form.addEventListener("submit", (e) => {
-            e.preventDefault();
-            addParam("name", input.value);
-            input.value = "";
-        });
-    }
-
-    document.addEventListener("click", function (e) {
-        if (!e.target.closest(".assign-wrap")) {
-            document.querySelectorAll(".assign-dropdown").forEach(function (d) {
-                d.style.display = "none";
-            });
-        }
-    });
-
-    function toggleDropdown(id) {
-        var dropdown = document.getElementById(id);
-        var isOpen = dropdown.style.display === "block";
-        document.querySelectorAll(".assign-dropdown").forEach(function (d) {
-            d.style.display = "none";
-        });
-        dropdown.style.display = isOpen ? "none" : "block";
-    }
-
-    function checkboxSelection(id) {
-        const checkbox = document.querySelector(`.checkbox[data-id=id]`);
-        if (checkbox) {
-            checkbox.checked = !checkbox.checked;
-            if (checkbox.checked) {
-                selected.push(id);
-                console.log("added: ", selected);
-            } else {
-                selected = selected.filter(i => i !== id);
-                console.log("removed: ", selected);
-            }
-        }
-    }
-
-    function hookCheckboxSelection() {
-        document.querySelectorAll(".checkbox").forEach(cb => {
-            cb.addEventListener("change", (e) => {
-                const id = e.target.dataset.id;
-                if (!id) return;
-
-                if (e.target.checked) {
-                    if (!selected.includes(id)) selected.push(id);
-                } else {
-                    selected = selected.filter(x => x !== id);
-                }
-                updateBulkActions();
-            });
-        });
-    }
-
-    function selectDelAssignVisible() {
-        boolean
-        let delassignvisible;
-            if (selected.length > 0){
-                delassignvisible = true;
-            } else {
-                delassignvisible = false;
-            }
-            return delassignvisible;
-    }
-
-    function confirmDelete(formEl) {
-        const name = formEl.dataset.deviceName || "this device";
-        if (selected.length > 1){
-            document.createElement("form")
-        };
-        return confirm("Continue Deleting: " + name + "?");
-
-    }
-
-    function openDeviceModal(btn) {
-        const modal = document.getElementById("deviceModal");
-        if (!modal) return;
-
-        document.querySelectorAll(".assign-dropdown").forEach(function (d) {
-            d.style.display = "none";
-        });
-
-        modal.querySelectorAll("[data-field]").forEach(function (el) {
-            const raw = btn.dataset[el.dataset.field];
-            el.textContent = (raw && raw.trim()) ? raw.trim() : "—";
-        });
-
-        const status = document.getElementById("dmStatus");
-        if (status) {
-            const isAvailable = (btn.dataset.status || "").trim() === "available";
-            status.classList.toggle("dm-ok", isAvailable);
-            status.classList.toggle("dm-busy", !isAvailable);
-        }
-
-        const editBtn = document.getElementById("dmEditBtn");
-        if (editBtn) {
-            editBtn.onclick = function () {
-                window.location = "/devices/" + btn.dataset.id + "/edit";
-            };
-        }
-
-        modal.hidden = false;
-        document.body.classList.add("modal-open");
-    }
-
-    function closeDeviceModal() {
-        const modal = document.getElementById("deviceModal");
-        if (!modal) return;
-        modal.hidden = true;
-        document.body.classList.remove("modal-open");
-    }
-
-    function hookDeviceModal() {
-        document.addEventListener("keydown", function (e) {
-            if (e.key !== "Escape") return;
-            const modal = document.getElementById("deviceModal");
-            if (modal && !modal.hidden) closeDeviceModal();
-        });
-    }
-
-    function clearSearch() {
-        const input = document.getElementById("quickSearchInput");
-        if (input) input.value = "";
-        clearAllFilters();
-    }
-
-    function hookAdvancedToggle() {
-        const btn = document.getElementById("advancedToggle");
-        const row = document.getElementById("advancedSearchRow");
-        if (!btn || !row) return;
-
-        const setOpen = (open) => {
-            row.classList.toggle("is-open", open);
-            btn.setAttribute("aria-expanded", open ? "true" : "false");
-        };
-
-        btn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            setOpen(!row.classList.contains("is-open"));
-        });
-
-        document.addEventListener("click", (e) => {
-            if (!e.target.closest("#advancedToggle") && !e.target.closest("#advancedSearchRow")) {
-                setOpen(false);
-            }
-        });
-
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") {
-                setOpen(false);
-            }
-        });
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-        const clearBtn = document.getElementById("clearFiltersBtn");
-        if (clearBtn) clearBtn.addEventListener("click", clearAllFilters);
-
-        hookQuickSearch();
-        hookAdvancedToggle();
-        hookAdvancedAdders();
-        renderTags();
-
-        hookCheckboxSelection();
-        hookDeviceModal();
-        updateBulkActions();
-        DOMContenLoaded();
-    });
-</script>
-{/moreScripts}
+    <div class="modal-section">Identification</div>
+    <div class="detail-grid">
+      <div class="detail-item"><span class="detail-label">Serial number</span><span class="detail-value" data-field="serial"></span></div>
+      <div class="detail-item"><span class="detail-label">Inventory number</span><span class="detail-value" data-field="number"></span></div>
+      <div class="detail-item"><span class="detail-label">Group</span><span class="detail-value" data-field="group"></span></div>
+      <div class="detail-item"><span class="detail-label">Owning company</span><span class="detail-value" data-field="company"></span></div>
+    </div>
+    <div class="modal-section">Hardware</div>
+    <div class="detail-grid">
+      <div class="detail-item"><span class="detail-label">Model</span><span class="detail-value" data-field="model"></span></div>
+      <div class="detail-item"><span class="detail-label">Model year</span><span class="detail-value" data-field="modeldate"></span></div>
+      <div class="detail-item"><span class="detail-label">Processor</span><span class="detail-value" data-field="prozessor"></span></div>
+      <div class="detail-item"><span class="detail-label">Memory (RAM)</span><span class="detail-value" data-field="ram"></span></div>
+      <div class="detail-item"><span class="detail-label">Storage</span><span class="detail-value" data-field="hdd"></span></div>
+      <div class="detail-item"><span class="detail-label">Condition</span><span class="detail-value" data-field="damage"></span></div>
+      <div class="detail-item"><span class="detail-label">Purchased on</span><span class="detail-value" data-field="age"></span></div>
+      <div class="detail-item"><span class="detail-label">Added on</span><span class="detail-value" data-field="created"></span></div>
+    </div>
+    <div class="modal-section">Notes</div>
+    <p class="modal-note detail-value" data-field="extra"></p>
+  </div>
+  <div class="modal-foot">
+    <button type="button" class="btn btn-secondary" data-close>Close</button>
+    <a id="detailsEdit" href="#" class="btn btn-primary">Edit device</a>
+  </div>
+</dialog>
+
+<dialog id="confirmDialog" class="modal modal-sm" aria-labelledby="confirmTitle">
+  <div class="modal-head">
+    <div>
+      <div class="modal-eyebrow">Please confirm</div>
+      <h2 class="modal-title" id="confirmTitle">Delete device?</h2>
+    </div>
+  </div>
+  <div class="modal-body">
+    <p class="modal-note" id="confirmText"></p>
+  </div>
+  <div class="modal-foot">
+    <button type="button" class="btn btn-secondary" data-close>Cancel</button>
+    <button type="button" class="btn btn-danger-solid" id="confirmOk">Delete</button>
+  </div>
+</dialog>
 
 {/include}

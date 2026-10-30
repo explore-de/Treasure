@@ -1,52 +1,61 @@
+/* Treasure core: brand tokens, UI-shell layout and the account panel.
+   Page-level styles live in treasure-pages.css. */
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
 :root {
-  --treasure-primary: #FF521D;
-  --treasure-primary-hover: #E6491A;
-  --treasure-primary-active: #CC4017;
-  --treasure-primary-light: #FFE5DC;
+  /* Brand orange #FF8200 and the shades derived from it */
+  --treasure-primary: #FF8200;
+  --treasure-primary-hover: #E67500;
+  --treasure-primary-active: #CC6800;
+  --treasure-primary-light: #FFECD9;
+  /* orange used as text on light surfaces: dark enough to read (4.5:1 on white) */
+  --treasure-primary-text: #A35300;
+  /* text placed on an orange fill: #FF8200 is too light for white text */
+  --treasure-on-primary: #161616;
 
-  
   --cds-spacing-03: 0.5rem;
   --cds-spacing-04: 0.75rem;
   --cds-spacing-05: 1rem;
   --cds-spacing-07: 2rem;
   --cds-spacing-09: 3rem;
 
-  --cds-interactive-01: #FF521D !important;
+  --cds-interactive-01: #FF8200 !important;
   --cds-interactive-02: #393939 !important;
   --cds-interactive-03: #ffffff !important;
-  --cds-interactive-04: #CC4017 !important;
-  --cds-border-interactive: #FF521D !important;
-  --cds-link-primary: #FF521D !important;
-  --cds-link-primary-hover: #E6491A !important;
-  --cds-ui-focus: #FF521D !important;
-  --cds-button-primary: #FF521D !important;
-  --cds-button-primary-hover: #E6491A !important;
-  --cds-button-primary-active: #CC4017 !important;
-  --cds-focus: #FF521D !important;
+  --cds-interactive-04: #CC6800 !important;
+  --cds-border-interactive: #FF8200 !important;
+  --cds-link-primary: #A35300 !important;
+  --cds-link-primary-hover: #CC6800 !important;
+  --cds-ui-focus: #FF8200 !important;
+  --cds-button-primary: #FF8200 !important;
+  --cds-button-primary-hover: #E67500 !important;
+  --cds-button-primary-active: #CC6800 !important;
+  --cds-focus: #FF8200 !important;
   --side-nav-width: 256px;
 }
 
 html, body {
   margin: 0;
   padding: 0;
-  overflow-x: hidden; 
-  background-color: var(--cds-background, #f4f4f4); /* IMPORTANT CHANGES COLOR OF BACKGROUND OF INDEX*/
+  overflow-x: hidden;
+  background-color: var(--cds-background, #f4f4f4);
 }
 
 body {
   font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
-  transition: opacity 0.15s ease-out;
 }
+
+/* ---------- UI shell layout ---------- */
 
 .app-container {
   margin-top: 48px;
   margin-left: 48px;
   width: calc(100vw - 48px);
   overflow-x: hidden;
+  transition: margin-left 0.11s cubic-bezier(0.2, 0, 1, 0.9);
 }
 
 .content {
@@ -56,79 +65,14 @@ body {
   overflow-x: hidden;
 }
 
-body.side-nav-expanded .app-container {
+/* the class is put on <html> before the first paint, see main.html */
+.side-nav-expanded .app-container {
   margin-left: 256px;
   width: calc(100vw - 256px);
 }
 
-.box {
-  background-color: var(--cds-layer-02);
-  border: 1px solid var(--cds-border-subtle-01);
-  padding: var(--cds-spacing-07);
-  margin-bottom: var(--cds-spacing-05);
-}
-
-.box-header {
-  margin-top: 0;
-  margin-bottom: var(--cds-spacing-05);
-  padding-bottom: var(--cds-spacing-05);
-  border-bottom: 1px solid var(--cds-border-subtle-01);
-}
-
-.box-row {
-  display: flex;
-  gap: var(--cds-spacing-05);
-  flex-wrap: wrap;
-}
-
-.box-row > .box {
-  flex: 1;
-  min-width: 300px;
-}
-
-.box-stack {
-  display: flex;
-  flex-direction: column;
-  gap: var(--cds-spacing-05);
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--cds-spacing-05);
-}
-
-.page-header h1 {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-html.cds--g100 {                                                                                                                                                                                                                                   
+html.cds--g100 {
   background: var(--white);
-} 
-
-cds-dropdown::part(menu-body) {
-  background-color: var(--cds-layer-02);
-}
-
-.cds--list-box__menu {
-  background-color: var(--cds-layer-02) !important;
-}
-
-.cds--list-box__menu-item {
-  background-color: var(--cds-layer-02);
-}
-
-.cds--list-box__menu-item:hover {
-  background-color: var(--cds-layer-hover-02, #e8e8e8);
-}
-
-.flash-notification {
-  position: fixed;
-  bottom: 1rem;
-  right: 1rem;
 }
 
 cds-side-nav-link svg[slot="title-icon"],
@@ -152,20 +96,7 @@ cds-header-global-bar {
   margin-left: auto;
 }
 
-cds-button[kind="primary"] {
-  --cds-button-primary: var(--treasure-primary) !important;
-  --cds-button-primary-hover: var(--treasure-primary-hover) !important;
-  --cds-button-primary-active: var(--treasure-primary-active) !important;
-  background-color: var(--treasure-primary) !important;
-}
-
-cds-button[kind="primary"]:hover {
-  background-color: var(--treasure-primary-hover) !important;
-}
-
-cds-button[kind="primary"]:active {
-  background-color: var(--treasure-primary-active) !important;
-}
+/* ---------- account panel ---------- */
 
 .header-panel {
   position: fixed;
@@ -185,93 +116,10 @@ cds-button[kind="primary"]:active {
   display: block;
 }
 
-.panel-header,
 .panel-footer,
 .profile-section {
   padding: 1rem;
   border-bottom: 1px solid var(--cds-border-subtle-01);
-}
-
-.panel-title {
-  font-weight: 600;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.notification-item,
-.profile-menu-item {
-  padding: 0.75rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.notification-item:hover,
-.profile-menu-item:hover {
-  background: var(--cds-background-hover);
-}
-
-.notification-item {
-  border-bottom: 1px solid var(--cds-border-subtle-01);
-}
-
-.notification-item:last-child {
-  border-bottom: none;
-}
-
-.notification-icon,
-.profile-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.notification-icon {
-  width: 32px;
-  height: 32px;
-  background: var(--treasure-primary-light);
-}
-
-.notification-icon svg {
-  width: 16px;
-  height: 16px;
-  fill: var(--treasure-primary);
-}
-
-.profile-avatar {
-  background: var(--treasure-primary);
-  color: white;
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.notification-content,
-.profile-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.notification-title,
-.profile-name {
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.notification-message,
-.notification-time,
-.profile-email {
-  font-size: 0.75rem;
-  color: var(--cds-text-secondary);
 }
 
 .profile-info {
@@ -280,34 +128,45 @@ cds-button[kind="primary"]:active {
   margin-bottom: 0.75rem;
 }
 
+.profile-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--treasure-primary);
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.profile-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-email {
+  font-size: 0.75rem;
+  color: var(--cds-text-secondary);
+}
+
 .profile-role {
   padding: 0.125rem 0.5rem;
   background: var(--treasure-primary-light);
-  color: var(--treasure-primary);
+  color: var(--treasure-primary-text);
   font-size: 0.625rem;
   font-weight: 600;
   text-transform: uppercase;
   border-radius: 2px;
-}
-
-.profile-menu {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.profile-menu-item {
-  text-decoration: none;
-  color: var(--cds-text-primary);
-}
-
-.profile-menu-item svg {
-  width: 16px;
-  height: 16px;
-}
-
-.profile-menu-item .bald-tag {
-  margin-left: auto;
 }
 
 .panel-footer {
@@ -316,52 +175,15 @@ cds-button[kind="primary"]:active {
   border-top: 1px solid var(--cds-border-subtle-01);
 }
 
-/*.panel-footer a {*/
-/*  color: var(--cds-link-primary);*/
-/*  text-decoration: none;*/
-/*  font-weight: 600;*/
-/*}*/
+/* ---------- dark theme aliases ---------- */
 
 body.cds--g100 {
   color: var(--cds-text-primary);
-}
-
-body.cds--g100 .form-card-header,
-body.cds--g100 .form-actions {
-  background: var(--white);
-}
-
-body.cds--g100 {
+  --treasure-primary-light: #3D2A14;
+  --treasure-primary-text: #FFB366;
   --white: #262626;
   --bg: #2d2d2d;
   --text: #f4f4f4;
   --border: #525252;
   --muted: #a8a8a8;
-  --yellow-light: #2c2100;
-  --red-light: #2d0a0a;
-  --bg-fafafa: #2d2d2d;
-}
-
-body.cds--g100 .field-admin {
-  background: #2a2000;
-  border-color: rgba(245, 197, 24, 0.2);
-}
-
-body.cds--g100 .danger-zone {
-  background: #2d0a0a;
-}
-
-body.cds--g100 .task-priority.high {
-  background: #520408;
-  color: #ffb3b8;
-}
-
-body.cds--g100 .task-priority.medium {
-  background: #302200;
-  color: #f1c21b;
-}
-
-body.cds--g100 .task-priority.low {
-  background: #071e0d;
-  color: #42be65;
 }
