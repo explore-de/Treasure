@@ -2,6 +2,7 @@ package app.treasure.device.domain;
 
 import app.treasure.member.domain.Member;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import java.time.LocalDateTime;
@@ -23,9 +24,12 @@ public class DeviceHistory extends PanacheEntity
 
 	private String fieldName;
 
+	@Column(length = 2000)
 	private String oldValue;
+	@Column(length = 2000)
 	private String newValue;
 
+	@Column(length = 2000)
 	private String notes;
 
 	public Device getDevice()
