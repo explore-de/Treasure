@@ -399,6 +399,22 @@
     }, 7000);
   }
 
+  /* ---------- copy buttons (API keys page) ---------- */
+
+  function initCopy() {
+    document.addEventListener('click', function (e) {
+      var button = e.target.closest('[data-copy]');
+      if (!button) return;
+      var source = document.getElementById(button.dataset.copy);
+      if (!source || !navigator.clipboard) return;
+      navigator.clipboard.writeText(source.textContent.trim()).then(function () {
+        var label = button.textContent;
+        button.textContent = 'Copied';
+        window.setTimeout(function () { button.textContent = label; }, 1500);
+      });
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     initQuickSearch();
     initFilters();
@@ -410,5 +426,6 @@
     initConfirm();
     initGroupChips();
     initFlash();
+    initCopy();
   });
 })();

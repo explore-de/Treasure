@@ -784,3 +784,47 @@ a.bar-label:hover { color: var(--treasure-primary-text); }
   .device-table th,
   .device-table td { padding: 10px 12px; }
 }
+
+/* ---------- API tokens ---------- */
+
+.tokens-page { max-width: 960px; }
+.tokens-page .page-head { margin-bottom: 8px; }
+.tokens-intro { margin: 0 0 16px; font-size: 14px; color: var(--muted); }
+.tokens-page > .table-card + .table-card { margin-top: 16px; }
+.tokens-card { padding: 20px 24px; }
+.tokens-title { margin: 0 0 6px; font-size: 16px; font-weight: 600; color: var(--text); }
+.tokens-hint { margin: 0; font-size: 13px; color: var(--muted); }
+.tokens-hint + .tokens-create-row,
+.tokens-hint + .token-code { margin-top: 14px; }
+.token-code + .tokens-hint { margin-top: 14px; }
+.tokens-create-row { display: flex; gap: 8px; }
+.tokens-create-row .field-input { flex: 1; min-width: 0; }
+.tokens-create-row .btn { flex-shrink: 0; }
+.tokens-empty { margin: 0; padding: 20px 24px; font-size: 14px; color: var(--muted); }
+.tokens-new { border-left: 3px solid var(--treasure-primary); }
+.token-mono,
+.token-code code {
+  font-family: 'IBM Plex Mono', Menlo, monospace;
+  font-size: 13px;
+}
+.token-code {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 12px 12px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.token-code code {
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.5;
+}
+.token-code .btn { flex-shrink: 0; }
+@media (max-width: 600px) {
+  .tokens-create-row { flex-direction: column; }
+}
