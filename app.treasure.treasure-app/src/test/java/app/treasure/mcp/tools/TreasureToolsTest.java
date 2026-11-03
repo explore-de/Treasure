@@ -353,6 +353,61 @@ class TreasureToolsTest extends McpTestSupport
 		}
 	}
 
+	@Test
+	void shouldChangeOwnPhoneWhenUpdateMemberIsCalledWithoutUsername()
+	{
+		// given
+		IssuedToken issued = memberWithToken("tools-self");
+		String username = issued.token().getMember().getUserName();
+		McpStreamableTestClient client = connect(issued);
+		try
+		{
+			// when
+			client.when()
+				.toolsCall("update_member", Map.of("phone", "+49 89 777"), r -> {
+				})
+				.thenAssertResults();
+
+			// then
+			assertEquals("+49 89 777", phoneOf(username));
+		}
+		finally
+		{
+			client.disconnect();
+			deleteToken(issued);
+		}
+	}
+
+	@Test
+	void shouldReturnToolErrorWhenTokenWithoutAdminRoleUpdatesAnotherMember()
+	{
+		// given
+		IssuedToken issued = memberWithToken("tools-nosy");
+		String other = createTestMember(unique("tools-other")).getUserName();
+		McpStreamableTestClient client = connect(issued);
+		try
+		{
+			// when / then
+			client.when()
+				.toolsCall("update_member", Map.of("username", other, "firstName", "Hacked"),
+					r -> assertEquals(
+						"true: You can only change your own details; changing other members needs the admin role.",
+						r.isError() + ": " + r.firstContent().asText().text()))
+				.thenAssertResults();
+		}
+		finally
+		{
+			client.disconnect();
+			deleteToken(issued);
+		}
+	}
+
+	@Transactional(TxType.REQUIRES_NEW)
+	String phoneOf(String username)
+	{
+		return memberRepository.findByUsername(username).getPhone();
+	}
+
 	@Transactional(TxType.REQUIRES_NEW)
 	void deleteMemberByEmail(String email)
 	{

@@ -222,6 +222,48 @@ public class TreasureTools
 		return holdings(member, List.of());
 	}
 
+	@Tool(name = "update_member", description = "Changes the name, email or phone of a member. Only the "
+		+ "fields you pass change; an empty phone clears it. Admins can change every member, everyone else "
+		+ "only themselves. Leave out the username to change yourself.")
+	MemberHoldings updateMember(
+		@ToolArg(description = "Username of the member, see list_members; default is you", required = false) String username,
+		@ToolArg(description = "New first name, up to 100 characters", required = false) String firstName,
+		@ToolArg(description = "New last name, up to 100 characters", required = false) String lastName,
+		@ToolArg(description = "New email address", required = false) String email,
+		@ToolArg(description = "New phone number, up to 50 characters", required = false) String phone)
+	{
+		boolean self = username == null || username.isBlank();
+		Member member = self ? actor() : memberRepository.findByUsername(username.trim());
+		if (member == null)
+		{
+			throw new ToolCallException(self ? "Your member profile does not exist yet."
+				: "No member with username '" + username + "'. Use list_members to see the usernames.");
+		}
+		if (!memberService.mayEdit(member, securityIdentity))
+		{
+			throw new ToolCallException("You can only change your own details; changing other members needs "
+				+ "the admin role.");
+		}
+		try
+		{
+			memberService.update(member,
+				firstName != null ? firstName : member.getFirstName(),
+				lastName != null ? lastName : member.getLastName(),
+				email != null ? email : member.getEmail(),
+				phone != null ? phone : member.getPhone(),
+				actorName());
+		}
+		catch (MemberValidationException e)
+		{
+			throw new ToolCallException(e.getMessage());
+		}
+		LOG.info("MCP: member {} changed by {}", member.getUserName(), actorName());
+		List<HeldDevice> held = deviceRepository.findAssignedTo(member).stream()
+			.map(d -> new HeldDevice(d.id, d.getDeviceName(), since(d), d.getDaysHeld()))
+			.toList();
+		return holdings(member, held);
+	}
+
 	@Tool(name = "overview", description = "Inventory summary: device counts, devices per group, the "
 		+ "devices held longest and the latest changes.")
 	Overview overview()

@@ -192,6 +192,9 @@ cds-header-global-bar {
 }
 
 .panel-footer {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
   text-align: center;
   border-bottom: none;
   border-top: 1px solid var(--cds-border-subtle-01);

@@ -68,11 +68,11 @@ device/
   repository         DeviceRepository, DeviceHistoryRepository
 member/
   api                MemberResource: /members, everyone who can hold a device and what they hold; admins add members
-                     at /members/new
+                     at /members/new, /members/{id}/edit changes a member, /members/me opens your own
   domain             Member (userName = OIDC principal name; subject = provider user id)
   repository         MemberRepository
   service            KeycloakAdminService (dev bootstrap only), MemberProvisioningService (first-login Member creation),
-                     MemberService (add a member before their first sign-in)
+                     MemberService (add a member before their first sign-in, change one, mayEdit rule)
 shared/
   bootstrap          StartupOrchestrator -> BootstrapService (users, members) -> DataSeeder; only when treasure.bootstrap.enabled
   domain/repository  Tag, TagRepository (the device-group registry)
@@ -111,7 +111,9 @@ page: then the login is linked to that row by email. A member without
 `joinedAt` shows as "Never signed in", everyone else as "In the system".
 Only `admin` and `super_admin` may change data (`@RolesAllowed` on every
 POST and MCP write tool, `inject:userContext.canEdit` in templates); a plain
-`user` only reads. `@TestSecurity` identities carry no token and are
+`user` only reads, except their own name, email and phone
+(`MemberService.mayEdit`, also used by the MCP tool `update_member`).
+`@TestSecurity` identities carry no token and are
 skipped by the filter, so tests create members themselves.
 
 **Templates:** `src/main/resources/templates/<ControllerName>/<method>.html`.
