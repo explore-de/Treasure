@@ -1,7 +1,6 @@
 package app.treasure.device.api;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,6 +19,10 @@ import app.treasure.device.filter.DeviceFieldFilter;
 import app.treasure.device.filter.DeviceFilter;
 import app.treasure.device.repository.DeviceHistoryRepository;
 import app.treasure.device.repository.DeviceRepository;
+import app.treasure.device.service.DeviceAssignmentService;
+import app.treasure.device.service.DeviceService;
+import app.treasure.device.service.DeviceService.DeviceData;
+import app.treasure.device.service.DeviceValidationException;
 import app.treasure.member.domain.Member;
 import app.treasure.member.repository.MemberRepository;
 import app.treasure.shared.repository.TagRepository;
@@ -62,6 +65,12 @@ public class DeviceResource extends Controller
 	@Inject
 	TagRepository tagRepository;
 
+	@Inject
+	DeviceAssignmentService assignmentService;
+
+	@Inject
+	DeviceService deviceService;
+
 	@CheckedTemplate
 	public static class Templates
 	{
@@ -92,28 +101,6 @@ public class DeviceResource extends Controller
 			.filter(g -> g != null && !g.isBlank())
 			.forEach(names::add);
 		return new ArrayList<>(names);
-	}
-
-	/**
-	 * Remembers a group name so it stays available after the last device using
-	 * it is moved elsewhere.
-	 */
-	private void rememberGroup(String group)
-	{
-		if (group == null || group.isBlank())
-		{
-			return;
-		}
-		tagRepository.findOrCreate(group.trim());
-	}
-
-	/**
-	 * Trims the group name; blank means "no group" and is stored as null, so
-	 * the device and the Tag registry hold the same spelling.
-	 */
-	private String normalizeGroup(String group)
-	{
-		return group == null || group.isBlank() ? null : group.trim();
 	}
 
 	private static final String INVALID_DATES_MESSAGE = "Purchased on must be a date and model year a four-digit year.";
@@ -153,57 +140,6 @@ public class DeviceResource extends Controller
 	{
 		String username = securityIdentity.getPrincipal().getName();
 		return memberRepository.findByUsername(username);
-	}
-
-	private String n(String s)
-	{
-		return s == null ? "" : s;
-	}
-
-	private void recordChange(Device device, Member actor,
-		String eventType, String field,
-		String oldVal, String newVal,
-		String notes)
-	{
-		DeviceHistory h = new DeviceHistory();
-		h.setDevice(device);
-		h.setActor(actor);
-		h.setHappenedAt(LocalDateTime.now());
-		h.setEventType(eventType);
-		h.setFieldName(field);
-		h.setOldValue(oldVal);
-		h.setNewValue(newVal);
-		h.setNotes(notes);
-		deviceHistoryRepository.persist(h);
-	}
-
-	private void recordIfChanged(Device device, Member actor, String field, String oldVal, String newVal)
-	{
-		String o = n(oldVal);
-		String nn = n(newVal);
-		if (!o.equals(nn))
-		{
-			recordChange(device, actor, "UPDATED", field, o, nn, null);
-		}
-	}
-
-	/**
-	 * Hands the device to the member: status, pickup time and the history entry
-	 * change together, so single and bulk assignment behave the same.
-	 */
-	private void assignTo(Device device, Member member, Member actor)
-	{
-		String oldBooked = device.getBookedName();
-		String oldStatus = n(device.getStatus());
-		String oldPickup = device.getPickupTime() != null ? device.getPickupTime().toString() : "";
-
-		device.setAssignedTo(member);
-		device.setStatus("not available");
-		device.setPickupTime(LocalDateTime.now());
-
-		String notes = "status: " + oldStatus + " -> not available, pickupTime: " + oldPickup + " -> "
-			+ device.getPickupTime();
-		recordChange(device, actor, "ASSIGNED", "assignedTo", n(oldBooked), n(device.getBookedName()), notes);
 	}
 
 	@GET
@@ -329,12 +265,6 @@ public class DeviceResource extends Controller
 		@RestForm String deviceModelDate,
 		@RestForm String deviceLocation)
 	{
-		if (!hasVisibleCharacters(deviceName))
-		{
-			flash(FlashKeys.ERROR, "A device name is required.");
-			seeOther("/devices/new");
-			return;
-		}
 		DateFields dates = parseDateFields(deviceAge, deviceModelDate);
 		if (dates == null)
 		{
@@ -342,50 +272,19 @@ public class DeviceResource extends Controller
 			seeOther("/devices/new");
 			return;
 		}
-
-		Device device = new Device();
-		device.setDeviceName(deviceName);
-		device.setDeviceSerialNumber(deviceSerialNumber);
-
-		device.setStatus("available");
-		device.setCreatedOn(LocalDateTime.now());
-
-		String normalizedGroup = normalizeGroup(group);
-		device.setGroup(normalizedGroup);
-		device.setDeviceModel(deviceModel);
-		device.setExtraInfo(extraInfo);
-		device.setDeviceDamage(deviceDamage);
-		device.setDeviceAge(dates.purchasedOn());
-		device.setRegCompany(regCompany);
-		device.setDeviceNumber(deviceNumber);
-		device.setDeviceProzessor(deviceProzessor);
-		device.setDeviceHDDStorage(deviceHDDStorage);
-		device.setDeviceRAM(deviceRAM);
-		device.setDeviceModelDate(dates.modelYear());
-		device.setDeviceLocation(deviceLocation);
-
-		deviceRepository.persist(device);
-		rememberGroup(normalizedGroup);
-
-		Member actor = currentMember();
-		String criteria = "deviceName=" + n(deviceName)
-			+ ", serial=" + n(deviceSerialNumber)
-			+ ", group=" + n(normalizedGroup)
-			+ ", model=" + n(deviceModel)
-			+ ", damage=" + n(deviceDamage)
-			+ ", age=" + text(dates.purchasedOn())
-			+ ", company=" + n(regCompany)
-			+ ", number=" + n(deviceNumber)
-			+ ", prozessor=" + n(deviceProzessor)
-			+ ", hdd=" + n(deviceHDDStorage)
-			+ ", ram=" + n(deviceRAM)
-			+ ", modelDate=" + text(dates.modelYear())
-			+ ", location=" + n(deviceLocation)
-			+ ", extraInfo=" + n(extraInfo);
-
-		recordChange(device, actor, "CREATED", null, "", "", criteria);
-
-		LOG.info("Created device: {} (id={})", deviceName, device.id);
+		DeviceData data = new DeviceData(deviceName, deviceSerialNumber, deviceNumber, group, deviceModel,
+			deviceProzessor, deviceRAM, deviceHDDStorage, dates.modelYear(), dates.purchasedOn(), regCompany,
+			deviceDamage, deviceLocation, extraInfo);
+		try
+		{
+			deviceService.create(data, currentMember());
+		}
+		catch (DeviceValidationException e)
+		{
+			flash(FlashKeys.ERROR, e.getMessage());
+			seeOther("/devices/new");
+			return;
+		}
 		flash(FlashKeys.SUCCESS, "Device \"" + deviceName + "\" was created.");
 		seeOther("/devices");
 	}
@@ -410,12 +309,6 @@ public class DeviceResource extends Controller
 		@RestForm String deviceModelDate,
 		@RestForm String deviceLocation)
 	{
-		if (!hasVisibleCharacters(deviceName))
-		{
-			flash(FlashKeys.ERROR, "A device name is required.");
-			seeOther("/devices/" + id + "/edit");
-			return;
-		}
 		DateFields dates = parseDateFields(deviceAge, deviceModelDate);
 		if (dates == null)
 		{
@@ -429,41 +322,19 @@ public class DeviceResource extends Controller
 		{
 			throw new NotFoundException();
 		}
-		Member actor = currentMember();
-
-		recordIfChanged(device, actor, "deviceName", device.getDeviceName(), deviceName);
-		recordIfChanged(device, actor, "deviceSerialNumber", device.getDeviceSerialNumber(), deviceSerialNumber);
-		String normalizedGroup = normalizeGroup(group);
-		recordIfChanged(device, actor, "group", device.getGroup(), normalizedGroup);
-		recordIfChanged(device, actor, "deviceModel", device.getDeviceModel(), deviceModel);
-		recordIfChanged(device, actor, "extraInfo", device.getExtraInfo(), extraInfo);
-		recordIfChanged(device, actor, "deviceDamage", device.getDeviceDamage(), deviceDamage);
-		recordIfChanged(device, actor, "deviceAge", text(device.getDeviceAge()), text(dates.purchasedOn()));
-		recordIfChanged(device, actor, "regCompany", device.getRegCompany(), regCompany);
-		recordIfChanged(device, actor, "deviceNumber", device.getDeviceNumber(), deviceNumber);
-		recordIfChanged(device, actor, "deviceProzessor", device.getDeviceProzessor(), deviceProzessor);
-		recordIfChanged(device, actor, "deviceHDDStorage", device.getDeviceHDDStorage(), deviceHDDStorage);
-		recordIfChanged(device, actor, "deviceRAM", device.getDeviceRAM(), deviceRAM);
-		recordIfChanged(device, actor, "deviceModelDate", text(device.getDeviceModelDate()), text(dates.modelYear()));
-		recordIfChanged(device, actor, "deviceLocation", device.getDeviceLocation(), deviceLocation);
-
-		device.setDeviceName(deviceName);
-		device.setDeviceSerialNumber(deviceSerialNumber);
-		device.setGroup(normalizedGroup);
-		device.setDeviceModel(deviceModel);
-		device.setExtraInfo(extraInfo);
-		device.setDeviceDamage(deviceDamage);
-		device.setDeviceAge(dates.purchasedOn());
-		device.setRegCompany(regCompany);
-		device.setDeviceNumber(deviceNumber);
-		device.setDeviceProzessor(deviceProzessor);
-		device.setDeviceHDDStorage(deviceHDDStorage);
-		device.setDeviceRAM(deviceRAM);
-		device.setDeviceModelDate(dates.modelYear());
-		device.setDeviceLocation(deviceLocation);
-		rememberGroup(normalizedGroup);
-
-		LOG.info("Updated device: {} (id={})", deviceName, id);
+		DeviceData data = new DeviceData(deviceName, deviceSerialNumber, deviceNumber, group, deviceModel,
+			deviceProzessor, deviceRAM, deviceHDDStorage, dates.modelYear(), dates.purchasedOn(), regCompany,
+			deviceDamage, deviceLocation, extraInfo);
+		try
+		{
+			deviceService.update(device, data, currentMember());
+		}
+		catch (DeviceValidationException e)
+		{
+			flash(FlashKeys.ERROR, e.getMessage());
+			seeOther("/devices/" + id + "/edit");
+			return;
+		}
 		flash(FlashKeys.SUCCESS, "Changes to \"" + deviceName + "\" were saved.");
 		seeOther("/devices");
 	}
@@ -530,12 +401,10 @@ public class DeviceResource extends Controller
 		for (Long id : parseIds(ids))
 		{
 			Device device = deviceRepository.findById(id);
-			if (device == null || member.equals(device.getAssignedTo()))
+			if (device != null && assignmentService.assign(device, member, actor))
 			{
-				continue;
+				assigned++;
 			}
-			assignTo(device, member, actor);
-			assigned++;
 		}
 		LOG.info("Assigned {} devices to {}", assigned, member.getUserName());
 		flash(FlashKeys.SUCCESS, countOf(assigned, "device") + " assigned to " + member.getDisplayName() + ".");
@@ -555,21 +424,14 @@ public class DeviceResource extends Controller
 		for (Long id : parseIds(ids))
 		{
 			Device device = deviceRepository.findById(id);
-			if (device == null || device.getAssignedTo() == null) continue;
+			if (device == null) continue;
 
 			String oldBooked = device.getBookedName();
-			String oldStatus = n(device.getStatus());
-			String oldPickup = device.getPickupTime() != null ? device.getPickupTime().toString() : "";
-
-			device.setAssignedTo(null);
-			device.setStatus("available");
-			device.setPickupTime(null);
-
-			String notes = "status: " + oldStatus + " -> available, pickupTime: " + oldPickup + " -> ";
-			recordChange(device, actor, "UNASSIGNED", "assignedTo", n(oldBooked), "", notes);
-			unassigned++;
-
-			LOG.info("Unassigned device {} from member {}", id, n(oldBooked));
+			if (assignmentService.unassign(device, actor))
+			{
+				unassigned++;
+				LOG.info("Unassigned device {} from member {}", id, oldBooked);
+			}
 		}
 		flash(FlashKeys.SUCCESS, countOf(unassigned, "device") + " unassigned.");
 		seeOther(safeRedirect(redirectUrl));
@@ -594,9 +456,8 @@ public class DeviceResource extends Controller
 			throw new BadRequestException("Unknown member: " + assignedTo);
 		}
 
-		if (!member.equals(device.getAssignedTo()))
+		if (assignmentService.assign(device, member, currentMember()))
 		{
-			assignTo(device, member, currentMember());
 			LOG.info("Device {} assigned to {}", id, member.getUserName());
 		}
 
@@ -614,30 +475,13 @@ public class DeviceResource extends Controller
 			throw new NotFoundException();
 		}
 
-		if (device.getAssignedTo() != null)
+		String oldBooked = device.getBookedName();
+		if (assignmentService.unassign(device, currentMember()))
 		{
-			Member actor = currentMember();
-			String oldBooked = device.getBookedName();
-			String oldStatus = n(device.getStatus());
-			String oldPickup = device.getPickupTime() != null ? device.getPickupTime().toString() : "";
-
-			device.setAssignedTo(null);
-			device.setStatus("available");
-			device.setPickupTime(null);
-
-			String notes = "status: " + oldStatus + " -> available, pickupTime: " + oldPickup + " -> ";
-			recordChange(device, actor, "UNASSIGNED", "assignedTo", n(oldBooked), "", notes);
-
-			LOG.info("Unassigned device {} from member {}", id, n(oldBooked));
+			LOG.info("Unassigned device {} from member {}", id, oldBooked);
 		}
 
 		return Templates.index$row(device, memberRepository.listAll());
-	}
-
-	/** True when the name has at least one letter or digit, in any script. */
-	private boolean hasVisibleCharacters(String value)
-	{
-		return value != null && value.codePoints().anyMatch(Character::isLetterOrDigit);
 	}
 
 	private String countOf(int count, String noun)
