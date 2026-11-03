@@ -5,6 +5,28 @@
   box-sizing: border-box;
 }
 
+/* Neue DIN, the explore.de brand font (Monotype, used under the explore web licence) */
+@font-face {
+  font-family: 'Neue DIN';
+  src: local('Neue DIN Light'), url('/fonts/NeueDIN-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Neue DIN';
+  src: local('Neue DIN'), url('/fonts/NeueDIN-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Neue DIN';
+  src: local('Neue DIN SemiWide Medium'), url('/fonts/NeueDIN-SemiWide-Medium.woff2') format('woff2');
+  font-weight: 500 700;
+  font-display: swap;
+}
+
 :root {
   /* Brand orange #FF8200 and the shades derived from it */
   --treasure-primary: #FF8200;
@@ -45,7 +67,7 @@ html, body {
 }
 
 body {
-  font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Neue DIN', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
 }
 
 /* ---------- UI shell layout ---------- */
