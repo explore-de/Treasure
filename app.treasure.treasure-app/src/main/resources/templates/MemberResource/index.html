@@ -49,18 +49,21 @@
             {#for d in row.devices}
             <span class="chip chip-device">
               <a href="/devices/{d.id}/edit" title="Since {d.formattedPickupTime}">{d.deviceName}</a>
+              {#if inject:userContext.canEdit}
               <form method="post" action="/devices/unassign-many">
                 {#authenticityToken /}
                 <input type="hidden" name="ids" value="{d.id}">
                 <input type="hidden" name="redirectUrl" value="/members">
                 <button type="submit" title="Unassign {d.deviceName}" aria-label="Unassign {d.deviceName}">×</button>
               </form>
+              {/if}
             </span>
             {/for}
           </div>
           {/if}
         </td>
         <td class="col-actions">
+          {#if inject:userContext.canEdit}
           <form method="post" action="/devices/assign-many" class="menu-wrap">
             {#authenticityToken /}
             <input type="hidden" name="ids">
@@ -81,6 +84,7 @@
               {/if}
             </div>
           </form>
+          {/if}
         </td>
       </tr>
       {/for}

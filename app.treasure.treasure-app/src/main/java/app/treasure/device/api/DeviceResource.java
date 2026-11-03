@@ -26,6 +26,7 @@ import app.treasure.device.service.DeviceValidationException;
 import app.treasure.member.domain.Member;
 import app.treasure.member.repository.MemberRepository;
 import app.treasure.shared.repository.TagRepository;
+import app.treasure.shared.security.Roles;
 import app.treasure.shared.util.FlashKeys;
 import io.quarkiverse.renarde.Controller;
 import io.quarkus.panache.common.Sort;
@@ -33,6 +34,7 @@ import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
@@ -228,6 +230,7 @@ public class DeviceResource extends Controller
 
 	@GET
 	@Path("/new")
+	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
 	public TemplateInstance create()
 	{
 		return Templates.create(new Device(), loadKnownGroups());
@@ -247,6 +250,7 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
+	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
 	@Path("/create")
 	@Transactional
 	public void save(
@@ -290,6 +294,7 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
+	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
 	@Path("/{id}/update")
 	@Transactional
 	public void update(
@@ -340,6 +345,7 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
+	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
 	@Path("/{id}/delete")
 	@Transactional
 	public void delete(
@@ -358,6 +364,7 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
+	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
 	@Path("/delete-many")
 	@Transactional
 	public void deleteMany(
@@ -380,6 +387,7 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
+	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
 	@Path("/assign-many")
 	@Transactional
 	public void assignMany(
@@ -412,6 +420,7 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
+	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
 	@Path("/unassign-many")
 	@Transactional
 	public void unassignMany(
@@ -438,6 +447,7 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
+	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
 	@Path("/{id}/assign")
 	@Transactional
 	public TemplateInstance assign(
@@ -465,6 +475,7 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
+	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
 	@Path("/{id}/unassign")
 	@Transactional
 	public TemplateInstance unassign(@PathParam("id") Long id)

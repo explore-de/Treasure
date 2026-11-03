@@ -25,12 +25,14 @@ import app.treasure.device.service.DeviceService.DeviceData;
 import app.treasure.device.service.DeviceValidationException;
 import app.treasure.member.domain.Member;
 import app.treasure.member.repository.MemberRepository;
+import app.treasure.shared.security.Roles;
 import io.quarkiverse.mcp.server.Tool;
 import io.quarkiverse.mcp.server.ToolArg;
 import io.quarkiverse.mcp.server.ToolCallException;
 import io.quarkus.panache.common.Sort;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
@@ -217,6 +219,7 @@ public class TreasureTools
 		return new Overview(all.size(), all.size() - assigned, assigned, groups, longestHeld, recent);
 	}
 
+	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
 	@Tool(name = "assign_device", description = "Hands a device to a member. The change is recorded in the "
 		+ "device history under your name. A device held by someone else moves to the new member.")
 	DeviceSummary assignDevice(
@@ -237,6 +240,7 @@ public class TreasureTools
 		return summary(device);
 	}
 
+	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
 	@Tool(name = "unassign_device", description = "Takes a device back from the member holding it, so it is "
 		+ "available again. The change is recorded in the device history under your name.")
 	DeviceSummary unassignDevice(@ToolArg(description = "Device id, see list_devices") long deviceId)
@@ -250,6 +254,7 @@ public class TreasureTools
 		return summary(device);
 	}
 
+	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
 	@Tool(name = "create_device", description = "Adds a new device to the inventory. It starts as available; "
 		+ "use assign_device to hand it to someone. The creation is recorded in the device history under "
 		+ "your name.")
@@ -285,6 +290,7 @@ public class TreasureTools
 		return details(device);
 	}
 
+	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
 	@Tool(name = "update_device", description = "Changes details of a device. Only the fields you pass change; "
 		+ "pass an empty string to clear a text field, modelYear 0 to clear the year. Who holds the device is "
 		+ "changed with assign_device and unassign_device instead. Every changed field is recorded in the "

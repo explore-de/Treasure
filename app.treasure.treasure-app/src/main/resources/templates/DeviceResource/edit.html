@@ -1,5 +1,5 @@
 {#include main.html}
-{#title}Edit {device.deviceName}{/title}
+{#title}{#if inject:userContext.canEdit}Edit {/if}{device.deviceName}{/title}
 
 <nav class="breadcrumb" aria-label="Breadcrumb">
   <a href="/devices">Devices</a>
@@ -9,7 +9,7 @@
 
 <div class="page-head">
   <div>
-    <h1>Edit device</h1>
+    <h1>{#if inject:userContext.canEdit}Edit device{#else}Device{/if}</h1>
     <p class="page-meta">
       {device.deviceName}
       {#if device.assignedTo != null}· assigned to {device.bookedName}{#else}· available{/if}
@@ -25,14 +25,21 @@
 
 <form method="post" action="/devices/{device.id}/update" class="form-card">
   {#authenticityToken /}
-  {#deviceFormFields device=device groups=groups /}
+  <fieldset class="form-fieldset" {#if !inject:userContext.canEdit}disabled{/if}>
+    {#deviceFormFields device=device groups=groups /}
+  </fieldset>
   <div class="form-actions">
+    {#if inject:userContext.canEdit}
     <button type="submit" class="btn btn-primary">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
       Save changes
     </button>
     <a href="/devices" class="btn btn-secondary">Cancel</a>
     <span class="hint">* required</span>
+    {#else}
+    <a href="/devices" class="btn btn-secondary">Back to devices</a>
+    <span class="hint">You can view this device. Only admins can change it.</span>
+    {/if}
   </div>
 </form>
 

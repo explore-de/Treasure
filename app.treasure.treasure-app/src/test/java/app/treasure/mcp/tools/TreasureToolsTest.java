@@ -14,6 +14,7 @@ import app.treasure.device.domain.Device;
 import app.treasure.device.domain.DeviceHistory;
 import app.treasure.mcp.McpTestSupport;
 import app.treasure.mcp.service.McpTokenService.IssuedToken;
+import io.quarkiverse.mcp.server.JsonRpcErrorCodes;
 import io.quarkiverse.mcp.server.test.McpAssured;
 import io.quarkiverse.mcp.server.test.McpAssured.McpStreamableTestClient;
 import io.quarkus.test.common.http.TestHTTPResource;
@@ -38,7 +39,7 @@ class TreasureToolsTest extends McpTestSupport
 	void shouldRecordAssignmentUnderTokenOwnerWhenAssignDeviceIsCalled()
 	{
 		// given
-		IssuedToken issued = memberWithToken("tools-actor");
+		IssuedToken issued = adminWithToken("tools-actor");
 		String holder = createTestMember(unique("tools-holder")).getUserName();
 		Long deviceId = createFreeDevice(unique("ToolsLaptop"), unique("SN"));
 		McpStreamableTestClient client = connect(issued);
@@ -67,7 +68,7 @@ class TreasureToolsTest extends McpTestSupport
 	void shouldMakeDeviceAvailableWhenUnassignDeviceIsCalled()
 	{
 		// given
-		IssuedToken issued = memberWithToken("tools-unassign");
+		IssuedToken issued = adminWithToken("tools-unassign");
 		Long deviceId = createDeviceHeldBy(unique("ToolsPhone"), issued.token().getMember().getUserName());
 		McpStreamableTestClient client = connect(issued);
 		try
@@ -93,7 +94,7 @@ class TreasureToolsTest extends McpTestSupport
 	void shouldReturnToolErrorWhenAssignDeviceGetsUnknownMember()
 	{
 		// given
-		IssuedToken issued = memberWithToken("tools-unknown");
+		IssuedToken issued = adminWithToken("tools-unknown");
 		Long deviceId = createFreeDevice(unique("ToolsTablet"), unique("SN"));
 		String unknownUser = unique("nobody");
 		McpStreamableTestClient client = connect(issued);
@@ -146,7 +147,7 @@ class TreasureToolsTest extends McpTestSupport
 	void shouldRecordCreatedHistoryUnderTokenOwnerWhenCreateDeviceIsCalled()
 	{
 		// given
-		IssuedToken issued = memberWithToken("tools-create");
+		IssuedToken issued = adminWithToken("tools-create");
 		String name = unique("ToolsNewLaptop");
 		McpStreamableTestClient client = connect(issued);
 		Long[] created = new Long[1];
@@ -178,7 +179,7 @@ class TreasureToolsTest extends McpTestSupport
 	void shouldKeepFieldsLeftOutWhenUpdateDeviceChangesOnlyTheModel()
 	{
 		// given
-		IssuedToken issued = memberWithToken("tools-update");
+		IssuedToken issued = adminWithToken("tools-update");
 		String serial = unique("SN");
 		Long deviceId = createFreeDevice(unique("ToolsDock"), serial);
 		McpStreamableTestClient client = connect(issued);
@@ -206,7 +207,7 @@ class TreasureToolsTest extends McpTestSupport
 	void shouldReturnToolErrorWhenUpdateDeviceGetsUnknownCondition()
 	{
 		// given
-		IssuedToken issued = memberWithToken("tools-condition");
+		IssuedToken issued = adminWithToken("tools-condition");
 		Long deviceId = createFreeDevice(unique("ToolsMouse"), unique("SN"));
 		McpStreamableTestClient client = connect(issued);
 		try
@@ -217,6 +218,32 @@ class TreasureToolsTest extends McpTestSupport
 					r -> assertEquals(
 						"true: Condition must be one of: perfect, lightly damaged, heavily damaged, broken.",
 						r.isError() + ": " + r.firstContent().asText().text()))
+				.thenAssertResults();
+		}
+		finally
+		{
+			client.disconnect();
+			deleteDevice(deviceId);
+			deleteToken(issued);
+		}
+	}
+
+	@Test
+	void shouldReturnSecurityErrorWhenTokenWithoutAdminRoleCallsUnassignDevice()
+	{
+		// given
+		IssuedToken issued = memberWithToken("tools-reader");
+		String holder = createTestMember(unique("tools-reader-holder")).getUserName();
+		Long deviceId = createDeviceHeldBy(unique("ToolsReaderLaptop"), holder);
+		McpStreamableTestClient client = connect(issued);
+		try
+		{
+			// when / then
+			client.when()
+				.toolsCall("unassign_device")
+				.withArguments(Map.of("deviceId", deviceId))
+				.withErrorAssert(error -> assertEquals(JsonRpcErrorCodes.SECURITY_ERROR, error.code()))
+				.send()
 				.thenAssertResults();
 		}
 		finally

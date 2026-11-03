@@ -10,6 +10,7 @@ import app.treasure.mcp.repository.McpTokenRepository;
 import app.treasure.mcp.service.McpTokenService;
 import app.treasure.mcp.service.McpTokenService.IssuedToken;
 import app.treasure.shared.BaseMemberTest;
+import app.treasure.shared.security.Roles;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.transaction.Transactional.TxType;
@@ -42,6 +43,13 @@ public abstract class McpTestSupport extends BaseMemberTest
 	{
 		String username = unique(usernamePrefix);
 		return tokenService.issue(createTestMember(username), "test token", Set.of("user"));
+	}
+
+	/** Like {@link #memberWithToken}, but the token may also change data. */
+	protected IssuedToken adminWithToken(String usernamePrefix)
+	{
+		String username = unique(usernamePrefix);
+		return tokenService.issue(createTestMember(username), "test token", Set.of("user", Roles.ADMIN));
 	}
 
 	@Transactional(TxType.REQUIRES_NEW)
