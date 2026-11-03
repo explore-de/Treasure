@@ -2,6 +2,7 @@ package app.treasure.device.domain;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -24,6 +25,7 @@ public class Device extends PanacheEntity
 
 	private LocalDateTime createdOn;
 	private String deviceGroup;
+	@Column(length = 2000)
 	private String extraInfo;
 	private String deviceModel;
 	private String deviceDamage;
@@ -35,6 +37,7 @@ public class Device extends PanacheEntity
 	private String deviceHDDStorage;
 	private String deviceRAM;
 	private Integer deviceModelDate;
+	@Column(length = 2000)
 	private String deviceLocation;
 
 	public String getDeviceLocation()
