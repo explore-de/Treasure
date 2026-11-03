@@ -254,6 +254,166 @@ class TreasureToolsTest extends McpTestSupport
 		}
 	}
 
+	@Test
+	void shouldAddMemberWhoNeverSignedInWhenAddMemberIsCalled()
+	{
+		// given
+		IssuedToken issued = adminWithToken("tools-add");
+		String email = unique("tools-added") + "@example.com";
+		McpStreamableTestClient client = connect(issued);
+		try
+		{
+			// when / then
+			client.when()
+				.toolsCall("add_member", Map.of("firstName", "Tool", "lastName", "Added", "email", email),
+					r -> assertEquals(email + ": Never signed in",
+						new JsonObject(r.firstContent().asText().text()).getString("username") + ": "
+							+ new JsonObject(r.firstContent().asText().text()).getString("status")))
+				.thenAssertResults();
+		}
+		finally
+		{
+			client.disconnect();
+			deleteMemberByEmail(email);
+			deleteToken(issued);
+		}
+	}
+
+	@Test
+	void shouldShowStatusWhenListMembersIsCalled()
+	{
+		// given
+		IssuedToken issued = memberWithToken("tools-status");
+		String username = issued.token().getMember().getUserName();
+		McpStreamableTestClient client = connect(issued);
+		try
+		{
+			// when / then
+			client.when()
+				.toolsCall("list_members", Map.of(),
+					r -> assertEquals(List.of("Never signed in"),
+						new JsonObject(r.firstContent().asText().text()).getJsonArray("members").stream()
+							.map(m -> (JsonObject)m)
+							.filter(m -> username.equals(m.getString("username")))
+							.map(m -> m.getString("status")).toList()))
+				.thenAssertResults();
+		}
+		finally
+		{
+			client.disconnect();
+			deleteToken(issued);
+		}
+	}
+
+	@Test
+	void shouldReturnToolErrorWhenAddMemberGetsTakenEmail()
+	{
+		// given
+		IssuedToken issued = adminWithToken("tools-taken");
+		String takenEmail = issued.token().getMember().getEmail();
+		McpStreamableTestClient client = connect(issued);
+		try
+		{
+			// when / then
+			client.when()
+				.toolsCall("add_member", Map.of("firstName", "Again", "lastName", "Person", "email", takenEmail),
+					r -> assertEquals("true: A member with the email " + takenEmail + " already exists.",
+						r.isError() + ": " + r.firstContent().asText().text()))
+				.thenAssertResults();
+		}
+		finally
+		{
+			client.disconnect();
+			deleteToken(issued);
+		}
+	}
+
+	@Test
+	void shouldReturnSecurityErrorWhenTokenWithoutAdminRoleCallsAddMember()
+	{
+		// given
+		IssuedToken issued = memberWithToken("tools-add-reader");
+		String email = unique("tools-not-added") + "@example.com";
+		McpStreamableTestClient client = connect(issued);
+		try
+		{
+			// when / then
+			client.when()
+				.toolsCall("add_member")
+				.withArguments(Map.of("firstName", "Not", "lastName", "Added", "email", email))
+				.withErrorAssert(error -> assertEquals(JsonRpcErrorCodes.SECURITY_ERROR, error.code()))
+				.send()
+				.thenAssertResults();
+		}
+		finally
+		{
+			client.disconnect();
+			deleteMemberByEmail(email);
+			deleteToken(issued);
+		}
+	}
+
+	@Test
+	void shouldChangeOwnPhoneWhenUpdateMemberIsCalledWithoutUsername()
+	{
+		// given
+		IssuedToken issued = memberWithToken("tools-self");
+		String username = issued.token().getMember().getUserName();
+		McpStreamableTestClient client = connect(issued);
+		try
+		{
+			// when
+			client.when()
+				.toolsCall("update_member", Map.of("phone", "+49 89 777"), r -> {
+				})
+				.thenAssertResults();
+
+			// then
+			assertEquals("+49 89 777", phoneOf(username));
+		}
+		finally
+		{
+			client.disconnect();
+			deleteToken(issued);
+		}
+	}
+
+	@Test
+	void shouldReturnToolErrorWhenTokenWithoutAdminRoleUpdatesAnotherMember()
+	{
+		// given
+		IssuedToken issued = memberWithToken("tools-nosy");
+		String other = createTestMember(unique("tools-other")).getUserName();
+		McpStreamableTestClient client = connect(issued);
+		try
+		{
+			// when / then
+			client.when()
+				.toolsCall("update_member", Map.of("username", other, "firstName", "Hacked"),
+					r -> assertEquals(
+						"true: You can only change your own details; changing other members needs the admin role.",
+						r.isError() + ": " + r.firstContent().asText().text()))
+				.thenAssertResults();
+		}
+		finally
+		{
+			client.disconnect();
+			deleteToken(issued);
+		}
+	}
+
+	@Transactional(TxType.REQUIRES_NEW)
+	String phoneOf(String username)
+	{
+		return memberRepository.findByUsername(username).getPhone();
+	}
+
+	@Transactional(TxType.REQUIRES_NEW)
+	void deleteMemberByEmail(String email)
+	{
+		memberRepository.delete("lower(email) = ?1", email.toLowerCase());
+	}
+
 	private static Long deviceIdOf(String deviceDetailsJson)
 	{
 		return new JsonObject(deviceDetailsJson).getJsonObject("summary").getLong("id");

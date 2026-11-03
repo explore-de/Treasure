@@ -19,8 +19,9 @@ import jakarta.transaction.Transactional.TxType;
 
 /**
  * Creates the Member row for a person the first time they sign in through the
- * identity provider. Dev mode bootstraps its demo users; on a stand this is the
- * only way members come into existence.
+ * identity provider. Dev mode bootstraps its demo users; on a stand members
+ * come into existence here or when an admin adds them; this class links such a
+ * member to their login on the first sign-in.
  */
 @ApplicationScoped
 public class MemberProvisioningService
@@ -59,20 +60,49 @@ public class MemberProvisioningService
 		Member member = memberRepository.findByUsername(username);
 		if (member == null)
 		{
+			member = findNeverSignedInByEmail(username, token);
+		}
+		if (member == null)
+		{
 			member = createFromToken(username, token);
 			LOG.info("Created member {} ({}) on first login", member.getDisplayName(), username);
+		}
+		else if (member.isNeverSignedIn())
+		{
+			// the login may spell the name differently than the admin typed it
+			member.setUserName(username);
+			member.setSubject(firstClaim(token, "oid", "sub"));
+			member.setJoinedAt(Instant.now());
+			LOG.info("Member {} ({}) signed in for the first time", member.getDisplayName(), username);
 		}
 		knownUsernames.add(username);
 		return member;
 	}
 
-	private Member createFromToken(String username, JsonWebToken token)
+	/**
+	 * The member who never signed in and whose email matches the login, or
+	 * null.
+	 */
+	private Member findNeverSignedInByEmail(String username, JsonWebToken token)
+	{
+		String email = loginEmail(username, token);
+		if (email == null)
+		{
+			return null;
+		}
+		Member existing = memberRepository.findByEmail(email);
+		return existing != null && existing.isNeverSignedIn() ? existing : null;
+	}
+
+	private static String loginEmail(String username, JsonWebToken token)
 	{
 		String email = firstClaim(token, "email", "upn");
-		if (email == null && username.contains("@"))
-		{
-			email = username;
-		}
+		return email == null && username.contains("@") ? username : email;
+	}
+
+	private Member createFromToken(String username, JsonWebToken token)
+	{
+		String email = loginEmail(username, token);
 		String firstName = firstClaim(token, "given_name");
 		String lastName = firstClaim(token, "family_name");
 		if (firstName == null || lastName == null)

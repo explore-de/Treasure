@@ -1,0 +1,65 @@
+{#include main.html}
+{#title}Edit {member.displayName}{/title}
+
+<nav class="breadcrumb" aria-label="Breadcrumb">
+  <a href="/members">Members</a>
+  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+  <span aria-current="page">{member.displayName}</span>
+</nav>
+
+<div class="page-head">
+  <div>
+    <h1>Edit member</h1>
+    <p class="page-meta">{member.displayName} · {member.statusLabel}</p>
+  </div>
+</div>
+
+{#if error}
+<cds-inline-notification kind="error" title="Not saved" subtitle="{error}" low-contrast class="form-notice">
+</cds-inline-notification>
+{/if}
+
+<form method="post" action="/members/{member.id}/update" class="form-card">
+  {#authenticityToken /}
+  <div class="form-section">
+    <h2 class="form-section-title">Person</h2>
+    <div class="form-grid">
+      <div class="field">
+        <label class="field-label" for="firstName">First name <span class="required" aria-hidden="true">*</span></label>
+        <input class="field-input" type="text" id="firstName" name="firstName" maxlength="100" required
+               autocomplete="off" value="{firstName}">
+        <span class="field-error">A first name is required.</span>
+      </div>
+      <div class="field">
+        <label class="field-label" for="lastName">Last name <span class="required" aria-hidden="true">*</span></label>
+        <input class="field-input" type="text" id="lastName" name="lastName" maxlength="100" required
+               autocomplete="off" value="{lastName}">
+        <span class="field-error">A last name is required.</span>
+      </div>
+      <div class="field">
+        <label class="field-label" for="email">Email <span class="required" aria-hidden="true">*</span></label>
+        <input class="field-input" type="email" id="email" name="email" maxlength="255" required
+               autocomplete="off" value="{email}">
+        <span class="field-error">A valid email address is required.</span>
+        {#if member.neverSignedIn}
+        <span class="field-hint">Their first sign-in with this email links the login to this member.</span>
+        {/if}
+      </div>
+      <div class="field">
+        <label class="field-label" for="phone">Phone</label>
+        <input class="field-input" type="tel" id="phone" name="phone" maxlength="50"
+               autocomplete="off" placeholder="e.g. +49 89 123456" value="{phone}">
+      </div>
+    </div>
+  </div>
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      Save changes
+    </button>
+    <a href="/members" class="btn btn-secondary">Cancel</a>
+    <span class="hint">* required</span>
+  </div>
+</form>
+
+{/include}

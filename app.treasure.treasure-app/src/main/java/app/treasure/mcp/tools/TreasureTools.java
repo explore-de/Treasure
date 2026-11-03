@@ -25,6 +25,8 @@ import app.treasure.device.service.DeviceService.DeviceData;
 import app.treasure.device.service.DeviceValidationException;
 import app.treasure.member.domain.Member;
 import app.treasure.member.repository.MemberRepository;
+import app.treasure.member.service.MemberValidationException;
+import app.treasure.member.service.MemberService;
 import app.treasure.shared.security.Roles;
 import io.quarkiverse.mcp.server.Tool;
 import io.quarkiverse.mcp.server.ToolArg;
@@ -73,6 +75,9 @@ public class TreasureTools
 	@Inject
 	SecurityIdentity securityIdentity;
 
+	@Inject
+	MemberService memberService;
+
 	/** One line of a device list. */
 	public record DeviceSummary(long id, String name, String group, String status, String model,
 		String serialNumber, String inventoryNumber, String assignedTo, String assignedToName,
@@ -96,7 +101,8 @@ public class TreasureTools
 	{
 	}
 
-	public record MemberHoldings(String username, String name, String email, List<HeldDevice> devices)
+	public record MemberHoldings(String username, String name, String email, String status,
+		List<HeldDevice> devices)
 	{
 	}
 
@@ -179,7 +185,8 @@ public class TreasureTools
 	}
 
 	@Tool(name = "list_members", description = "Lists every member who can hold a device, with the devices "
-		+ "each one holds. The username is what assign_device expects.")
+		+ "each one holds and their status: 'In the system' or 'Never signed in'. The username is what "
+		+ "assign_device expects.")
 	MemberList listMembers()
 	{
 		List<MemberHoldings> result = new ArrayList<>();
@@ -188,9 +195,73 @@ public class TreasureTools
 			List<HeldDevice> held = deviceRepository.findAssignedTo(member).stream()
 				.map(d -> new HeldDevice(d.id, d.getDeviceName(), since(d), d.getDaysHeld()))
 				.toList();
-			result.add(new MemberHoldings(member.getUserName(), member.getDisplayName(), member.getEmail(), held));
+			result.add(holdings(member, held));
 		}
 		return new MemberList(result.size(), result);
+	}
+
+	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@Tool(name = "add_member", description = "Adds a person who has not signed in yet, so devices can be "
+		+ "assigned to them right away. They show as 'Never signed in' until their first sign-in with this "
+		+ "email. No email is sent. The username is the email in lower case.")
+	MemberHoldings addMember(
+		@ToolArg(description = "First name, up to 100 characters") String firstName,
+		@ToolArg(description = "Last name, up to 100 characters") String lastName,
+		@ToolArg(description = "Email of their company account, e.g. 'erika.mustermann@example.com'") String email)
+	{
+		Member member;
+		try
+		{
+			member = memberService.add(firstName, lastName, email, actor());
+		}
+		catch (MemberValidationException e)
+		{
+			throw new ToolCallException(e.getMessage());
+		}
+		LOG.info("MCP: member {} added by {}", member.getUserName(), actorName());
+		return holdings(member, List.of());
+	}
+
+	@Tool(name = "update_member", description = "Changes the name, email or phone of a member. Only the "
+		+ "fields you pass change; an empty phone clears it. Admins can change every member, everyone else "
+		+ "only themselves. Leave out the username to change yourself.")
+	MemberHoldings updateMember(
+		@ToolArg(description = "Username of the member, see list_members; default is you", required = false) String username,
+		@ToolArg(description = "New first name, up to 100 characters", required = false) String firstName,
+		@ToolArg(description = "New last name, up to 100 characters", required = false) String lastName,
+		@ToolArg(description = "New email address", required = false) String email,
+		@ToolArg(description = "New phone number, up to 50 characters", required = false) String phone)
+	{
+		boolean self = username == null || username.isBlank();
+		Member member = self ? actor() : memberRepository.findByUsername(username.trim());
+		if (member == null)
+		{
+			throw new ToolCallException(self ? "Your member profile does not exist yet."
+				: "No member with username '" + username + "'. Use list_members to see the usernames.");
+		}
+		if (!memberService.mayEdit(member, securityIdentity))
+		{
+			throw new ToolCallException("You can only change your own details; changing other members needs "
+				+ "the admin role.");
+		}
+		try
+		{
+			memberService.update(member,
+				firstName != null ? firstName : member.getFirstName(),
+				lastName != null ? lastName : member.getLastName(),
+				email != null ? email : member.getEmail(),
+				phone != null ? phone : member.getPhone(),
+				actorName());
+		}
+		catch (MemberValidationException e)
+		{
+			throw new ToolCallException(e.getMessage());
+		}
+		LOG.info("MCP: member {} changed by {}", member.getUserName(), actorName());
+		List<HeldDevice> held = deviceRepository.findAssignedTo(member).stream()
+			.map(d -> new HeldDevice(d.id, d.getDeviceName(), since(d), d.getDaysHeld()))
+			.toList();
+		return holdings(member, held);
 	}
 
 	@Tool(name = "overview", description = "Inventory summary: device counts, devices per group, the "
@@ -349,6 +420,12 @@ public class TreasureTools
 			throw new ToolCallException("No device with id " + deviceId + ". Use list_devices to find it.");
 		}
 		return device;
+	}
+
+	private static MemberHoldings holdings(Member member, List<HeldDevice> held)
+	{
+		return new MemberHoldings(member.getUserName(), member.getDisplayName(), member.getEmail(),
+			member.getStatusLabel(), held);
 	}
 
 	private Member actor()

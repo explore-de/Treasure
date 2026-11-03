@@ -142,6 +142,61 @@ class MemberProvisioningServiceTest
 		}
 	}
 
+	@Test
+	void shouldLinkLoginToAddedMemberWhenEmailMatches()
+	{
+		// given
+		String email = "linked.login@example.com";
+		String username = "Linked.Login@example.com";
+		Long addedId = addMemberWhoNeverSignedIn(email);
+		try
+		{
+			// when
+			Member member = provisioningService.ensureMember(username, entraToken(email));
+
+			// then
+			assertEquals(addedId, member.getId());
+		}
+		finally
+		{
+			deleteMember(username);
+			deleteMember(email);
+		}
+	}
+
+	@Test
+	void shouldMarkAddedMemberAsSignedInWhenTheyLogInForTheFirstTime()
+	{
+		// given
+		String email = "first.sign-in@example.com";
+		addMemberWhoNeverSignedIn(email);
+		try
+		{
+			// when
+			Member member = provisioningService.ensureMember(email, entraToken(email));
+
+			// then
+			assertEquals("In the system", member.getStatusLabel());
+		}
+		finally
+		{
+			deleteMember(email);
+		}
+	}
+
+	@Transactional(TxType.REQUIRES_NEW)
+	Long addMemberWhoNeverSignedIn(String email)
+	{
+		Member member = new Member();
+		member.setFirstName("Added");
+		member.setLastName("Person");
+		member.setEmail(email);
+		member.setUserName(email);
+		member.setInviteType(Member.INVITE_TYPE_INVITED);
+		memberRepository.persist(member);
+		return member.id;
+	}
+
 	@Transactional(TxType.REQUIRES_NEW)
 	void deleteMember(String username)
 	{

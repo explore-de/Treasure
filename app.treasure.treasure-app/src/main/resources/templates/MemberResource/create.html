@@ -1,0 +1,58 @@
+{#include main.html}
+{#title}Add member{/title}
+
+<nav class="breadcrumb" aria-label="Breadcrumb">
+  <a href="/members">Members</a>
+  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+  <span aria-current="page">Add member</span>
+</nav>
+
+<div class="page-head">
+  <div>
+    <h1>Add member</h1>
+    <p class="page-meta">The person can hold devices right away and shows as never signed in until their first sign-in.</p>
+  </div>
+</div>
+
+{#if error}
+<cds-inline-notification kind="error" title="Not added" subtitle="{error}" low-contrast class="form-notice">
+</cds-inline-notification>
+{/if}
+
+<form method="post" action="/members/create" class="form-card">
+  {#authenticityToken /}
+  <div class="form-section">
+    <h2 class="form-section-title">Person</h2>
+    <p class="form-section-hint">Use the email address of their company account. Their first sign-in with it links the login to this member.</p>
+    <div class="form-grid">
+      <div class="field">
+        <label class="field-label" for="firstName">First name <span class="required" aria-hidden="true">*</span></label>
+        <input class="field-input" type="text" id="firstName" name="firstName" maxlength="100" required
+               autocomplete="off" placeholder="e.g. Erika" value="{firstName}">
+        <span class="field-error">A first name is required.</span>
+      </div>
+      <div class="field">
+        <label class="field-label" for="lastName">Last name <span class="required" aria-hidden="true">*</span></label>
+        <input class="field-input" type="text" id="lastName" name="lastName" maxlength="100" required
+               autocomplete="off" placeholder="e.g. Mustermann" value="{lastName}">
+        <span class="field-error">A last name is required.</span>
+      </div>
+      <div class="field span-2">
+        <label class="field-label" for="email">Email <span class="required" aria-hidden="true">*</span></label>
+        <input class="field-input" type="email" id="email" name="email" maxlength="255" required
+               autocomplete="off" placeholder="e.g. erika.mustermann@example.com" value="{email}">
+        <span class="field-error">A valid email address is required.</span>
+      </div>
+    </div>
+  </div>
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      Save member
+    </button>
+    <a href="/members" class="btn btn-secondary">Cancel</a>
+    <span class="hint">* required</span>
+  </div>
+</form>
+
+{/include}
