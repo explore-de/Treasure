@@ -1,10 +1,13 @@
 package app.treasure.mcp.security;
 
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import app.treasure.mcp.domain.McpToken;
 import app.treasure.mcp.service.McpTokenService;
+import app.treasure.shared.security.Roles;
 import io.quarkus.security.AuthenticationFailedException;
 import io.quarkus.security.identity.AuthenticationRequestContext;
 import io.quarkus.security.identity.IdentityProvider;
@@ -50,10 +53,19 @@ public class McpTokenIdentityProvider implements IdentityProvider<McpTokenAuthen
 			LOG.warn("Rejected an MCP request with an unknown or revoked token");
 			throw new AuthenticationFailedException("Invalid MCP token");
 		}
+		Set<String> roles = token.getRoleSet();
+		if (!roles.contains(Roles.ADMIN) && !roles.contains(Roles.SUPER_ADMIN))
+		{
+			// API access is for admins only; keys issued to regular users
+			// before that rule no longer work
+			LOG.warn("Rejected MCP token {} of {}: it has no admin role", token.id,
+				token.getMember().getUserName());
+			throw new AuthenticationFailedException("MCP token without admin role");
+		}
 		LOG.debug("MCP request authenticated as {} with token {}", token.getMember().getUserName(), token.id);
 		return QuarkusSecurityIdentity.builder()
 			.setPrincipal(new QuarkusPrincipal(token.getMember().getUserName()))
-			.addRoles(token.getRoleSet())
+			.addRoles(roles)
 			.build();
 	}
 }

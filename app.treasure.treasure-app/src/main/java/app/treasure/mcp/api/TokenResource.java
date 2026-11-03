@@ -9,11 +9,12 @@ import app.treasure.mcp.repository.McpTokenRepository;
 import app.treasure.mcp.service.McpTokenService;
 import app.treasure.member.domain.Member;
 import app.treasure.member.repository.MemberRepository;
+import app.treasure.shared.security.Roles;
 import app.treasure.shared.util.FlashKeys;
 import io.quarkiverse.renarde.Controller;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
-import io.quarkus.security.Authenticated;
+import jakarta.annotation.security.RolesAllowed;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -25,10 +26,11 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.UriInfo;
 
 /**
- * Personal API tokens for the MCP endpoint. Everyone manages only their own
- * tokens; a new token is shown once, on the page the create form returns.
+ * Personal API tokens for the MCP endpoint, for admins only. Each admin manages
+ * only their own tokens; a new token is shown once, on the page the create form
+ * returns.
  */
-@Authenticated
+@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
 @Path("/tokens")
 public class TokenResource extends Controller
 {

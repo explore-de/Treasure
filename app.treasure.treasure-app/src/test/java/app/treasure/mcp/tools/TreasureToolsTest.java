@@ -14,7 +14,6 @@ import app.treasure.device.domain.Device;
 import app.treasure.device.domain.DeviceHistory;
 import app.treasure.mcp.McpTestSupport;
 import app.treasure.mcp.service.McpTokenService.IssuedToken;
-import io.quarkiverse.mcp.server.JsonRpcErrorCodes;
 import io.quarkiverse.mcp.server.test.McpAssured;
 import io.quarkiverse.mcp.server.test.McpAssured.McpStreamableTestClient;
 import io.quarkus.test.common.http.TestHTTPResource;
@@ -121,7 +120,7 @@ class TreasureToolsTest extends McpTestSupport
 	void shouldFindDeviceWhenSearchMatchesSerialNumber()
 	{
 		// given
-		IssuedToken issued = memberWithToken("tools-search");
+		IssuedToken issued = adminWithToken("tools-search");
 		String serial = unique("SERIAL");
 		Long deviceId = createFreeDevice(unique("ToolsMonitor"), serial);
 		McpStreamableTestClient client = connect(issued);
@@ -229,32 +228,6 @@ class TreasureToolsTest extends McpTestSupport
 	}
 
 	@Test
-	void shouldReturnSecurityErrorWhenTokenWithoutAdminRoleCallsUnassignDevice()
-	{
-		// given
-		IssuedToken issued = memberWithToken("tools-reader");
-		String holder = createTestMember(unique("tools-reader-holder")).getUserName();
-		Long deviceId = createDeviceHeldBy(unique("ToolsReaderLaptop"), holder);
-		McpStreamableTestClient client = connect(issued);
-		try
-		{
-			// when / then
-			client.when()
-				.toolsCall("unassign_device")
-				.withArguments(Map.of("deviceId", deviceId))
-				.withErrorAssert(error -> assertEquals(JsonRpcErrorCodes.SECURITY_ERROR, error.code()))
-				.send()
-				.thenAssertResults();
-		}
-		finally
-		{
-			client.disconnect();
-			deleteDevice(deviceId);
-			deleteToken(issued);
-		}
-	}
-
-	@Test
 	void shouldAddMemberWhoNeverSignedInWhenAddMemberIsCalled()
 	{
 		// given
@@ -283,7 +256,7 @@ class TreasureToolsTest extends McpTestSupport
 	void shouldShowStatusWhenListMembersIsCalled()
 	{
 		// given
-		IssuedToken issued = memberWithToken("tools-status");
+		IssuedToken issued = adminWithToken("tools-status");
 		String username = issued.token().getMember().getUserName();
 		McpStreamableTestClient client = connect(issued);
 		try
@@ -329,35 +302,10 @@ class TreasureToolsTest extends McpTestSupport
 	}
 
 	@Test
-	void shouldReturnSecurityErrorWhenTokenWithoutAdminRoleCallsAddMember()
-	{
-		// given
-		IssuedToken issued = memberWithToken("tools-add-reader");
-		String email = unique("tools-not-added") + "@example.com";
-		McpStreamableTestClient client = connect(issued);
-		try
-		{
-			// when / then
-			client.when()
-				.toolsCall("add_member")
-				.withArguments(Map.of("firstName", "Not", "lastName", "Added", "email", email))
-				.withErrorAssert(error -> assertEquals(JsonRpcErrorCodes.SECURITY_ERROR, error.code()))
-				.send()
-				.thenAssertResults();
-		}
-		finally
-		{
-			client.disconnect();
-			deleteMemberByEmail(email);
-			deleteToken(issued);
-		}
-	}
-
-	@Test
 	void shouldChangeOwnPhoneWhenUpdateMemberIsCalledWithoutUsername()
 	{
 		// given
-		IssuedToken issued = memberWithToken("tools-self");
+		IssuedToken issued = adminWithToken("tools-self");
 		String username = issued.token().getMember().getUserName();
 		McpStreamableTestClient client = connect(issued);
 		try
@@ -370,30 +318,6 @@ class TreasureToolsTest extends McpTestSupport
 
 			// then
 			assertEquals("+49 89 777", phoneOf(username));
-		}
-		finally
-		{
-			client.disconnect();
-			deleteToken(issued);
-		}
-	}
-
-	@Test
-	void shouldReturnToolErrorWhenTokenWithoutAdminRoleUpdatesAnotherMember()
-	{
-		// given
-		IssuedToken issued = memberWithToken("tools-nosy");
-		String other = createTestMember(unique("tools-other")).getUserName();
-		McpStreamableTestClient client = connect(issued);
-		try
-		{
-			// when / then
-			client.when()
-				.toolsCall("update_member", Map.of("username", other, "firstName", "Hacked"),
-					r -> assertEquals(
-						"true: You can only change your own details; changing other members needs the admin role.",
-						r.isError() + ": " + r.firstContent().asText().text()))
-				.thenAssertResults();
 		}
 		finally
 		{

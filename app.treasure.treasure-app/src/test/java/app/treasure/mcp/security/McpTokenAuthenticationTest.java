@@ -47,7 +47,7 @@ class McpTokenAuthenticationTest extends McpTestSupport
 	void shouldAnswerUnauthorizedWhenMcpTokenWasRevoked()
 	{
 		// given
-		IssuedToken issued = memberWithToken("mcp-revoked");
+		IssuedToken issued = adminWithToken("mcp-revoked");
 		tokenService.revoke(issued.token().id, issued.token().getMember());
 
 		// when
@@ -61,7 +61,7 @@ class McpTokenAuthenticationTest extends McpTestSupport
 	void shouldInitializeSessionWhenMcpTokenIsValid()
 	{
 		// given
-		IssuedToken issued = memberWithToken("mcp-valid");
+		IssuedToken issued = adminWithToken("mcp-valid");
 		try
 		{
 			// when
@@ -69,6 +69,25 @@ class McpTokenAuthenticationTest extends McpTestSupport
 
 			// then
 			response.then().statusCode(200);
+		}
+		finally
+		{
+			deleteToken(issued);
+		}
+	}
+
+	@Test
+	void shouldAnswerUnauthorizedWhenMcpTokenBelongsToRegularUser()
+	{
+		// given
+		IssuedToken issued = memberWithToken("mcp-regular");
+		try
+		{
+			// when
+			Response response = postToMcp(issued.secret(), INITIALIZE);
+
+			// then
+			response.then().statusCode(401);
 		}
 		finally
 		{
