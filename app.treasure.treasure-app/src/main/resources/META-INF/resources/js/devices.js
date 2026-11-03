@@ -29,6 +29,15 @@
     var qs = p.toString();
     window.location.href = window.location.pathname + (qs ? '?' + qs : '');
   }
+  function removeValue(p, key, value) {
+    var all = p.getAll(key);
+    p.delete(key);
+    var removed = false;
+    all.forEach(function (v) {
+      if (!removed && v === value) { removed = true; return; }
+      p.append(key, v);
+    });
+  }
   function clearAllFilters() {
     var p = params();
     FILTERS.forEach(function (f) { p.delete(f[0]); });
@@ -81,18 +90,28 @@
     }
     function apply() {
       var p = params();
-      var added = 0;
+      var changed = 0;
       $$('[data-filter]', panel).forEach(function (el) {
-        var value = el.value.trim();
-        if (!value) return;
         var key = el.dataset.filter;
-        if (p.getAll(key).indexOf(value) === -1) {
-          p.append(key, value);
-          added++;
-        }
+        var value = el.value.trim();
+        var initial = el.dataset.initial || '';
+        if (value === initial) return;
+        // a field shown with its active filter replaces that filter when edited
+        if (initial) removeValue(p, key, initial);
+        if (value && p.getAll(key).indexOf(value) === -1) p.append(key, value);
+        changed++;
       });
-      if (added > 0) navigate(p); else setOpen(false);
+      if (changed > 0) navigate(p); else setOpen(false);
     }
+
+    // show a filter in its field when it is the only value for that key,
+    // so the panel agrees with the chips (e.g. after /devices?status=available)
+    var current = params();
+    $$('[data-filter]', panel).forEach(function (el) {
+      var values = current.getAll(el.dataset.filter);
+      if (values.length === 1) el.value = values[0];
+      el.dataset.initial = el.value;
+    });
 
     toggle.addEventListener('click', function () { setOpen(!panel.classList.contains('is-open')); });
     $('#applyFilters').addEventListener('click', apply);
@@ -129,13 +148,7 @@
     remove.textContent = '×';
     remove.addEventListener('click', function () {
       var p = params();
-      var all = p.getAll(key);
-      p.delete(key);
-      var removed = false;
-      all.forEach(function (v) {
-        if (!removed && v === value) { removed = true; return; }
-        p.append(key, v);
-      });
+      removeValue(p, key, value);
       navigate(p);
     });
 
