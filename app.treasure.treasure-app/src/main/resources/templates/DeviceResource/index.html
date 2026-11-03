@@ -6,12 +6,14 @@
     <h1>Devices</h1>
     <p class="page-meta">{devices.size} {#if devices.size == 1}device{#else}devices{/if} in this list</p>
   </div>
+  {#if inject:userContext.canEdit}
   <div class="page-head-actions">
     <a href="/devices/new" class="btn btn-primary">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
       New device
     </a>
   </div>
+  {/if}
 </div>
 
 <div class="toolbar">
@@ -73,6 +75,7 @@
   <button type="button" class="btn btn-ghost btn-sm" id="clearChips">Clear all</button>
 </div>
 
+{#if inject:userContext.canEdit}
 <div class="bulk-bar" id="bulkBar" role="region" aria-label="Actions for selected devices">
   <span class="bulk-count"><span id="bulkCount">0</span> selected</span>
   <form method="post" action="/devices/assign-many" id="bulkAssignForm" class="menu-wrap">
@@ -105,6 +108,7 @@
   </form>
   <button type="button" class="btn btn-ghost btn-sm push-right" id="clearSelection">Clear selection</button>
 </div>
+{/if}
 
 <div class="table-card">
   {#if devices.isEmpty}
@@ -112,7 +116,9 @@
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
     <h2>No devices yet</h2>
     <p>Add your first device to start tracking who has it.</p>
+    {#if inject:userContext.canEdit}
     <a href="/devices/new" class="btn btn-primary">New device</a>
+    {/if}
   </div>
   <div class="empty-state" id="emptyFiltered" hidden>
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
@@ -124,22 +130,28 @@
   <table class="device-table">
     <thead>
       <tr>
+        {#if inject:userContext.canEdit}
         <th class="col-select"><input type="checkbox" class="checkbox" id="selectAll" aria-label="Select all devices"></th>
+        {/if}
         <th>Name</th>
         <th>Status</th>
         <th>Assigned to</th>
         <th class="col-optional">Pickup time</th>
         <th class="col-optional">Group</th>
+        {#if inject:userContext.canEdit}
         <th class="col-actions"><span class="sr-only">Actions</span></th>
+        {/if}
       </tr>
     </thead>
     <tbody>
       {#for device in devices}
       {#fragment id=row}
       <tr id="device-row-{device.id}">
+        {#if inject:userContext.canEdit}
         <td class="col-select">
           <input type="checkbox" class="checkbox row-select" data-id="{device.id}" aria-label="Select {device.deviceName}">
         </td>
+        {/if}
         <td>
           <button type="button" class="device-name" title="Show details"
                   data-details
@@ -174,6 +186,7 @@
         <td>{#if device.assignedTo != null}{device.bookedName}{#else}<span class="muted">—</span>{/if}</td>
         <td class="col-optional">{#if device.pickupTime != null}{device.formattedPickupTime}{#else}<span class="muted">—</span>{/if}</td>
         <td class="col-optional">{#if device.group}{device.group}{#else}<span class="muted">—</span>{/if}</td>
+        {#if inject:userContext.canEdit}
         <td class="col-actions">
           <div class="row-actions">
             {#if device.assignedTo != null}
@@ -211,6 +224,7 @@
             </form>
           </div>
         </td>
+        {/if}
       </tr>
       {/fragment}
       {/for}
@@ -260,7 +274,7 @@
   </div>
   <div class="modal-foot">
     <button type="button" class="btn btn-secondary" data-close>Close</button>
-    <a id="detailsEdit" href="#" class="btn btn-primary">Edit device</a>
+    <a id="detailsEdit" href="#" class="btn btn-primary">{#if inject:userContext.canEdit}Edit device{#else}Show history{/if}</a>
   </div>
 </dialog>
 

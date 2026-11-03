@@ -104,7 +104,10 @@ all with password `password`. `DataSeeder` adds four demo members in dev mode.
 `treasure.bootstrap.enabled` is true only under `%dev` and `%test`; on a stand
 nothing is bootstrapped and `FirstLoginFilter` creates each person's Member
 from the ID token (`preferred_username`, `email`, `given_name`,
-`family_name`, `oid`). `@TestSecurity` identities carry no token and are
+`family_name`, `oid`). Only `admin` and `super_admin` may change data
+(`@RolesAllowed` on every POST and MCP write tool,
+`inject:userContext.canEdit` in templates); a plain `user` only reads.
+`@TestSecurity` identities carry no token and are
 skipped by the filter, so tests create members themselves.
 
 **Templates:** `src/main/resources/templates/<ControllerName>/<method>.html`.

@@ -587,6 +587,9 @@ dialog.modal::backdrop { background: rgba(0, 0, 0, 0.45); }
   gap: 16px 24px;
 }
 .form-grid .span-2 { grid-column: 1 / -1; }
+.form-fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+/* read-only view: the values stay readable, only the editing affordance goes */
+.form-fieldset:disabled .field-input { color: var(--text); background: var(--surface); cursor: default; }
 
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field-label { font-size: 13px; font-weight: 500; color: var(--text); }

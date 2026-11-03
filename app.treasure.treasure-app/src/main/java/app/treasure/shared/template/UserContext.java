@@ -71,4 +71,15 @@ public class UserContext
 	{
 		return hasRole(Roles.SUPER_ADMIN);
 	}
+
+	/**
+	 * Checks if the current user may change devices and assignments. Everyone
+	 * else only reads.
+	 *
+	 * @return true if the user has the admin or super_admin role
+	 */
+	public boolean canEdit()
+	{
+		return hasRole(Roles.ADMIN) || hasRole(Roles.SUPER_ADMIN);
+	}
 }

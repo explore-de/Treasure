@@ -108,6 +108,48 @@ class UserContextTest extends BaseMemberTest
 	}
 
 	@Test
+	@TestSecurity(user = "alice", roles = { "admin", "user" })
+	void shouldAllowEditingWhenUserIsAdmin()
+	{
+		// given
+		// alice is an admin, see @TestSecurity
+
+		// when
+		boolean canEdit = userContext.canEdit();
+
+		// then
+		assertThat(canEdit, is(true));
+	}
+
+	@Test
+	@TestSecurity(user = "alice", roles = { "super_admin" })
+	void shouldAllowEditingWhenUserIsSuperAdmin()
+	{
+		// given
+		// alice is only a super admin, see @TestSecurity
+
+		// when
+		boolean canEdit = userContext.canEdit();
+
+		// then
+		assertThat(canEdit, is(true));
+	}
+
+	@Test
+	@TestSecurity(user = "bob", roles = { "user" })
+	void shouldOnlyAllowReadingWhenUserHasOnlyUserRole()
+	{
+		// given
+		// bob is a plain user, see @TestSecurity
+
+		// when
+		boolean canEdit = userContext.canEdit();
+
+		// then
+		assertThat(canEdit, is(false));
+	}
+
+	@Test
 	void shouldReturnFalseForIsAuthenticatedWhenNotAuthenticated()
 	{
 		// No @TestSecurity annotation = anonymous/unauthenticated

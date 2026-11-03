@@ -1,6 +1,8 @@
 package app.treasure.device.api;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -20,6 +22,7 @@ import app.treasure.device.repository.DeviceRepository;
 import app.treasure.member.domain.Member;
 import app.treasure.member.repository.MemberRepository;
 import app.treasure.shared.repository.TagRepository;
+import app.treasure.shared.security.Roles;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.response.Response;
@@ -53,7 +56,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
 	void shouldUnassignAllSelectedDevices()
 	{
 		Long assignedLaptop = createAssignedDevice("BulkLaptop", "maria");
@@ -73,7 +76,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
 	void shouldLeaveAlreadyUnassignedDeviceUntouched()
 	{
 		Long freeDevice = createFreeDevice("BulkFreeTablet");
@@ -94,7 +97,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
 	void shouldRecordUnassignHistoryWithPreviousHolder()
 	{
 		Long assignedDevice = createAssignedDevice("BulkHistoryLaptop", "maria");
@@ -121,7 +124,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
 	void shouldIgnoreUnknownIds()
 	{
 		postUnassignMany("999999999,");
@@ -143,6 +146,128 @@ class DeviceResourceTest
 
 	@Test
 	@TestSecurity(user = "maria", roles = "user")
+	void shouldShowDeviceDetailsWhenUserHasOnlyUserRole()
+	{
+		// given
+		Long device = createFreeDevice("ReadOnlyDetailsLaptop");
+		try
+		{
+			// when
+			Response response = given().when().get("/devices/" + device + "/edit");
+
+			// then
+			response.then().statusCode(200);
+		}
+		finally
+		{
+			deleteDevices(device);
+		}
+	}
+
+	@Test
+	@TestSecurity(user = "maria", roles = "user")
+	void shouldForbidNewDeviceFormWhenUserHasOnlyUserRole()
+	{
+		// given
+		// a reader is logged in, see @TestSecurity
+
+		// when
+		Response response = given().when().get("/devices/new");
+
+		// then
+		response.then().statusCode(403);
+	}
+
+	@Test
+	@TestSecurity(user = "maria", roles = "user")
+	void shouldForbidDeviceCreationWhenUserHasOnlyUserRole()
+	{
+		// given
+		String name = "ReadOnlyCreatedLaptop";
+		try
+		{
+			// when
+			Response response = postCreate(name, "");
+
+			// then
+			response.then().statusCode(403);
+		}
+		finally
+		{
+			deleteDevicesNamed(name);
+		}
+	}
+
+	@Test
+	@TestSecurity(user = "maria", roles = "user")
+	void shouldForbidUnassignWhenUserHasOnlyUserRole()
+	{
+		// given
+		Long device = createAssignedDevice("ReadOnlyUnassignLaptop", "maria");
+		try
+		{
+			// when
+			Response response = postUnassign(device);
+
+			// then
+			response.then().statusCode(403);
+		}
+		finally
+		{
+			deleteDevices(device);
+		}
+	}
+
+	@Test
+	@TestSecurity(user = "maria", roles = "user")
+	void shouldKeepDeviceAssignedWhenUserWithOnlyUserRoleTriesToUnassign()
+	{
+		// given
+		Long device = createAssignedDevice("ReadOnlyKeptLaptop", "maria");
+		try
+		{
+			// when
+			postUnassign(device);
+
+			// then
+			assertEquals("not available", findDevice(device).getStatus());
+		}
+		finally
+		{
+			deleteDevices(device);
+		}
+	}
+
+	@Test
+	@TestSecurity(user = "maria", roles = "user")
+	void shouldHideNewDeviceButtonWhenUserHasOnlyUserRole()
+	{
+		// given
+		// a reader is logged in, see @TestSecurity
+
+		// when
+		Response response = given().when().get("/devices");
+
+		// then
+		response.then().body(not(containsString("href=\"/devices/new\"")));
+	}
+
+	@Test
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	void shouldShowNewDeviceButtonWhenUserIsAdmin()
+	{
+		// given
+		// an admin is logged in, see @TestSecurity
+
+		// when
+		Response response = given().when().get("/devices");
+
+		// then
+		response.then().body(containsString("href=\"/devices/new\""));
+	}
+
+	@Test
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
 	void shouldRejectAssignmentWhenMemberIsUnknown()
 	{
 		// given
@@ -162,7 +287,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
 	void shouldLeaveDeviceAvailableWhenAssignmentToUnknownMemberIsRejected()
 	{
 		// given
@@ -182,7 +307,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
 	void shouldAssignDeviceWhenMemberExists()
 	{
 		// given
@@ -205,7 +330,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
 	void shouldNotRecordHistoryWhenDeviceIsAssignedToTheSameMemberAgain()
 	{
 		// given
@@ -225,7 +350,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
 	void shouldCreateDeviceWhenNameUsesNonLatinLetters()
 	{
 		// given
@@ -245,7 +370,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
 	void shouldStoreTrimmedGroupWhenCreatingDevice()
 	{
 		// given
@@ -266,7 +391,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
 	void shouldStoreNoGroupWhenGroupIsBlank()
 	{
 		// given
@@ -286,7 +411,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
 	void shouldStorePurchaseDateWhenCreatingDevice()
 	{
 		// given
@@ -306,7 +431,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
 	void shouldStoreModelYearWhenCreatingDevice()
 	{
 		// given
@@ -326,7 +451,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
 	void shouldRejectCreationWhenPurchaseDateIsNotADate()
 	{
 		// given
@@ -346,7 +471,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
 	void shouldSetCreatedOnWhenCreatingDevice()
 	{
 		// given
@@ -384,6 +509,17 @@ class DeviceResourceTest
 			.contentType("application/x-www-form-urlencoded; charset=UTF-8")
 			.formParam("assignedTo", username)
 			.when().post("/devices/" + deviceId + "/assign");
+	}
+
+	private Response postUnassign(Long deviceId)
+	{
+		String csrfToken = csrfToken();
+		return given()
+			.redirects().follow(false)
+			.cookie("csrf-token", csrfToken)
+			.formParam("csrf-token", csrfToken)
+			.contentType("application/x-www-form-urlencoded; charset=UTF-8")
+			.when().post("/devices/" + deviceId + "/unassign");
 	}
 
 	private Response postCreate(String deviceName, String group)
