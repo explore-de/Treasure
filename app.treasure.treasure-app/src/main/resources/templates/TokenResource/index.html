@@ -1,0 +1,86 @@
+{#include main.html}
+{#title}API keys{/title}
+
+<div class="tokens-page">
+  <div class="page-head">
+    <h1>API keys</h1>
+  </div>
+  <p class="tokens-intro">
+    API keys let tools use Treasure without a browser session: an AI assistant over MCP, or a script. Each key acts as you.
+  </p>
+
+  {#if newSecret}
+  <section class="table-card tokens-card tokens-new" aria-labelledby="newKeyTitle">
+    <h2 class="tokens-title" id="newKeyTitle">Copy your new key now</h2>
+    <p class="tokens-hint">It is shown only once. Treasure keeps just a fingerprint of it.</p>
+    <div class="token-code">
+      <code id="newKey">{newSecret}</code>
+      <button type="button" class="btn btn-secondary btn-sm" data-copy="newKey">Copy</button>
+    </div>
+  </section>
+  {/if}
+
+  <section class="table-card" aria-label="Your API keys">
+    {#if tokens.isEmpty}
+    <p class="tokens-empty">No API keys yet. Create one below.</p>
+    {#else}
+    <table class="device-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Key</th>
+          <th>Created</th>
+          <th>Last used</th>
+          <th class="col-actions"><span class="sr-only">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {#for token in tokens}
+        <tr>
+          <td>{token.name}</td>
+          <td><span class="token-mono muted">{token.tokenPrefix}…</span></td>
+          <td>{token.formattedCreatedAt}</td>
+          <td>{token.formattedLastUsedAt}</td>
+          <td class="col-actions">
+            <form method="post" action="/tokens/{token.id}/revoke">
+              {#authenticityToken /}
+              <button type="submit" class="btn btn-danger btn-sm" aria-label="Revoke key {token.name}">Revoke</button>
+            </form>
+          </td>
+        </tr>
+        {/for}
+      </tbody>
+    </table>
+    {/if}
+  </section>
+
+  <section class="table-card tokens-card" aria-labelledby="createKeyTitle">
+    <h2 class="tokens-title" id="createKeyTitle">Create an API key</h2>
+    <p class="tokens-hint">Name it after where you will use it, so you know which one to revoke later.</p>
+    <form method="post" action="/tokens" class="tokens-create-row">
+      {#authenticityToken /}
+      <label class="sr-only" for="tokenName">Key name</label>
+      <input class="field-input" type="text" id="tokenName" name="name" maxlength="100" required
+             placeholder="Claude Code on my laptop">
+      <button type="submit" class="btn btn-primary">Create key</button>
+    </form>
+  </section>
+
+  <section class="table-card tokens-card" aria-labelledby="connectTitle">
+    <h2 class="tokens-title" id="connectTitle">Use Treasure from Claude</h2>
+    <p class="tokens-hint">
+      Register Treasure as an MCP server and Claude can look up, create and change devices and assign them, as you.
+      Replace YOUR_KEY with a key created above.
+    </p>
+    <div class="token-code">
+      <code id="mcpCommand">claude mcp add --transport http treasure {mcpUrl} --header "Authorization: Bearer YOUR_KEY"</code>
+      <button type="button" class="btn btn-secondary btn-sm" data-copy="mcpCommand">Copy</button>
+    </div>
+    <p class="tokens-hint">
+      Claude then has list_devices, get_device, device_history, list_members, overview, create_device,
+      update_device, assign_device and unassign_device. A key carries the roles you had when you created it.
+    </p>
+  </section>
+</div>
+
+{/include}

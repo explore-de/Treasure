@@ -14,6 +14,7 @@
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.40.1.1</quarkus.platform.version>
+        <quarkus-mcp-server.version>2.0.4</quarkus-mcp-server.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.6.0</surefire-plugin.version>
         <sonar.coverage.jacoco.xmlReportPaths>
@@ -74,6 +75,11 @@
             <artifactId>quarkus-renarde</artifactId>
             <version>3.1.10</version>
         </dependency>
+        <dependency>
+            <groupId>io.quarkiverse.mcp</groupId>
+            <artifactId>quarkus-mcp-server-http</artifactId>
+            <version>${quarkus-mcp-server.version}</version>
+        </dependency>
         <!-- Testing -->
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -99,6 +105,12 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit-mockito</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkiverse.mcp</groupId>
+            <artifactId>quarkus-mcp-server-test</artifactId>
+            <version>${quarkus-mcp-server.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
