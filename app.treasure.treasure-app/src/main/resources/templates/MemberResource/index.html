@@ -10,6 +10,12 @@
   </div>
   <div class="page-head-actions">
     <a href="/devices?status=available" class="btn btn-secondary">Available devices ({available.size})</a>
+    {#if inject:userContext.canEdit}
+    <a href="/members/new" class="btn btn-primary">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+      Add member
+    </a>
+    {/if}
   </div>
 </div>
 
@@ -18,13 +24,14 @@
   <div class="empty-state">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
     <h2>No members here</h2>
-    <p>Members appear when a Keycloak user signs in for the first time.</p>
+    <p>Members appear when someone signs in for the first time or an admin adds them.</p>
   </div>
   {#else}
   <table class="device-table">
     <thead>
       <tr>
         <th>Member</th>
+        <th>Status</th>
         <th>Devices held</th>
         <th class="col-actions"><span class="sr-only">Actions</span></th>
       </tr>
@@ -40,6 +47,13 @@
               <div class="person-sub">{row.member.userName}{#if row.member.email} · {row.member.email}{/if}</div>
             </div>
           </div>
+        </td>
+        <td>
+          {#if row.member.neverSignedIn}
+          <span class="badge badge-never-signed-in"><span class="badge-dot"></span>{row.member.statusLabel}</span>
+          {#else}
+          <span class="badge badge-available"><span class="badge-dot"></span>{row.member.statusLabel}</span>
+          {/if}
         </td>
         <td>
           {#if row.devices.isEmpty}

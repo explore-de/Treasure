@@ -422,6 +422,7 @@ body.cds--g100 {
 .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .badge-available { background: var(--success-bg); color: var(--success-text); }
 .badge-unavailable { background: var(--surface-2); color: var(--muted); }
+.badge-never-signed-in { background: var(--treasure-primary-light); color: var(--treasure-primary-text); }
 
 .empty-state {
   padding: 56px 24px;
@@ -588,6 +589,7 @@ dialog.modal::backdrop { background: rgba(0, 0, 0, 0.45); }
 }
 .form-grid .span-2 { grid-column: 1 / -1; }
 .form-fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.form-notice { display: block; max-width: 960px; margin-bottom: 16px; }
 /* read-only view: the values stay readable, only the editing affordance goes */
 .form-fieldset:disabled .field-input { color: var(--text); background: var(--surface); cursor: default; }
 

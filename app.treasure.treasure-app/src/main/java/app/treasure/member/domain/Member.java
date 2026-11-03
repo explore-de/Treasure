@@ -11,6 +11,9 @@ import java.time.Instant;
 @Entity
 public class Member extends PanacheEntity
 {
+	/** Invite type of a member an admin added on the Members page. */
+	public static final String INVITE_TYPE_INVITED = "INVITED";
+
 	@NotBlank
 	private String firstName;
 
@@ -116,6 +119,21 @@ public class Member extends PanacheEntity
 		String first = firstName != null && !firstName.isBlank() ? firstName.substring(0, 1) : "";
 		String last = lastName != null && !lastName.isBlank() ? lastName.substring(0, 1) : "";
 		return (first + last).toUpperCase();
+	}
+
+	/**
+	 * True until the person signs in for the first time, for example after an
+	 * admin added them or for the dev demo members. A first login sets
+	 * {@code joinedAt}.
+	 */
+	public boolean isNeverSignedIn()
+	{
+		return joinedAt == null;
+	}
+
+	public String getStatusLabel()
+	{
+		return isNeverSignedIn() ? "Never signed in" : "In the system";
 	}
 
 	public Long getInvitedByMemberId()
