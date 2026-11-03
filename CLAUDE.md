@@ -113,7 +113,9 @@ Only `admin` and `super_admin` may change data (`@RolesAllowed` on every
 POST and MCP write tool, `inject:userContext.canEdit` in templates); a plain
 `user` only reads, except their own name, email and phone
 (`MemberService.mayEdit`, also used by the MCP tool `update_member`).
-`@TestSecurity` identities carry no token and are
+API keys (`/tokens`) and the MCP endpoint are admin-only:
+`McpTokenIdentityProvider` rejects a key that does not carry `admin` or
+`super_admin`. `@TestSecurity` identities carry no token and are
 skipped by the filter, so tests create members themselves.
 
 **Templates:** `src/main/resources/templates/<ControllerName>/<method>.html`.

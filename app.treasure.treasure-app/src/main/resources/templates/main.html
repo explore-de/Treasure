@@ -94,10 +94,12 @@
           Members
           <svg slot="title-icon" viewBox="0 0 32 32" width="20" height="20"><path d="M16 4a5 5 0 1 1-5 5 5 5 0 0 1 5-5m0-2a7 7 0 1 0 7 7 7 7 0 0 0-7-7ZM26 30h-2v-5a5 5 0 0 0-5-5h-6a5 5 0 0 0-5 5v5H6v-5a7 7 0 0 1 7-7h6a7 7 0 0 1 7 7Z" fill="var(--text)"/></svg>
         </cds-side-nav-link>
+        {#if inject:userContext.canEdit}
         <cds-side-nav-link href="/tokens" {#if inject:vertxRequest.path.startsWith('/tokens')}active{/if}>
           API keys
           <svg slot="title-icon" viewBox="0 0 32 32" width="20" height="20"><path d="M21 2a9 9 0 0 0-8.61 11.61L2 24v6h6l10.39-10.39A9 9 0 1 0 21 2Zm0 16a7 7 0 0 1-2.03-.3l-1.15-.35-.85.85-3.18 3.18L12.41 20 11 21.41l1.38 1.38-1.59 1.59L9.41 23 8 24.41l1.38 1.38L7.17 28H4v-3.17l9.8-9.8.85-.85-.35-1.15A7 7 0 1 1 21 18Zm1-6a2 2 0 1 0-2-2 2 2 0 0 0 2 2Z" fill="var(--text)"/></svg>
         </cds-side-nav-link>
+        {/if}
       </cds-side-nav-items>
     </cds-side-nav>
     <script>
