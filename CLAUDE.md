@@ -116,7 +116,7 @@ local path. Overview and Members pass small records (`GroupCount`,
 properties.
 
 **Dev users** (provisioned by the Keycloak dev service and `BootstrapService`):
-`admin` (super_admin, admin, user), `maria` (admin, user), `thomas` (user),
+`admin` (admin, user), `maria` (admin, user), `thomas` (user),
 all with password `password`. `DataSeeder` adds four demo members in dev mode.
 `treasure.bootstrap.enabled` is true only under `%dev` and `%test`; on a stand
 nothing is bootstrapped and `FirstLoginFilter` creates each person's Member
@@ -124,14 +124,15 @@ from the ID token (`preferred_username`, `email`, `given_name`,
 `family_name`, `oid`), unless an admin already added them on the Members
 page: then the login is linked to that row by email. A member without
 `joinedAt` shows as "Never signed in", everyone else as "In the system".
-Only `admin` and `super_admin` may change data (`@RolesAllowed` on every
-POST and MCP write tool, `inject:userContext.canEdit` in templates); a plain
-`user` only reads, except their own name, email and phone
-(`MemberService.mayEdit`, also used by the MCP tool `update_member`).
-API keys (`/tokens`) and the MCP endpoint are admin-only:
-`McpTokenIdentityProvider` rejects a key that does not carry `admin` or
-`super_admin`. `@TestSecurity` identities carry no token and are
-skipped by the filter, so tests create members themselves.
+Only `admin` may change data (`@RolesAllowed` on every POST and MCP write
+tool, `inject:userContext.canEdit` in templates); a plain `user` only reads,
+except their own name, email and phone (`MemberService.mayEdit`, also used by
+the MCP tool `update_member`). API keys (`/tokens`) and the MCP endpoint are
+admin-only: `McpTokenIdentityProvider` rejects a key that does not carry
+`admin`. There are only these two roles; a `super_admin` role existed until
+2026-11-05 but never gated anything beyond `admin`, so it was removed.
+`@TestSecurity` identities carry no token and are skipped by the filter, so
+tests create members themselves.
 
 **Templates:** `src/main/resources/templates/<ControllerName>/<method>.html`.
 Layout is `main.html`; reusable tags live in `templates/tags/` (`header`,
@@ -221,7 +222,6 @@ if (securityIdentity.hasRole(Roles.ADMIN)) {
 }
 ```
 
-- `Roles.SUPER_ADMIN` = "super_admin" - full access
 - `Roles.ADMIN` = "admin" - changes devices, assignments and members, creates API keys
 - `Roles.USER` = "user" - reads everything, changes only their own profile
 

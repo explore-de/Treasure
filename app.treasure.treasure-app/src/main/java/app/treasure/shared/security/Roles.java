@@ -7,9 +7,6 @@ package app.treasure.shared.security;
  */
 public interface Roles
 {
-	/** Full access. */
-	String SUPER_ADMIN = "super_admin";
-
 	/** Changes devices, assignments and members; creates API keys. */
 	String ADMIN = "admin";
 

@@ -159,7 +159,6 @@ if (securityIdentity.hasRole(Roles.ADMIN)) {
 ```
 
 Available roles:
-- `Roles.SUPER_ADMIN` - full access
 - `Roles.ADMIN` - changes devices, assignments and members, creates API keys
 - `Roles.USER` - reads everything, changes only their own profile
 

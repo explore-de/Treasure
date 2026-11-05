@@ -54,7 +54,7 @@ public class McpTokenIdentityProvider implements IdentityProvider<McpTokenAuthen
 			throw new AuthenticationFailedException("Invalid MCP token");
 		}
 		Set<String> roles = token.getRoleSet();
-		if (!roles.contains(Roles.ADMIN) && !roles.contains(Roles.SUPER_ADMIN))
+		if (!roles.contains(Roles.ADMIN))
 		{
 			// API access is for admins only; keys issued to regular users
 			// before that rule no longer work

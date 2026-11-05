@@ -39,14 +39,17 @@ class MemberResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "admin", roles = { Roles.SUPER_ADMIN, Roles.ADMIN })
-	void shouldShowMembersPageForSuperAdmin()
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	void shouldShowAddMemberButtonWhenUserIsAdmin()
 	{
-		given()
-			.when().get("/members")
-			.then()
-			.statusCode(200)
-			.body(containsString("Members"));
+		// given
+		// an admin is logged in, see @TestSecurity
+
+		// when
+		Response response = given().when().get("/members");
+
+		// then
+		response.then().body(containsString("href=\"/members/new\""));
 	}
 
 	@Test

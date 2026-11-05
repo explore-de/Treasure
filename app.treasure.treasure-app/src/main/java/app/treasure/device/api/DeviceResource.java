@@ -212,7 +212,7 @@ public class DeviceResource extends Controller
 
 	@GET
 	@Path("/new")
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	public TemplateInstance create()
 	{
 		return Templates.create(new Device(), loadKnownGroups());
@@ -232,7 +232,7 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Path("/create")
 	@Transactional
 	public void save(
@@ -277,7 +277,7 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Path("/{id}/update")
 	@Transactional
 	public void update(
@@ -328,7 +328,7 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Path("/{id}/delete")
 	@Transactional
 	public void delete(
@@ -351,7 +351,7 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Path("/delete-many")
 	@Transactional
 	public void deleteMany(
@@ -374,7 +374,7 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Path("/assign-many")
 	@Transactional
 	public void assignMany(
@@ -407,7 +407,7 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Path("/unassign-many")
 	@Transactional
 	public void unassignMany(
@@ -434,7 +434,7 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Path("/{id}/assign")
 	@Transactional
 	public TemplateInstance assign(
@@ -462,7 +462,7 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Path("/{id}/unassign")
 	@Transactional
 	public TemplateInstance unassign(@PathParam("id") Long id)

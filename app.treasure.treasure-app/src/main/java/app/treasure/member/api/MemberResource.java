@@ -94,14 +94,14 @@ public class MemberResource extends Controller
 
 	@GET
 	@Path("/new")
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	public TemplateInstance create()
 	{
 		return Templates.create("", "", "", null);
 	}
 
 	@POST
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Path("/create")
 	@Transactional
 	public TemplateInstance add(

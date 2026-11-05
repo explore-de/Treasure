@@ -24,7 +24,7 @@ changed what and when.
 - **Search & filters** — filter the device list by field
 - **Delete** — removes a device together with its history; there is no soft delete yet
 - **Members** — everyone who can hold a device, linked to their sign-in identity (Keycloak in dev, Entra ID on the stand), with the devices they currently hold. Admins can add a person before their first sign-in; everyone can edit their own name, email and phone
-- **Roles** — `admin` and `super_admin` change data; a plain `user` reads everything and edits only their own profile
+- **Roles** — `admin` changes data; a plain `user` reads everything and edits only their own profile
 - **API keys & MCP** — admins create personal API keys at `/tokens`; an MCP server at `/mcp` lets an AI assistant list, create, change and assign devices as that admin
 - **Dashboard** — landing page with an overview
 
@@ -63,7 +63,7 @@ needed; Flyway migrates the schema on boot.
 
 | Username | Password | Roles |
 |---|---|---|
-| `admin` | `password` | super_admin, admin, user |
+| `admin` | `password` | admin, user |
 | `maria` | `password` | admin, user |
 | `thomas` | `password` | user |
 
@@ -122,7 +122,7 @@ always add a new versioned file.
 ### Routes
 
 Authentication is required everywhere; every `POST` under `/devices` and the
-`/tokens` and `/members/new` pages need the `admin` or `super_admin` role.
+`/tokens` and `/members/new` pages need the `admin` role.
 `GET /` is the dashboard.
 
 | Method | Path | What |
@@ -193,11 +193,10 @@ In the Entra app registration:
 
 - add a **Web** redirect URI of `https://<host>/callback`
 - set the front-channel logout URL to `https://<host>/`
-- define **App roles** with the values `super_admin`, `admin` and `user`, and assign
-  them to people or groups. The roles are shown in the account panel. Only `admin`
-  and `super_admin` can change devices, assignments and other members or create API
-  keys; a person with `user` or no role at all can read everything and edit their
-  own profile.
+- define **App roles** with the values `admin` and `user`, and assign them to people
+  or groups. The roles are shown in the account panel. Only `admin` can change
+  devices, assignments and other members or create API keys; a person with `user`
+  or no role at all can read everything and edit their own profile.
 
 **First sign-in checklist.** The Entra settings were written from the Quarkus
 documentation, not from a live tenant, so verify once with a real account:

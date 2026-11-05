@@ -111,8 +111,7 @@ public class MemberService
 		{
 			return false;
 		}
-		return identity.hasRole(Roles.ADMIN) || identity.hasRole(Roles.SUPER_ADMIN)
-			|| identity.getPrincipal().getName().equals(member.getUserName());
+		return identity.hasRole(Roles.ADMIN) || identity.getPrincipal().getName().equals(member.getUserName());
 	}
 
 	private void requireEmailFree(String address, Member self)
