@@ -30,7 +30,7 @@ import jakarta.ws.rs.core.UriInfo;
  * only their own tokens; a new token is shown once, on the page the create form
  * returns.
  */
-@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+@RolesAllowed(Roles.ADMIN)
 @Path("/tokens")
 public class TokenResource extends Controller
 {

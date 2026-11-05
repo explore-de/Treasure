@@ -103,7 +103,7 @@ app.treasure.<feature>/
 └── service/      # Business logic
 ```
 
-Current features: `dashboard`, `device`, `member`, `shared`.
+Current features: `dashboard`, `device`, `mcp`, `member`, `shared`.
 
 ## Coding Standards
 
@@ -126,7 +126,7 @@ The formatter configuration is in `formatter/java.xml`. All code must pass valid
 - **Java 25** features are encouraged
 - Use **SLF4J** for logging (never `System.out.println`)
 - Follow **feature-based packaging** structure
-- Prefer **constructor injection** over field injection
+- Inject with package-private fields (`@Inject DeviceRepository deviceRepository;`), as the rest of the code does
 - Use **records** for DTOs when appropriate
 
 ### Logging
@@ -159,15 +159,13 @@ if (securityIdentity.hasRole(Roles.ADMIN)) {
 ```
 
 Available roles:
-- `Roles.SUPER_ADMIN` - System administrator
-- `Roles.ADMIN` - Organization administrator
-- `Roles.MEMBER` - Regular member
+- `Roles.ADMIN` - changes devices, assignments and members, creates API keys
+- `Roles.USER` - reads everything, changes only their own profile
 
 ### Frontend (Carbon Design System)
 
-- Use actual **Carbon Web Components**, not custom HTML/CSS
-- Use native `<button>` elements for form submissions
-- Use `<cds-button>` only for navigation links
+- Use the Carbon Web Components the layout already loads (UI shell, notifications), not custom HTML/CSS that imitates them
+- Buttons and links use native `<button>` / `<a>` with the `.btn` classes; do not use `<cds-button>`, it does not submit forms reliably
 - Reference CSS variables: `var(--treasure-primary)` instead of hardcoded colors
 - See `CLAUDE.md` for detailed Carbon component usage
 
@@ -177,36 +175,50 @@ Available roles:
 
 ```java
 @QuarkusTest
-class MyResourceTest {
+class DeviceResourceTest
+{
+	@Test
+	@TestSecurity(user = "maria", roles = "user")
+	void shouldReturnNotFoundWhenEditingUnknownDevice()
+	{
+		// given
+		long unknownId = 999_999_999L;
 
-    @Test
-    void shouldDoSomething() {
-        // Arrange
-        deleteAllData();
-        createTestData();
+		// when
+		Response response = given().when().get("/devices/" + unknownId + "/edit");
 
-        // Act & Assert
-        given()
-            .when()
-            .get("/endpoint")
-            .then()
-            .statusCode(200)
-            .body(containsString("expected"));
-    }
+		// then
+		response.then().statusCode(404);
+	}
 
-    @Transactional(TxType.REQUIRES_NEW)
-    void deleteAllData() {
-        repository.deleteAll();
-    }
+	@Test
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	void shouldAssignDeviceWhenMemberExists()
+	{
+		// given
+		Long device = createFreeDevice("AssignLaptop");
+		try
+		{
+			// when
+			postAssign(device, "maria");
+
+			// then
+			assertEquals("not available", findDevice(device).getStatus());
+		}
+		finally
+		{
+			deleteDevices(device);
+		}
+	}
 }
 ```
 
 ### Testing Guidelines
 
-- Test names: `shouldDoSomething()` format
-- Use `@QuarkusTest` for integration tests
-- Use `@TestSecurity` to simulate authenticated users
-- Test business logic in service tests, not just HTTP endpoints
+- One behaviour per test, laid out as `// given`, `// when`, `// then`, named `should<Outcome>When<Condition>()`
+- Use `@QuarkusTest` for tests that need the running app and `@TestSecurity` to simulate a signed-in user
+- Each test creates its own data with values no other test uses and deletes it in `finally`; never `deleteAll()`, the tests share one database
+- Test a rule where it lives: an endpoint rule through the endpoint, a service rule through the service
 - Aim for meaningful test coverage, not just high percentages
 
 ## Git Workflow

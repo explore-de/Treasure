@@ -54,7 +54,11 @@ Java language server. That fills `target/` but does not start the app.
   come from the token: Keycloak realm roles in dev, Entra App Roles via
   `roles.role-claim-path=roles` on a stand. The session cookie key comes from
   `OIDC_SESSION_SECRET` on the stand and a fixed dev-only value in dev and test
-- **htmx 2.0.4** for row-level partial page updates
+- **htmx 2.0.11** for row-level partial page updates
+- **Quarkus MCP Server** (`quarkus-mcp-server-http`) at `/mcp`: the tools in
+  `TreasureTools`, authenticated by personal API keys
+  (`McpTokenAuthenticationMechanism`, selected for `/mcp` in
+  `application.properties`) instead of the OIDC login
 - **SmallRye Health** at `/q/health`
 
 **Package layout** (feature-based, under `src/main/java/app/treasure/`):
@@ -66,6 +70,14 @@ device/
   domain             Device, DeviceHistory (every field change is recorded)
   filter             DeviceFilter, DeviceFieldFilter (list filtering)
   repository         DeviceRepository, DeviceHistoryRepository
+  service            DeviceService (create/update with validation and history), DeviceAssignmentService
+                     (assign/unassign with history); the web controller and the MCP tools both call these
+mcp/
+  api                TokenResource: /tokens, an admin's personal API keys (shown once, stored hashed)
+  domain/repository  McpToken, McpTokenRepository
+  security           McpTokenAuthenticationMechanism + McpTokenIdentityProvider: "Bearer trs_..." on /mcp only
+  service            McpTokenService (issue, authenticate, revoke)
+  tools              TreasureTools: the MCP tools (list/get/create/update/assign devices, members, overview)
 member/
   api                MemberResource: /members, everyone who can hold a device and what they hold; admins add members
                      at /members/new, /members/{id}/edit changes a member, /members/me opens your own
@@ -74,7 +86,8 @@ member/
   service            KeycloakAdminService (dev bootstrap only), MemberProvisioningService (first-login Member creation),
                      MemberService (add a member before their first sign-in, change one, mayEdit rule)
 shared/
-  bootstrap          StartupOrchestrator -> BootstrapService (users, members) -> DataSeeder; only when treasure.bootstrap.enabled
+  bootstrap          StartupOrchestrator -> BootstrapService (users, members) -> DataSeeder; only when treasure.bootstrap.enabled;
+                     BootstrapConfig maps treasure.bootstrap.* (the demo users are a Map keyed by the segment after users.)
   domain/repository  Tag, TagRepository (the device-group registry)
   security           Roles, FirstLoginFilter (creates the Member for an unknown OIDC principal)
   template           UserContext (available in templates as inject:userContext)
@@ -83,9 +96,11 @@ shared/
 
 **Device groups:** `Device.group` is a plain string. Every group that is
 saved through the form is also registered in the `Tag` table
-(`DeviceResource.rememberGroup`), and the form offers the union of those tags
-and the groups still present on devices. That is why a group survives after
-the last device leaves it. There is no UI to delete a group yet.
+(`DeviceService.rememberGroup`), and the form offers the union of those tags
+and the groups still present on devices (`DeviceRepository.findDistinctGroups`).
+That is why a group survives after the last device leaves it. There is no UI
+to delete a group yet. `DeviceService` trims every text field and stores blank
+text as null, so the web form and the MCP tools write the same values.
 
 **No organizations (decided 2026-10-15).** The original use cases never
 mention tenants, so the organization model inherited from the earlier
@@ -101,7 +116,7 @@ local path. Overview and Members pass small records (`GroupCount`,
 properties.
 
 **Dev users** (provisioned by the Keycloak dev service and `BootstrapService`):
-`admin` (super_admin, admin, user), `maria` (admin, user), `thomas` (user),
+`admin` (admin, user), `maria` (admin, user), `thomas` (user),
 all with password `password`. `DataSeeder` adds four demo members in dev mode.
 `treasure.bootstrap.enabled` is true only under `%dev` and `%test`; on a stand
 nothing is bootstrapped and `FirstLoginFilter` creates each person's Member
@@ -109,14 +124,15 @@ from the ID token (`preferred_username`, `email`, `given_name`,
 `family_name`, `oid`), unless an admin already added them on the Members
 page: then the login is linked to that row by email. A member without
 `joinedAt` shows as "Never signed in", everyone else as "In the system".
-Only `admin` and `super_admin` may change data (`@RolesAllowed` on every
-POST and MCP write tool, `inject:userContext.canEdit` in templates); a plain
-`user` only reads, except their own name, email and phone
-(`MemberService.mayEdit`, also used by the MCP tool `update_member`).
-API keys (`/tokens`) and the MCP endpoint are admin-only:
-`McpTokenIdentityProvider` rejects a key that does not carry `admin` or
-`super_admin`. `@TestSecurity` identities carry no token and are
-skipped by the filter, so tests create members themselves.
+Only `admin` may change data (`@RolesAllowed` on every POST and MCP write
+tool, `inject:userContext.canEdit` in templates); a plain `user` only reads,
+except their own name, email and phone (`MemberService.mayEdit`, also used by
+the MCP tool `update_member`). API keys (`/tokens`) and the MCP endpoint are
+admin-only: `McpTokenIdentityProvider` rejects a key that does not carry
+`admin`. There are only these two roles; a `super_admin` role existed until
+2026-11-05 but never gated anything beyond `admin`, so it was removed.
+`@TestSecurity` identities carry no token and are skipped by the filter, so
+tests create members themselves.
 
 **Templates:** `src/main/resources/templates/<ControllerName>/<method>.html`.
 Layout is `main.html`; reusable tags live in `templates/tags/` (`header`,
@@ -149,8 +165,9 @@ JavaScript in static files: Qute parses `{` in inline scripts as expressions.
   `success`, `error`, `warning` and `info` keys as Carbon notifications
 - htmx responses (`index$row`) cannot carry a flash; the swapped row is the
   feedback
-- Record every device mutation in `DeviceHistory` through the `recordChange`
-  / `recordIfChanged` helpers in `DeviceResource`
+- Never write `Device` fields or `DeviceHistory` rows in a controller or MCP
+  tool: go through `DeviceService` (create, update) and
+  `DeviceAssignmentService` (assign, unassign), which record the history
 
 **Qute CheckedTemplate limitations:**
 
@@ -168,7 +185,7 @@ public String getFormattedPickupTime()
 ```
 
 **Template injections:** `inject:userContext.username`, `.email`, `.roles`,
-`.firstLetter`, `.isSuperAdmin` and `inject:vertxRequest.path` (used for the
+`.firstLetter`, `.canEdit` and `inject:vertxRequest.path` (used for the
 active side-nav entry).
 
 **Logging:**
@@ -205,13 +222,11 @@ if (securityIdentity.hasRole(Roles.ADMIN)) {
 }
 ```
 
-- `Roles.SUPER_ADMIN` = "super_admin" - full access
-- `Roles.ADMIN` = "admin" - organization administrator
-- `Roles.MEMBER` = "member" - regular member
+- `Roles.ADMIN` = "admin" - changes devices, assignments and members, creates API keys
+- `Roles.USER` = "user" - reads everything, changes only their own profile
 
-**Note:** the Keycloak dev users carry the roles `super_admin`, `admin` and
-`user`, and the existing tests use `@TestSecurity(user = "maria", roles =
-"user")`. Use the `Roles` constants in new code.
+**Note:** the existing tests use `@TestSecurity(user = "maria", roles =
+"user")` with the literal; use the `Roles` constants in new code.
 
 **Form handling:**
 

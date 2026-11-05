@@ -16,7 +16,6 @@ import app.treasure.member.service.MemberService;
 import app.treasure.shared.security.Roles;
 import app.treasure.shared.util.FlashKeys;
 import io.quarkiverse.renarde.Controller;
-import io.quarkus.panache.common.Sort;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
@@ -84,7 +83,7 @@ public class MemberResource extends Controller
 	public TemplateInstance index()
 	{
 		List<MemberRow> rows = new ArrayList<>();
-		for (Member member : memberRepository.listAll(Sort.by("lastName").and("firstName")))
+		for (Member member : memberRepository.listByName())
 		{
 			rows.add(new MemberRow(member, deviceRepository.findAssignedTo(member),
 				memberService.mayEdit(member, securityIdentity)));
@@ -95,14 +94,14 @@ public class MemberResource extends Controller
 
 	@GET
 	@Path("/new")
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	public TemplateInstance create()
 	{
 		return Templates.create("", "", "", null);
 	}
 
 	@POST
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Path("/create")
 	@Transactional
 	public TemplateInstance add(

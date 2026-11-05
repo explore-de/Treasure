@@ -190,17 +190,14 @@ public class TreasureTools
 	MemberList listMembers()
 	{
 		List<MemberHoldings> result = new ArrayList<>();
-		for (Member member : memberRepository.listAll(Sort.by("lastName").and("firstName")))
+		for (Member member : memberRepository.listByName())
 		{
-			List<HeldDevice> held = deviceRepository.findAssignedTo(member).stream()
-				.map(d -> new HeldDevice(d.id, d.getDeviceName(), since(d), d.getDaysHeld()))
-				.toList();
-			result.add(holdings(member, held));
+			result.add(holdings(member));
 		}
 		return new MemberList(result.size(), result);
 	}
 
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Tool(name = "add_member", description = "Adds a person who has not signed in yet, so devices can be "
 		+ "assigned to them right away. They show as 'Never signed in' until their first sign-in with this "
 		+ "email. No email is sent. The username is the email in lower case.")
@@ -219,7 +216,7 @@ public class TreasureTools
 			throw new ToolCallException(e.getMessage());
 		}
 		LOG.info("MCP: member {} added by {}", member.getUserName(), actorName());
-		return holdings(member, List.of());
+		return holdings(member);
 	}
 
 	@Tool(name = "update_member", description = "Changes the name, email or phone of a member. Only the "
@@ -258,10 +255,7 @@ public class TreasureTools
 			throw new ToolCallException(e.getMessage());
 		}
 		LOG.info("MCP: member {} changed by {}", member.getUserName(), actorName());
-		List<HeldDevice> held = deviceRepository.findAssignedTo(member).stream()
-			.map(d -> new HeldDevice(d.id, d.getDeviceName(), since(d), d.getDaysHeld()))
-			.toList();
-		return holdings(member, held);
+		return holdings(member);
 	}
 
 	@Tool(name = "overview", description = "Inventory summary: device counts, devices per group, the "
@@ -290,7 +284,7 @@ public class TreasureTools
 		return new Overview(all.size(), all.size() - assigned, assigned, groups, longestHeld, recent);
 	}
 
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Tool(name = "assign_device", description = "Hands a device to a member. The change is recorded in the "
 		+ "device history under your name. A device held by someone else moves to the new member.")
 	DeviceSummary assignDevice(
@@ -311,7 +305,7 @@ public class TreasureTools
 		return summary(device);
 	}
 
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Tool(name = "unassign_device", description = "Takes a device back from the member holding it, so it is "
 		+ "available again. The change is recorded in the device history under your name.")
 	DeviceSummary unassignDevice(@ToolArg(description = "Device id, see list_devices") long deviceId)
@@ -325,7 +319,7 @@ public class TreasureTools
 		return summary(device);
 	}
 
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Tool(name = "create_device", description = "Adds a new device to the inventory. It starts as available; "
 		+ "use assign_device to hand it to someone. The creation is recorded in the device history under "
 		+ "your name.")
@@ -345,9 +339,8 @@ public class TreasureTools
 		@ToolArg(description = "Where the device is kept", required = false) String location,
 		@ToolArg(description = "Free-text notes", required = false) String extraInfo)
 	{
-		DeviceData data = new DeviceData(trim(name), trim(serialNumber), trim(inventoryNumber), group,
-			trim(model), trim(processor), trim(memory), trim(storage), modelYear, parseDate(purchaseDate, null),
-			trim(owningCompany), trim(condition), trim(location), trim(extraInfo));
+		DeviceData data = new DeviceData(name, serialNumber, inventoryNumber, group, model, processor, memory,
+			storage, modelYear, parseDate(purchaseDate, null), owningCompany, condition, location, extraInfo);
 		Device device;
 		try
 		{
@@ -361,7 +354,7 @@ public class TreasureTools
 		return details(device);
 	}
 
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Tool(name = "update_device", description = "Changes details of a device. Only the fields you pass change; "
 		+ "pass an empty string to clear a text field, modelYear 0 to clear the year. Who holds the device is "
 		+ "changed with assign_device and unassign_device instead. Every changed field is recorded in the "
@@ -389,7 +382,7 @@ public class TreasureTools
 			keepOr(current.name(), name),
 			keepOr(current.serialNumber(), serialNumber),
 			keepOr(current.inventoryNumber(), inventoryNumber),
-			group == null ? current.group() : group,
+			keepOr(current.group(), group),
 			keepOr(current.model(), model),
 			keepOr(current.processor(), processor),
 			keepOr(current.ram(), memory),
@@ -422,8 +415,12 @@ public class TreasureTools
 		return device;
 	}
 
-	private static MemberHoldings holdings(Member member, List<HeldDevice> held)
+	/** The member with the devices they hold right now. */
+	private MemberHoldings holdings(Member member)
 	{
+		List<HeldDevice> held = deviceRepository.findAssignedTo(member).stream()
+			.map(d -> new HeldDevice(d.id, d.getDeviceName(), since(d), d.getDaysHeld()))
+			.toList();
 		return new MemberHoldings(member.getUserName(), member.getDisplayName(), member.getEmail(),
 			member.getStatusLabel(), held);
 	}
@@ -457,12 +454,12 @@ public class TreasureTools
 	}
 
 	/**
-	 * The current value when the argument was left out, otherwise the trimmed
-	 * argument.
+	 * The current value when the argument was left out, otherwise the argument;
+	 * an empty argument clears the field. DeviceService trims the text.
 	 */
 	private static String keepOr(String current, String given)
 	{
-		return given == null ? current : given.trim();
+		return given == null ? current : given;
 	}
 
 	/**

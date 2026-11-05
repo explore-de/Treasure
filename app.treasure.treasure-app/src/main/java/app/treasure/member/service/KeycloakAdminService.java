@@ -109,22 +109,6 @@ public class KeycloakAdminService
 		}
 	}
 
-	public void deleteUser(String username)
-	{
-		UserRepresentation user = keycloak.realm(realm).users().search(username).stream().findFirst().orElse(null);
-		if (user == null)
-		{
-			LOG.warn("No Keycloak user to delete for {}", username);
-		}
-		else
-		{
-			try (Response response = keycloak.realm(realm).users().delete(user.getId()))
-			{
-				LOG.info("Deleted Keycloak user with status {}: {}", response.getStatus(), username);
-			}
-		}
-	}
-
 	/**
 	 * Finds a Keycloak user by username and returns their user ID.
 	 *

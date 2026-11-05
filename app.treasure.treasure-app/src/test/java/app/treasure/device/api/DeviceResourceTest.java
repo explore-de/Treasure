@@ -131,6 +131,20 @@ class DeviceResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	void shouldRedirectInsteadOfFailingWhenBulkIdsAreNotNumbers()
+	{
+		// given
+		String tamperedIds = "abc,12x,";
+
+		// when
+		Response response = postBulk("/devices/unassign-many", tamperedIds);
+
+		// then
+		response.then().statusCode(303);
+	}
+
+	@Test
 	@TestSecurity(user = "maria", roles = "user")
 	void shouldReturnNotFoundWhenEditingUnknownDevice()
 	{
@@ -563,21 +577,19 @@ class DeviceResourceTest
 
 	private void postUnassignMany(String ids)
 	{
-		String csrfToken = given()
-			.when().get("/devices")
-			.then()
-			.statusCode(200)
-			.extract().cookie("csrf-token");
+		postBulk("/devices/unassign-many", ids).then().statusCode(303);
+	}
 
-		given()
+	private Response postBulk(String path, String ids)
+	{
+		String csrfToken = csrfToken();
+		return given()
 			.redirects().follow(false)
 			.cookie("csrf-token", csrfToken)
 			.formParam("csrf-token", csrfToken)
 			.formParam("ids", ids)
 			.formParam("redirectUrl", "/devices")
-			.when().post("/devices/unassign-many")
-			.then()
-			.statusCode(303);
+			.when().post(path);
 	}
 
 	@Transactional(TxType.REQUIRES_NEW)

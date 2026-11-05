@@ -5,7 +5,6 @@
   'use strict';
 
   var FILTERS = [
-    ['searchName', 'Search'],
     ['name', 'Name'],
     ['status', 'Status'],
     ['assignedTo', 'Assigned to'],

@@ -3,6 +3,7 @@ package app.treasure.device.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
@@ -64,6 +65,23 @@ public class DeviceService
 				d.getDeviceModelDate(), d.getDeviceAge(), d.getRegCompany(), d.getDeviceDamage(),
 				d.getDeviceLocation(), d.getExtraInfo());
 		}
+
+		/**
+		 * The same data with every text trimmed and blank text turned into
+		 * null, so the web form and the MCP tools store the same thing and "no
+		 * value" has one spelling.
+		 */
+		public DeviceData normalized()
+		{
+			return new DeviceData(clean(name), clean(serialNumber), clean(inventoryNumber), clean(group), clean(model),
+				clean(processor), clean(ram), clean(storage), modelYear, purchasedOn, clean(company), clean(condition),
+				clean(location), clean(extraInfo));
+		}
+
+		private static String clean(String text)
+		{
+			return text == null || text.isBlank() ? null : text.trim();
+		}
 	}
 
 	/** One text field and the longest value the form accepts for it. */
@@ -84,8 +102,9 @@ public class DeviceService
 		new Limit("Location", DeviceData::location, 500),
 		new Limit("Extra info", DeviceData::extraInfo, 500));
 
-	public Device create(DeviceData data, Member actor)
+	public Device create(DeviceData raw, Member actor)
 	{
+		DeviceData data = raw.normalized();
 		validate(data);
 
 		Device device = new Device();
@@ -95,20 +114,20 @@ public class DeviceService
 		deviceRepository.persist(device);
 		rememberGroup(device.getGroup());
 
-		String criteria = "deviceName=" + n(data.name())
-			+ ", serial=" + n(data.serialNumber())
-			+ ", group=" + n(device.getGroup())
-			+ ", model=" + n(data.model())
-			+ ", damage=" + n(data.condition())
+		String criteria = "deviceName=" + text(data.name())
+			+ ", serial=" + text(data.serialNumber())
+			+ ", group=" + text(data.group())
+			+ ", model=" + text(data.model())
+			+ ", damage=" + text(data.condition())
 			+ ", age=" + text(data.purchasedOn())
-			+ ", company=" + n(data.company())
-			+ ", number=" + n(data.inventoryNumber())
-			+ ", prozessor=" + n(data.processor())
-			+ ", hdd=" + n(data.storage())
-			+ ", ram=" + n(data.ram())
+			+ ", company=" + text(data.company())
+			+ ", number=" + text(data.inventoryNumber())
+			+ ", prozessor=" + text(data.processor())
+			+ ", hdd=" + text(data.storage())
+			+ ", ram=" + text(data.ram())
 			+ ", modelDate=" + text(data.modelYear())
-			+ ", location=" + n(data.location())
-			+ ", extraInfo=" + n(data.extraInfo());
+			+ ", location=" + text(data.location())
+			+ ", extraInfo=" + text(data.extraInfo());
 		deviceHistoryRepository.record(device, actor, "CREATED", null, "", "", criteria);
 
 		LOG.info("Created device: {} (id={})", data.name(), device.id);
@@ -119,24 +138,24 @@ public class DeviceService
 	 * Replaces every form field of the device and records each value that
 	 * changed.
 	 */
-	public void update(Device device, DeviceData data, Member actor)
+	public void update(Device device, DeviceData raw, Member actor)
 	{
+		DeviceData data = raw.normalized();
 		validate(data);
-		String group = normalizeGroup(data.group());
 
 		recordIfChanged(device, actor, "deviceName", device.getDeviceName(), data.name());
 		recordIfChanged(device, actor, "deviceSerialNumber", device.getDeviceSerialNumber(), data.serialNumber());
-		recordIfChanged(device, actor, "group", device.getGroup(), group);
+		recordIfChanged(device, actor, "group", device.getGroup(), data.group());
 		recordIfChanged(device, actor, "deviceModel", device.getDeviceModel(), data.model());
 		recordIfChanged(device, actor, "extraInfo", device.getExtraInfo(), data.extraInfo());
 		recordIfChanged(device, actor, "deviceDamage", device.getDeviceDamage(), data.condition());
-		recordIfChanged(device, actor, "deviceAge", text(device.getDeviceAge()), text(data.purchasedOn()));
+		recordIfChanged(device, actor, "deviceAge", device.getDeviceAge(), data.purchasedOn());
 		recordIfChanged(device, actor, "regCompany", device.getRegCompany(), data.company());
 		recordIfChanged(device, actor, "deviceNumber", device.getDeviceNumber(), data.inventoryNumber());
 		recordIfChanged(device, actor, "deviceProzessor", device.getDeviceProzessor(), data.processor());
 		recordIfChanged(device, actor, "deviceHDDStorage", device.getDeviceHDDStorage(), data.storage());
 		recordIfChanged(device, actor, "deviceRAM", device.getDeviceRAM(), data.ram());
-		recordIfChanged(device, actor, "deviceModelDate", text(device.getDeviceModelDate()), text(data.modelYear()));
+		recordIfChanged(device, actor, "deviceModelDate", device.getDeviceModelDate(), data.modelYear());
 		recordIfChanged(device, actor, "deviceLocation", device.getDeviceLocation(), data.location());
 
 		apply(device, data);
@@ -159,7 +178,7 @@ public class DeviceService
 					limit.label() + " can be at most " + limit.max() + " characters long.");
 			}
 		}
-		if (data.condition() != null && !data.condition().isBlank() && !CONDITIONS.contains(data.condition()))
+		if (data.condition() != null && !CONDITIONS.contains(data.condition()))
 		{
 			throw new DeviceValidationException("Condition must be one of: " + String.join(", ", CONDITIONS) + ".");
 		}
@@ -174,7 +193,7 @@ public class DeviceService
 	{
 		device.setDeviceName(data.name());
 		device.setDeviceSerialNumber(data.serialNumber());
-		device.setGroup(normalizeGroup(data.group()));
+		device.setGroup(data.group());
 		device.setDeviceModel(data.model());
 		device.setExtraInfo(data.extraInfo());
 		device.setDeviceDamage(data.condition());
@@ -188,13 +207,17 @@ public class DeviceService
 		device.setDeviceLocation(data.location());
 	}
 
-	private void recordIfChanged(Device device, Member actor, String field, String oldVal, String newVal)
+	/**
+	 * Records one UPDATED entry when the value differs; null and "" count as
+	 * the same "no value".
+	 */
+	private void recordIfChanged(Device device, Member actor, String field, Object oldVal, Object newVal)
 	{
-		String o = n(oldVal);
-		String nn = n(newVal);
-		if (!o.equals(nn))
+		String before = text(oldVal);
+		String after = text(newVal);
+		if (!before.equals(after))
 		{
-			deviceHistoryRepository.record(device, actor, "UPDATED", field, o, nn, null);
+			deviceHistoryRepository.record(device, actor, "UPDATED", field, before, after, null);
 		}
 	}
 
@@ -210,23 +233,9 @@ public class DeviceService
 		}
 	}
 
-	/**
-	 * Trims the group name; blank means "no group" and is stored as null, so
-	 * the device and the Tag registry hold the same spelling.
-	 */
-	private static String normalizeGroup(String group)
-	{
-		return group == null || group.isBlank() ? null : group.trim();
-	}
-
 	/** Text for history entries: "" for null, otherwise the ISO form. */
 	private static String text(Object value)
 	{
-		return value == null ? "" : value.toString();
-	}
-
-	private static String n(String s)
-	{
-		return s == null ? "" : s;
+		return Objects.toString(value, "");
 	}
 }

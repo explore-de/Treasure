@@ -217,30 +217,6 @@ class KeycloakAdminServiceTest
 	}
 
 	@Test
-	void shouldDeleteUserSuccessfully()
-	{
-		// Given
-		String username = "testuser";
-		String userId = "user-id-123";
-
-		UserRepresentation userRep = new UserRepresentation();
-		userRep.setId(userId);
-		userRep.setUsername(username);
-
-		when(keycloak.realm("test-realm")).thenReturn(realmResource);
-		when(realmResource.users()).thenReturn(usersResource);
-		when(usersResource.search(username)).thenReturn(List.of(userRep));
-		when(usersResource.delete(userId)).thenReturn(response);
-
-		// When
-		service.deleteUser(username);
-
-		// Then
-		verify(usersResource).search(username);
-		verify(usersResource).delete(userId);
-	}
-
-	@Test
 	void shouldHandleMultipleRoleAssignments()
 	{
 		// Given

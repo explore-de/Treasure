@@ -63,23 +63,13 @@ public class UserContext
 	}
 
 	/**
-	 * Checks if the current user is a super admin.
-	 *
-	 * @return true if the user has the super_admin role
-	 */
-	public boolean isSuperAdmin()
-	{
-		return hasRole(Roles.SUPER_ADMIN);
-	}
-
-	/**
 	 * Checks if the current user may change devices and assignments. Everyone
 	 * else only reads.
 	 *
-	 * @return true if the user has the admin or super_admin role
+	 * @return true if the user has the admin role
 	 */
 	public boolean canEdit()
 	{
-		return hasRole(Roles.ADMIN) || hasRole(Roles.SUPER_ADMIN);
+		return hasRole(Roles.ADMIN);
 	}
 }

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -80,7 +81,7 @@ public class DeviceResource extends Controller
 		{
 		}
 
-		public static native TemplateInstance index(List<Device> devices, Member currentmember, List<Member> members);
+		public static native TemplateInstance index(List<Device> devices, List<Member> members);
 
 		public static native TemplateInstance index$row(Device device, List<Member> members);
 
@@ -98,10 +99,7 @@ public class DeviceResource extends Controller
 	{
 		Set<String> names = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
 		tagRepository.listAll().forEach(tag -> names.add(tag.getName()));
-		deviceRepository.listAll().stream()
-			.map(Device::getGroup)
-			.filter(g -> g != null && !g.isBlank())
-			.forEach(names::add);
+		names.addAll(deviceRepository.findDistinctGroups());
 		return new ArrayList<>(names);
 	}
 
@@ -132,12 +130,6 @@ public class DeviceResource extends Controller
 		}
 	}
 
-	/** Text for history entries: "" for null, otherwise the ISO form. */
-	private String text(Object value)
-	{
-		return value == null ? "" : value.toString();
-	}
-
 	private Member currentMember()
 	{
 		String username = securityIdentity.getPrincipal().getName();
@@ -147,7 +139,6 @@ public class DeviceResource extends Controller
 	@GET
 	@Path("")
 	public TemplateInstance index(
-		@QueryParam("searchName") String searchName,
 		@QueryParam("name") List<String> names,
 		@QueryParam("status") List<String> statuses,
 		@QueryParam("assignedTo") List<String> assignedTo,
@@ -162,13 +153,7 @@ public class DeviceResource extends Controller
 		@QueryParam("deviceRAM") List<String> rams,
 		@QueryParam("deviceModelDate") List<String> modelDates)
 	{
-
 		List<String> nameTerms = normalize(names);
-		if ((nameTerms == null || nameTerms.isEmpty()) && searchName != null && !searchName.isBlank())
-		{
-			nameTerms = List.of(searchName.trim());
-		}
-
 		List<String> st = normalize(statuses);
 		List<String> bb = normalize(assignedTo);
 		List<String> se = normalize(serials);
@@ -196,15 +181,12 @@ public class DeviceResource extends Controller
 			new DeviceFieldFilter(pz, Device::getDeviceProzessor, this::containsIgnoreCase),
 			new DeviceFieldFilter(hd, Device::getDeviceHDDStorage, this::containsIgnoreCase),
 			new DeviceFieldFilter(rm, Device::getDeviceRAM, this::containsIgnoreCase),
-			new DeviceFieldFilter(md, d -> text(d.getDeviceModelDate()), this::containsIgnoreCase));
+			new DeviceFieldFilter(md, d -> Objects.toString(d.getDeviceModelDate(), ""), this::containsIgnoreCase));
 		List<Device> filtered = all.stream()
 			.filter(d -> filters.stream().allMatch(f -> f.matches(d)))
 			.toList();
 
-		String username = securityIdentity.getPrincipal().getName();
-		Member currentmember = memberRepository.findByUsername(username);
-
-		return Templates.index(filtered, currentmember, memberRepository.listAll());
+		return Templates.index(filtered, memberRepository.listByName());
 	}
 
 	private List<String> normalize(List<String> in)
@@ -230,7 +212,7 @@ public class DeviceResource extends Controller
 
 	@GET
 	@Path("/new")
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	public TemplateInstance create()
 	{
 		return Templates.create(new Device(), loadKnownGroups());
@@ -250,7 +232,7 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Path("/create")
 	@Transactional
 	public void save(
@@ -279,9 +261,10 @@ public class DeviceResource extends Controller
 		DeviceData data = new DeviceData(deviceName, deviceSerialNumber, deviceNumber, group, deviceModel,
 			deviceProzessor, deviceRAM, deviceHDDStorage, dates.modelYear(), dates.purchasedOn(), regCompany,
 			deviceDamage, deviceLocation, extraInfo);
+		Device device;
 		try
 		{
-			deviceService.create(data, currentMember());
+			device = deviceService.create(data, currentMember());
 		}
 		catch (DeviceValidationException e)
 		{
@@ -289,12 +272,12 @@ public class DeviceResource extends Controller
 			seeOther("/devices/new");
 			return;
 		}
-		flash(FlashKeys.SUCCESS, "Device \"" + deviceName + "\" was created.");
+		flash(FlashKeys.SUCCESS, "Device \"" + device.getDeviceName() + "\" was created.");
 		seeOther("/devices");
 	}
 
 	@POST
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Path("/{id}/update")
 	@Transactional
 	public void update(
@@ -340,12 +323,12 @@ public class DeviceResource extends Controller
 			seeOther("/devices/" + id + "/edit");
 			return;
 		}
-		flash(FlashKeys.SUCCESS, "Changes to \"" + deviceName + "\" were saved.");
+		flash(FlashKeys.SUCCESS, "Changes to \"" + device.getDeviceName() + "\" were saved.");
 		seeOther("/devices");
 	}
 
 	@POST
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Path("/{id}/delete")
 	@Transactional
 	public void delete(
@@ -353,10 +336,14 @@ public class DeviceResource extends Controller
 		@RestForm String redirectUrl)
 	{
 		Device device = deviceRepository.findById(id);
-		if (device != null)
+		if (device == null)
+		{
+			flash(FlashKeys.ERROR, "That device no longer exists.");
+		}
+		else
 		{
 			String name = device.getDeviceName();
-			device.delete();
+			deviceRepository.delete(device);
 			LOG.info("Deleted device: {} (id={})", name, id);
 			flash(FlashKeys.SUCCESS, "Device \"" + name + "\" was deleted.");
 		}
@@ -364,7 +351,7 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Path("/delete-many")
 	@Transactional
 	public void deleteMany(
@@ -377,7 +364,7 @@ public class DeviceResource extends Controller
 			Device device = deviceRepository.findById(id);
 			if (device != null)
 			{
-				device.delete();
+				deviceRepository.delete(device);
 				deleted++;
 			}
 		}
@@ -387,7 +374,7 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Path("/assign-many")
 	@Transactional
 	public void assignMany(
@@ -420,7 +407,7 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Path("/unassign-many")
 	@Transactional
 	public void unassignMany(
@@ -447,7 +434,7 @@ public class DeviceResource extends Controller
 	}
 
 	@POST
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Path("/{id}/assign")
 	@Transactional
 	public TemplateInstance assign(
@@ -471,11 +458,11 @@ public class DeviceResource extends Controller
 			LOG.info("Device {} assigned to {}", id, member.getUserName());
 		}
 
-		return Templates.index$row(device, memberRepository.listAll());
+		return Templates.index$row(device, memberRepository.listByName());
 	}
 
 	@POST
-	@RolesAllowed({ Roles.ADMIN, Roles.SUPER_ADMIN })
+	@RolesAllowed(Roles.ADMIN)
 	@Path("/{id}/unassign")
 	@Transactional
 	public TemplateInstance unassign(@PathParam("id") Long id)
@@ -492,7 +479,7 @@ public class DeviceResource extends Controller
 			LOG.info("Unassigned device {} from member {}", id, oldBooked);
 		}
 
-		return Templates.index$row(device, memberRepository.listAll());
+		return Templates.index$row(device, memberRepository.listByName());
 	}
 
 	private String countOf(int count, String noun)
@@ -514,6 +501,10 @@ public class DeviceResource extends Controller
 		return redirectUrl;
 	}
 
+	/**
+	 * The ids of a bulk form ("3,17,42"). Anything that is not a number is
+	 * skipped, so a tampered request cannot turn into a server error.
+	 */
 	private List<Long> parseIds(String idsCsv)
 	{
 		if (idsCsv == null || idsCsv.isBlank())
@@ -522,7 +513,7 @@ public class DeviceResource extends Controller
 		}
 		return Arrays.stream(idsCsv.split(","))
 			.map(String::trim)
-			.filter(s -> !s.isBlank())
+			.filter(s -> s.matches("\\d{1,18}"))
 			.map(Long::valueOf)
 			.distinct()
 			.toList();
