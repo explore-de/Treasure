@@ -23,7 +23,9 @@ changed what and when.
 - **History** — every change is recorded with field name, old value, new value, actor and timestamp
 - **Search & filters** — filter the device list by field
 - **Delete** — removes a device together with its history; there is no soft delete yet
-- **Members** — everyone who can hold a device, linked to their sign-in identity (Keycloak in dev, Entra ID on the stand), with the devices they currently hold
+- **Members** — everyone who can hold a device, linked to their sign-in identity (Keycloak in dev, Entra ID on the stand), with the devices they currently hold. Admins can add a person before their first sign-in; everyone can edit their own name, email and phone
+- **Roles** — `admin` and `super_admin` change data; a plain `user` reads everything and edits only their own profile
+- **API keys & MCP** — admins create personal API keys at `/tokens`; an MCP server at `/mcp` lets an AI assistant list, create, change and assign devices as that admin
 - **Dashboard** — landing page with an overview
 
 ---
@@ -38,6 +40,7 @@ changed what and when.
 | Persistence | Hibernate ORM with Panache, repository pattern |
 | Database | PostgreSQL, schema managed by Flyway |
 | Auth | OIDC authorization-code flow: Keycloak Dev Services in dev and test, Microsoft Entra ID on the stand; Keycloak Admin REST Client for the dev bootstrap only |
+| MCP | Quarkus MCP Server (`quarkus-mcp-server-http`) at `/mcp`, authenticated with personal API keys instead of the OIDC login |
 | Extras | SmallRye Health |
 | Testing | JUnit 5, REST Assured, Mockito, JaCoCo |
 
@@ -80,13 +83,16 @@ erDiagram
     MEMBER |o--o{ DEVICE : "assigned"
     DEVICE ||--o{ DEVICE_HISTORY : "logged in"
     MEMBER |o--o{ DEVICE_HISTORY : "acted on"
+    MEMBER ||--o{ MCP_TOKEN : "owns"
     TAG |o..o{ DEVICE : "names the group of"
 ```
 
 `TAG` holds every group name ever saved, so a group survives after the last
 device leaves it. `Device.deviceGroup` is a plain string matched by name; there is
-no foreign key to `TAG`. `Member.invited_by_member_id` is a leftover column that
-nothing writes. `Device.createdOn`, `deviceAge` (purchase date) and `deviceModelDate`
+no foreign key to `TAG`. `Member.invited_by_member_id` records which admin added a
+member on the Members page. `MCP_TOKEN` stores only the SHA-256 hash of an API key
+plus a copy of the owner's roles at creation time. `Device.createdOn`, `deviceAge`
+(purchase date) and `deviceModelDate`
 (model year) are a timestamp, a date and an integer since `V1.0.4`; that migration kept
 the old free-text values in `*_legacy` columns, to be dropped once the stand data has
 been checked. Full column list: `src/main/resources/db/migration`.
@@ -99,7 +105,8 @@ been checked. Full column list: `src/main/resources/db/migration`.
 app.treasure.treasure-app/
 └── src/main/java/app/treasure/
     ├── dashboard/     api — overview page
-    ├── device/        api · domain · filter · repository
+    ├── device/        api · domain · filter · repository · service — devices, assignment and history
+    ├── mcp/           api · domain · repository · security · service · tools — API keys and the MCP server
     ├── member/        api · domain · repository · service — members and the devices they hold
     └── shared/        bootstrap · domain · repository · security · template · util
 ```
@@ -114,19 +121,25 @@ always add a new versioned file.
 
 ### Routes
 
-Authentication is required everywhere. `GET /` is the dashboard and `GET /members`
-the Members page; everything else lives under `/devices`:
+Authentication is required everywhere; every `POST` under `/devices` and the
+`/tokens` and `/members/new` pages need the `admin` or `super_admin` role.
+`GET /` is the dashboard.
 
 | Method | Path | What |
 |---|---|---|
 | `GET` | `/devices` | list; filter with query parameters such as `name`, `status`, `assignedTo`, `group`, `model`, `serial` |
 | `GET` | `/devices/new` | create form |
-| `GET` | `/devices/{id}/edit` | edit form with the device's history |
+| `GET` | `/devices/{id}/edit` | edit form with the device's history; read-only for a plain `user` |
 | `POST` | `/devices/create` | create |
 | `POST` | `/devices/{id}/update` | update |
 | `POST` | `/devices/{id}/assign`, `/devices/{id}/unassign` | single-device actions; called by htmx, return the swapped table row |
 | `POST` | `/devices/{id}/delete` | delete |
 | `POST` | `/devices/assign-many`, `/unassign-many`, `/delete-many` | bulk actions; the Members page uses the first two with `redirectUrl=/members` |
+| `GET` | `/members` | everyone who can hold a device and what they hold |
+| `GET`, `POST` | `/members/new`, `/members/create` | admins add a member before their first sign-in |
+| `GET`, `POST` | `/members/{id}/edit`, `/members/{id}/update` | change a member: admins any, a `user` only themselves (`/members/me` redirects there) |
+| `GET`, `POST` | `/tokens`, `/tokens/{id}/revoke` | an admin's personal API keys for the MCP endpoint |
+| MCP | `/mcp` | Streamable HTTP MCP server; `Authorization: Bearer trs_…` with a key from `/tokens` |
 
 ---
 
@@ -181,8 +194,10 @@ In the Entra app registration:
 - add a **Web** redirect URI of `https://<host>/callback`
 - set the front-channel logout URL to `https://<host>/`
 - define **App roles** with the values `super_admin`, `admin` and `user`, and assign
-  them to people or groups. The roles are shown in the account panel; the app has no
-  role-restricted functions yet, so a person without a role can still use everything.
+  them to people or groups. The roles are shown in the account panel. Only `admin`
+  and `super_admin` can change devices, assignments and other members or create API
+  keys; a person with `user` or no role at all can read everything and edit their
+  own profile.
 
 **First sign-in checklist.** The Entra settings were written from the Quarkus
 documentation, not from a live tenant, so verify once with a real account:

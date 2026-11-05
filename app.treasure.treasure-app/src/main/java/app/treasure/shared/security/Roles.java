@@ -1,27 +1,18 @@
 package app.treasure.shared.security;
 
 /**
- * Role constants used throughout the application for authorization.
- * <p>
- * These constants match the roles defined in Keycloak and should be used with
- *
- * @RolesAllowed annotations instead of hardcoded strings.
- *               </p>
+ * The roles the identity provider sends: Keycloak realm roles in dev and test,
+ * Entra App Roles on a stand. Use these constants with {@code @RolesAllowed}
+ * and {@code hasRole} instead of literal strings.
  */
 public interface Roles
 {
-	/**
-	 * Super administrator role - full system access
-	 */
+	/** Full access. */
 	String SUPER_ADMIN = "super_admin";
 
-	/**
-	 * Administrator role - can manage users and settings
-	 */
+	/** Changes devices, assignments and members; creates API keys. */
 	String ADMIN = "admin";
 
-	/**
-	 * Member role - standard user access
-	 */
-	String MEMBER = "member";
+	/** Reads everything and changes only their own profile. */
+	String USER = "user";
 }

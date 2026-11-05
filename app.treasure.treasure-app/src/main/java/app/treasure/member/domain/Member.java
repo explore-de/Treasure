@@ -14,6 +14,9 @@ public class Member extends PanacheEntity
 	/** Invite type of a member an admin added on the Members page. */
 	public static final String INVITE_TYPE_INVITED = "INVITED";
 
+	/** Invite type of the demo users created in dev and test mode. */
+	public static final String INVITE_TYPE_BOOTSTRAP = "BOOTSTRAP";
+
 	@NotBlank
 	private String firstName;
 
@@ -35,7 +38,9 @@ public class Member extends PanacheEntity
 	private Long invitedByMemberId;
 
 	/**
-	 * Type of invitation used to join (BETA or INVITED).
+	 * How the member came into the system: BOOTSTRAP (demo user in dev and
+	 * test), SSO (created on first sign-in), INVITED (added by an admin), or
+	 * null for the seeded demo members.
 	 */
 	@Column(length = 20)
 	private String inviteType;

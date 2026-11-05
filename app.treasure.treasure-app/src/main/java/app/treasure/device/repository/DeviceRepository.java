@@ -29,4 +29,16 @@ public class DeviceRepository implements PanacheRepository<Device>
 	{
 		return list("assignedTo is not null ORDER BY pickupTime, deviceName");
 	}
+
+	/**
+	 * Every group name still present on a device, each once. Reads one column
+	 * instead of loading every device.
+	 */
+	public List<String> findDistinctGroups()
+	{
+		return getEntityManager()
+			.createQuery("select distinct d.deviceGroup from Device d "
+				+ "where d.deviceGroup is not null and d.deviceGroup <> ''", String.class)
+			.getResultList();
+	}
 }

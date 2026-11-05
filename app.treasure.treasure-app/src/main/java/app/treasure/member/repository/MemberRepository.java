@@ -1,14 +1,22 @@
 package app.treasure.member.repository;
 
+import java.util.List;
 import java.util.Locale;
 
 import app.treasure.member.domain.Member;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
+import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class MemberRepository implements PanacheRepository<Member>
 {
+	/** Every member, by last name and then first name, for lists and menus. */
+	public List<Member> listByName()
+	{
+		return listAll(Sort.by("lastName").and("firstName"));
+	}
+
 	/**
 	 * Finds a member by their username.
 	 *

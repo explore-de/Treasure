@@ -1,6 +1,5 @@
 package app.treasure.shared.bootstrap;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,11 +10,8 @@ import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 
 /**
- * Unified startup orchestrator that coordinates bootstrap sequence in
- * deterministic order.
- * <p>
- * Execution order: 1. Bootstrap users + members 2. DEV mode only: Seed demo
- * data
+ * Runs the bootstrap in a fixed order at startup: first the demo users and
+ * their members, then (dev mode only) the seeded demo members.
  */
 @ApplicationScoped
 public class StartupOrchestrator
@@ -28,23 +24,12 @@ public class StartupOrchestrator
 	@Inject
 	DataSeeder dataSeeder;
 
-	/**
-	 * Only dev and test create the demo users. On a stand real people sign in
-	 * through the identity provider and get their Member row on first login.
-	 */
-	@ConfigProperty(name = "treasure.bootstrap.enabled", defaultValue = "false")
-	boolean bootstrapEnabled;
+	@Inject
+	BootstrapConfig config;
 
-	/**
-	 * Called when the application starts. Runs the bootstrap process in a
-	 * deterministic order.
-	 *
-	 * @param event
-	 *            The startup event
-	 */
 	void onStart(@Observes StartupEvent event)
 	{
-		if (!bootstrapEnabled)
+		if (!config.enabled())
 		{
 			LOG.info("Bootstrap disabled (treasure.bootstrap.enabled=false); members are created on first login");
 			return;

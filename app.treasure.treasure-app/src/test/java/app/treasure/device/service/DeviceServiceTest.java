@@ -1,6 +1,7 @@
 package app.treasure.device.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.UUID;
@@ -55,6 +56,54 @@ class DeviceServiceTest extends BaseMemberTest
 	}
 
 	@Test
+	void shouldTrimNameWhenCreatingDevice()
+	{
+		// given
+		Member actor = createTestMember("svc-trim-" + UUID.randomUUID().toString().substring(0, 8));
+		DeviceData data = withNameAndSerial("  Trimmed Laptop  ", null);
+		Long deviceId = null;
+		try
+		{
+			// when
+			deviceId = createDevice(data, actor);
+
+			// then
+			assertEquals("Trimmed Laptop", findDevice(deviceId).getDeviceName());
+		}
+		finally
+		{
+			if (deviceId != null)
+			{
+				deleteDevice(deviceId);
+			}
+		}
+	}
+
+	@Test
+	void shouldStoreNoSerialNumberWhenItIsBlank()
+	{
+		// given
+		Member actor = createTestMember("svc-blank-" + UUID.randomUUID().toString().substring(0, 8));
+		DeviceData data = withNameAndSerial("BlankSerialLaptop", "   ");
+		Long deviceId = null;
+		try
+		{
+			// when
+			deviceId = createDevice(data, actor);
+
+			// then
+			assertNull(findDevice(deviceId).getDeviceSerialNumber());
+		}
+		finally
+		{
+			if (deviceId != null)
+			{
+				deleteDevice(deviceId);
+			}
+		}
+	}
+
+	@Test
 	void shouldRefuseCreateWhenModelYearIsBefore1980()
 	{
 		// given
@@ -73,6 +122,12 @@ class DeviceServiceTest extends BaseMemberTest
 	private static DeviceData withNameAndLocation(String name, String location)
 	{
 		return new DeviceData(name, null, null, null, null, null, null, null, null, null, null, null, location,
+			null);
+	}
+
+	private static DeviceData withNameAndSerial(String name, String serialNumber)
+	{
+		return new DeviceData(name, serialNumber, null, null, null, null, null, null, null, null, null, null, null,
 			null);
 	}
 
