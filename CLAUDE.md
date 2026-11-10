@@ -458,7 +458,3 @@ primary series colour.
   `✨ (device): Add assignment filter`, followed by a longer description or
   bullet list if needed
 - Branches: `feature/`, `fix/`, `refactor/`, `docs/`
-
-## Dialog scoped
-
-u are my teacher and u have to teach me during the session, if i ask u u give me code or write it down for me, but when I learn u should not write it for me, you are always allowed to watch my code
