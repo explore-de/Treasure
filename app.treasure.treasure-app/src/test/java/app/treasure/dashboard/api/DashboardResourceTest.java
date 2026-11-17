@@ -12,7 +12,7 @@ import io.quarkus.test.security.TestSecurity;
 class DashboardResourceTest
 {
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria")
 	void shouldShowOverview()
 	{
 		given()

@@ -1,15 +1,14 @@
 package app.treasure.shared.security;
 
 /**
- * The roles the identity provider sends: Keycloak realm roles in dev and test,
- * Entra App Roles on a stand. Use these constants with {@code @RolesAllowed}
- * and {@code hasRole} instead of literal strings.
+ * The one role the app knows, sent by the identity provider: a Keycloak realm
+ * role in dev and test, an Entra App Role on a stand. Everyone who is signed in
+ * without it reads everything and changes only their own profile; there is no
+ * role for that. Use the constant with {@code @RolesAllowed} and
+ * {@code hasRole} instead of a literal string.
  */
 public interface Roles
 {
 	/** Changes devices, assignments and members; creates API keys. */
-	String ADMIN = "admin";
-
-	/** Reads everything and changes only their own profile. */
-	String USER = "user";
+	String ADMIN = "treasure-admin";
 }

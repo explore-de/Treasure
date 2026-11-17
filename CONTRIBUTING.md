@@ -160,7 +160,7 @@ if (securityIdentity.hasRole(Roles.ADMIN)) {
 
 Available roles:
 - `Roles.ADMIN` - changes devices, assignments and members, creates API keys
-- `Roles.USER` - reads everything, changes only their own profile
+- There is no other role. A signed-in person without `Roles.ADMIN` reads everything and changes only their own profile
 
 ### Frontend (Carbon Design System)
 
@@ -178,7 +178,7 @@ Available roles:
 class DeviceResourceTest
 {
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria")
 	void shouldReturnNotFoundWhenEditingUnknownDevice()
 	{
 		// given
@@ -192,7 +192,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldAssignDeviceWhenMemberExists()
 	{
 		// given

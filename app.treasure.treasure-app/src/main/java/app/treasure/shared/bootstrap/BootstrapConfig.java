@@ -2,6 +2,7 @@ package app.treasure.shared.bootstrap;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
@@ -34,6 +35,7 @@ public interface BootstrapConfig
 
 		String lastName();
 
-		List<String> roles();
+		/** Empty for a demo user who only reads. */
+		Optional<List<String>> roles();
 	}
 }

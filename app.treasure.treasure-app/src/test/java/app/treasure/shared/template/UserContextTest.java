@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import app.treasure.shared.BaseMemberTest;
+import app.treasure.shared.security.Roles;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
@@ -108,7 +109,7 @@ class UserContextTest extends BaseMemberTest
 	}
 
 	@Test
-	@TestSecurity(user = "alice", roles = { "admin", "user" })
+	@TestSecurity(user = "alice", roles = Roles.ADMIN)
 	void shouldAllowEditingWhenUserIsAdmin()
 	{
 		// given
@@ -122,11 +123,11 @@ class UserContextTest extends BaseMemberTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = { "user" })
-	void shouldOnlyAllowReadingWhenUserHasOnlyUserRole()
+	@TestSecurity(user = "bob")
+	void shouldOnlyAllowReadingWhenUserIsNotAdmin()
 	{
 		// given
-		// bob is a plain user, see @TestSecurity
+		// bob is signed in without the admin role, see @TestSecurity
 
 		// when
 		boolean canEdit = userContext.canEdit();

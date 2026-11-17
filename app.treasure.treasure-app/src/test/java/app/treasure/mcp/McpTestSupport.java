@@ -42,14 +42,14 @@ public abstract class McpTestSupport extends BaseMemberTest
 	protected IssuedToken memberWithToken(String usernamePrefix)
 	{
 		String username = unique(usernamePrefix);
-		return tokenService.issue(createTestMember(username), "test token", Set.of("user"));
+		return tokenService.issue(createTestMember(username), "test token", Set.of());
 	}
 
 	/** Like {@link #memberWithToken}, but the token may also change data. */
 	protected IssuedToken adminWithToken(String usernamePrefix)
 	{
 		String username = unique(usernamePrefix);
-		return tokenService.issue(createTestMember(username), "test token", Set.of("user", Roles.ADMIN));
+		return tokenService.issue(createTestMember(username), "test token", Set.of(Roles.ADMIN));
 	}
 
 	@Transactional(TxType.REQUIRES_NEW)

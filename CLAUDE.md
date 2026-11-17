@@ -139,21 +139,24 @@ local path. Overview and Members pass small records (`GroupCount`,
 properties.
 
 **Dev users** (provisioned by the Keycloak dev service and `BootstrapService`):
-`admin` (admin, user), `maria` (admin, user), `thomas` (user),
-all with password `password`. `DataSeeder` adds four demo members in dev mode.
+`admin` and `maria` (both admins) and `thomas` (no role, reads only), all with
+password `password`. `DataSeeder` adds four demo members in dev mode.
 `treasure.bootstrap.enabled` is true only under `%dev` and `%test`; on a stand
 nothing is bootstrapped and `FirstLoginFilter` creates each person's Member
 from the ID token (`preferred_username`, `email`, `given_name`,
 `family_name`, `oid`), unless an admin already added them on the Members
 page: then the login is linked to that row by email. A member without
 `joinedAt` shows as "Never signed in", everyone else as "In the system".
-Only `admin` may change data (`@RolesAllowed` on every POST and MCP write
-tool, `inject:userContext.canEdit` in templates); a plain `user` only reads,
-except their own name, email and phone (`MemberService.mayEdit`, also used by
+Only an admin (`Roles.ADMIN`, the role value `treasure-admin`) may change data
+(`@RolesAllowed` on every POST and MCP write tool,
+`inject:userContext.canEdit` in templates); everyone else who is signed in only
+reads, except their own name, email and phone (`MemberService.mayEdit`, also used by
 the MCP tool `update_member`). API keys (`/tokens`) and the MCP endpoint are
 admin-only: `McpTokenIdentityProvider` rejects a key that does not carry
-`admin`. There are only these two roles; a `super_admin` role existed until
-2026-11-05 but never gated anything beyond `admin`, so it was removed.
+the admin role. That is the only role. A `super_admin` role existed until
+2026-11-05 and a `user` role until 2026-11-17; neither gated anything (a
+signed-in person without a role already had exactly the rights of `user`), so
+both were removed.
 `@TestSecurity` identities carry no token and are skipped by the filter, so
 tests create members themselves.
 
@@ -251,11 +254,12 @@ if (securityIdentity.hasRole(Roles.ADMIN)) {
 }
 ```
 
-- `Roles.ADMIN` = "admin" - changes devices, assignments and members, creates API keys
-- `Roles.USER` = "user" - reads everything, changes only their own profile
-
-**Note:** the existing tests use `@TestSecurity(user = "maria", roles =
-"user")` with the literal; use the `Roles` constants in new code.
+- `Roles.ADMIN` = "treasure-admin" - changes devices, assignments and members,
+  creates API keys. The same value must be the Keycloak dev role in
+  `application.properties` and the App Role value in Entra.
+- There is no other role: a signed-in person without `Roles.ADMIN` reads
+  everything and changes only their own profile. In tests that is
+  `@TestSecurity(user = "maria")` without `roles`.
 
 **Form handling:**
 
@@ -266,8 +270,9 @@ if (securityIdentity.hasRole(Roles.ADMIN)) {
 
 **Patterns:**
 
-- `@QuarkusTest` on the class, `@TestSecurity(user = ..., roles = ...)` on
-  methods that hit authenticated routes
+- `@QuarkusTest` on the class, `@TestSecurity(user = ...)` on methods that hit
+  authenticated routes, with `roles = Roles.ADMIN` when the test acts as an
+  admin
 - Name tests `shouldDoSomething()`
 - RESTAssured for HTTP, Hamcrest matchers or JUnit assertions
 - Helper methods annotated `@Transactional(TxType.REQUIRES_NEW)` for test data
@@ -288,7 +293,7 @@ class DeviceResourceTest
 	DeviceRepository deviceRepository;
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria")
 	void shouldOpenDeviceList()
 	{
 		given()

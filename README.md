@@ -24,7 +24,7 @@ changed what and when.
 - **Search & filters** — filter the device list by field
 - **Delete** — removes a device together with its history; there is no soft delete yet
 - **Members** — everyone who can hold a device, linked to their sign-in identity (Keycloak in dev, Entra ID on the stand), with the devices they currently hold. Admins can add a person before their first sign-in; everyone can edit their own name, email and phone
-- **Roles** — `admin` changes data; a plain `user` reads everything and edits only their own profile
+- **Roles** — an admin (role `treasure-admin`) changes data; everyone else who is signed in reads everything and edits only their own profile
 - **API keys & MCP** — admins create personal API keys at `/tokens`; an MCP server at `/mcp` lets an AI assistant list, create, change and assign devices as that admin
 - **Dashboard** — landing page with an overview
 
@@ -63,9 +63,9 @@ needed; Flyway migrates the schema on boot.
 
 | Username | Password | Roles |
 |---|---|---|
-| `admin` | `password` | admin, user |
-| `maria` | `password` | admin, user |
-| `thomas` | `password` | user |
+| `admin` | `password` | treasure-admin |
+| `maria` | `password` | treasure-admin |
+| `thomas` | `password` | none (reads only) |
 
 ### Dev endpoints
 
@@ -129,7 +129,7 @@ Authentication is required everywhere; every `POST` under `/devices` and the
 |---|---|---|
 | `GET` | `/devices` | list; filter with query parameters such as `name`, `status`, `assignedTo`, `group`, `model`, `serial` |
 | `GET` | `/devices/new` | create form |
-| `GET` | `/devices/{id}/edit` | edit form with the device's history; read-only for a plain `user` |
+| `GET` | `/devices/{id}/edit` | edit form with the device's history; read-only unless you are an admin |
 | `POST` | `/devices/create` | create |
 | `POST` | `/devices/{id}/update` | update |
 | `POST` | `/devices/{id}/assign`, `/devices/{id}/unassign` | single-device actions; called by htmx, return the swapped table row |
@@ -137,7 +137,7 @@ Authentication is required everywhere; every `POST` under `/devices` and the
 | `POST` | `/devices/assign-many`, `/unassign-many`, `/delete-many` | bulk actions; the Members page uses the first two with `redirectUrl=/members` |
 | `GET` | `/members` | everyone who can hold a device and what they hold |
 | `GET`, `POST` | `/members/new`, `/members/create` | admins add a member before their first sign-in |
-| `GET`, `POST` | `/members/{id}/edit`, `/members/{id}/update` | change a member: admins any, a `user` only themselves (`/members/me` redirects there) |
+| `GET`, `POST` | `/members/{id}/edit`, `/members/{id}/update` | change a member: admins any, everyone else only themselves (`/members/me` redirects there) |
 | `GET`, `POST` | `/tokens`, `/tokens/{id}/revoke` | an admin's personal API keys for the MCP endpoint |
 | MCP | `/mcp` | Streamable HTTP MCP server; `Authorization: Bearer trs_…` with a key from `/tokens` |
 
@@ -195,10 +195,11 @@ In the Entra app registration:
 
 - add a **Web** redirect URI of `https://<host>/callback`
 - set the front-channel logout URL to `https://<host>/`
-- define **App roles** with the values `admin` and `user`, and assign them to people
-  or groups. The roles are shown in the account panel. Only `admin` can change
-  devices, assignments and other members or create API keys; a person with `user`
-  or no role at all can read everything and edit their own profile.
+- define one **App role** with the value `treasure-admin` and assign it to the admins
+  under *Enterprise applications → Users and groups*. It is shown in the account
+  panel after the next sign-in. Only an admin can change devices, assignments and
+  other members or create API keys; everyone else who can sign in reads everything
+  and edits their own profile.
 
 **First sign-in checklist.** The Entra settings were written from the Quarkus
 documentation, not from a live tenant, so verify once with a real account:

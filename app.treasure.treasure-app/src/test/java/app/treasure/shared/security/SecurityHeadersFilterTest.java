@@ -13,7 +13,7 @@ import io.restassured.response.Response;
 class SecurityHeadersFilterTest
 {
 	@Test
-	@TestSecurity(user = "maria", roles = Roles.USER)
+	@TestSecurity(user = "maria")
 	void shouldSendContentSecurityPolicyWhenPageIsRendered()
 	{
 		// given
@@ -27,7 +27,7 @@ class SecurityHeadersFilterTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = Roles.USER)
+	@TestSecurity(user = "maria")
 	void shouldForbidContentTypeSniffingWhenPageIsRendered()
 	{
 		// given
@@ -41,7 +41,7 @@ class SecurityHeadersFilterTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = Roles.USER)
+	@TestSecurity(user = "maria")
 	void shouldRenderNoInlineScriptWhenPageIsRendered()
 	{
 		// given

@@ -23,12 +23,12 @@ class TokenResourceTest extends McpTestSupport
 	private static final String PAGE_USER = "token-page-user";
 
 	@Test
-	@TestSecurity(user = PAGE_USER, roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = PAGE_USER, roles = Roles.ADMIN)
 	void shouldListOwnTokenByNameWhenTokenPageIsOpened()
 	{
 		// given
 		String tokenName = unique("Claude on laptop");
-		IssuedToken issued = tokenService.issue(createTestMember(PAGE_USER), tokenName, Set.of("user", Roles.ADMIN));
+		IssuedToken issued = tokenService.issue(createTestMember(PAGE_USER), tokenName, Set.of(Roles.ADMIN));
 		try
 		{
 			// when
@@ -44,7 +44,7 @@ class TokenResourceTest extends McpTestSupport
 	}
 
 	@Test
-	@TestSecurity(user = "token-creator", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "token-creator", roles = Roles.ADMIN)
 	void shouldForbidStoringThePageWhenNewKeyIsShown()
 	{
 		// given
@@ -76,8 +76,8 @@ class TokenResourceTest extends McpTestSupport
 	}
 
 	@Test
-	@TestSecurity(user = PAGE_USER, roles = "user")
-	void shouldForbidTokenPageWhenUserHasOnlyUserRole()
+	@TestSecurity(user = PAGE_USER)
+	void shouldForbidTokenPageWhenUserIsNotAdmin()
 	{
 		// given
 		// a regular user is logged in, see @TestSecurity
@@ -90,8 +90,8 @@ class TokenResourceTest extends McpTestSupport
 	}
 
 	@Test
-	@TestSecurity(user = PAGE_USER, roles = "user")
-	void shouldHideApiKeysLinkWhenUserHasOnlyUserRole()
+	@TestSecurity(user = PAGE_USER)
+	void shouldHideApiKeysLinkWhenUserIsNotAdmin()
 	{
 		// given
 		// a regular user is logged in, see @TestSecurity
@@ -104,7 +104,7 @@ class TokenResourceTest extends McpTestSupport
 	}
 
 	@Test
-	@TestSecurity(user = PAGE_USER, roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = PAGE_USER, roles = Roles.ADMIN)
 	void shouldShowApiKeysLinkWhenUserIsAdmin()
 	{
 		// given

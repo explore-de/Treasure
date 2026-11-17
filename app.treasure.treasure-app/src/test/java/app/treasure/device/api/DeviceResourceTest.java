@@ -49,7 +49,7 @@ class DeviceResourceTest
 	TagRepository tagRepository;
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria")
 	void shouldOpenDeviceList()
 	{
 		given()
@@ -59,7 +59,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldUnassignAllSelectedDevices()
 	{
 		Long assignedLaptop = createAssignedDevice("BulkLaptop", "maria");
@@ -79,7 +79,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldLeaveAlreadyUnassignedDeviceUntouched()
 	{
 		Long freeDevice = createFreeDevice("BulkFreeTablet");
@@ -100,7 +100,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldRecordUnassignHistoryWithPreviousHolder()
 	{
 		Long assignedDevice = createAssignedDevice("BulkHistoryLaptop", "maria");
@@ -127,14 +127,14 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldIgnoreUnknownIds()
 	{
 		postUnassignMany("999999999,");
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldRedirectInsteadOfFailingWhenBulkIdsAreNotNumbers()
 	{
 		// given
@@ -148,7 +148,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria")
 	void shouldReturnNotFoundWhenEditingUnknownDevice()
 	{
 		// given
@@ -162,8 +162,8 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
-	void shouldShowDeviceDetailsWhenUserHasOnlyUserRole()
+	@TestSecurity(user = "maria")
+	void shouldShowDeviceDetailsWhenUserIsNotAdmin()
 	{
 		// given
 		Long device = createFreeDevice("ReadOnlyDetailsLaptop");
@@ -182,8 +182,8 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
-	void shouldForbidNewDeviceFormWhenUserHasOnlyUserRole()
+	@TestSecurity(user = "maria")
+	void shouldForbidNewDeviceFormWhenUserIsNotAdmin()
 	{
 		// given
 		// a reader is logged in, see @TestSecurity
@@ -196,8 +196,8 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
-	void shouldForbidDeviceCreationWhenUserHasOnlyUserRole()
+	@TestSecurity(user = "maria")
+	void shouldForbidDeviceCreationWhenUserIsNotAdmin()
 	{
 		// given
 		String name = "ReadOnlyCreatedLaptop";
@@ -216,8 +216,8 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
-	void shouldForbidUnassignWhenUserHasOnlyUserRole()
+	@TestSecurity(user = "maria")
+	void shouldForbidUnassignWhenUserIsNotAdmin()
 	{
 		// given
 		Long device = createAssignedDevice("ReadOnlyUnassignLaptop", "maria");
@@ -236,8 +236,8 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
-	void shouldKeepDeviceAssignedWhenUserWithOnlyUserRoleTriesToUnassign()
+	@TestSecurity(user = "maria")
+	void shouldKeepDeviceAssignedWhenUserWhoIsNotAdminTriesToUnassign()
 	{
 		// given
 		Long device = createAssignedDevice("ReadOnlyKeptLaptop", "maria");
@@ -256,8 +256,8 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
-	void shouldHideNewDeviceButtonWhenUserHasOnlyUserRole()
+	@TestSecurity(user = "maria")
+	void shouldHideNewDeviceButtonWhenUserIsNotAdmin()
 	{
 		// given
 		// a reader is logged in, see @TestSecurity
@@ -270,7 +270,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldShowNewDeviceButtonWhenUserIsAdmin()
 	{
 		// given
@@ -284,7 +284,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldRejectAssignmentWhenMemberIsUnknown()
 	{
 		// given
@@ -304,7 +304,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldLeaveDeviceAvailableWhenAssignmentToUnknownMemberIsRejected()
 	{
 		// given
@@ -324,7 +324,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldAssignDeviceWhenMemberExists()
 	{
 		// given
@@ -347,7 +347,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldNotRecordHistoryWhenDeviceIsAssignedToTheSameMemberAgain()
 	{
 		// given
@@ -367,7 +367,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldCreateDeviceWhenNameUsesNonLatinLetters()
 	{
 		// given
@@ -387,7 +387,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldStoreTrimmedGroupWhenCreatingDevice()
 	{
 		// given
@@ -408,7 +408,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldStoreNoGroupWhenGroupIsBlank()
 	{
 		// given
@@ -428,7 +428,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldStorePurchaseDateWhenCreatingDevice()
 	{
 		// given
@@ -448,7 +448,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldStoreModelYearWhenCreatingDevice()
 	{
 		// given
@@ -468,7 +468,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldRejectCreationWhenPurchaseDateIsNotADate()
 	{
 		// given
@@ -488,7 +488,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldSetCreatedOnWhenCreatingDevice()
 	{
 		// given
@@ -652,7 +652,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria")
 	void shouldShowRestOfListWhenSecondPageIsOpened()
 	{
 		// given
@@ -673,7 +673,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria")
 	void shouldLeaveSecondPageDeviceOutWhenFirstPageIsOpened()
 	{
 		// given
@@ -694,7 +694,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria")
 	void shouldShowLastPageWhenRequestedPageIsPastTheEnd()
 	{
 		// given
@@ -715,7 +715,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria")
 	void shouldKeepFilterInNextPageLinkWhenListIsFiltered()
 	{
 		// given
@@ -736,7 +736,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria")
 	void shouldCountAllMatchingDevicesWhenOnlyOnePageIsShown()
 	{
 		// given
@@ -757,7 +757,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldLeaveDeviceUnassignedWhenMemberIsDeactivated()
 	{
 		// given
@@ -780,7 +780,7 @@ class DeviceResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldLeaveDeactivatedMemberOutOfAssignMenu()
 	{
 		// given

@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
+import java.util.List;
 
 /**
  * Creates the demo users of dev and test mode in Keycloak and as Members, as
@@ -76,7 +77,7 @@ public class BootstrapService
 		try
 		{
 			String newUserId = keycloakAdminService.createUser(user.username(), user.email(),
-				user.firstName(), user.lastName(), user.roles());
+				user.firstName(), user.lastName(), user.roles().orElse(List.of()));
 			LOG.info("Created Keycloak user: {} (id: {})", user.username(), newUserId);
 			return newUserId;
 		}

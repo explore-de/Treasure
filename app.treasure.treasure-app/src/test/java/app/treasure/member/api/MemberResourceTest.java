@@ -33,7 +33,7 @@ class MemberResourceTest
 	DeviceRepository deviceRepository;
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
+	@TestSecurity(user = "maria")
 	void shouldShowMembersPage()
 	{
 		given()
@@ -44,7 +44,7 @@ class MemberResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldShowAddMemberButtonWhenUserIsAdmin()
 	{
 		// given
@@ -58,7 +58,7 @@ class MemberResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldAddMemberWhoNeverSignedInWhenAdminSubmitsForm()
 	{
 		// given
@@ -78,7 +78,7 @@ class MemberResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldStoreLowercaseEmailAsUsernameWhenAdminAddsMember()
 	{
 		// given
@@ -98,7 +98,7 @@ class MemberResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldRefuseNewMemberWhenEmailIsAlreadyUsed()
 	{
 		// given
@@ -119,7 +119,7 @@ class MemberResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldRefuseNewMemberWhenEmailIsInvalid()
 	{
 		// given
@@ -133,8 +133,8 @@ class MemberResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
-	void shouldForbidAddingMemberWhenUserHasOnlyUserRole()
+	@TestSecurity(user = "maria")
+	void shouldForbidAddingMemberWhenUserIsNotAdmin()
 	{
 		// given
 		String email = "reader.attempt@example.com";
@@ -153,8 +153,8 @@ class MemberResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
-	void shouldHideAddMemberButtonWhenUserHasOnlyUserRole()
+	@TestSecurity(user = "maria")
+	void shouldHideAddMemberButtonWhenUserIsNotAdmin()
 	{
 		// given
 		// a reader is logged in, see @TestSecurity
@@ -167,7 +167,7 @@ class MemberResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "self.editor", roles = "user")
+	@TestSecurity(user = "self.editor")
 	void shouldChangeOwnNameWhenUserEditsThemselves()
 	{
 		// given
@@ -187,8 +187,8 @@ class MemberResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "nosy.reader", roles = "user")
-	void shouldForbidChangingAnotherMemberWhenUserHasOnlyUserRole()
+	@TestSecurity(user = "nosy.reader")
+	void shouldForbidChangingAnotherMemberWhenUserIsNotAdmin()
 	{
 		// given
 		Long id = createMember("someone.else", "someone.else@example.com", true);
@@ -207,7 +207,7 @@ class MemberResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldChangeAnotherMemberWhenAdminEdits()
 	{
 		// given
@@ -227,7 +227,7 @@ class MemberResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldRefuseEmailOfAnotherMemberWhenEditing()
 	{
 		// given
@@ -249,7 +249,7 @@ class MemberResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldMoveUsernameWithEmailWhenMemberNeverSignedIn()
 	{
 		// given
@@ -270,7 +270,7 @@ class MemberResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldKeepUsernameWhenSignedInMemberGetsNewEmail()
 	{
 		// given
@@ -291,7 +291,7 @@ class MemberResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "profile.owner", roles = "user")
+	@TestSecurity(user = "profile.owner")
 	void shouldRedirectToOwnEditPageWhenProfileLinkIsOpened()
 	{
 		// given
@@ -381,7 +381,7 @@ class MemberResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldDeactivateMemberWhenAdminSubmitsDeactivation()
 	{
 		// given
@@ -401,7 +401,7 @@ class MemberResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldReactivateMemberWhenAdminSubmitsActivation()
 	{
 		// given
@@ -422,7 +422,7 @@ class MemberResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "maria", roles = Roles.ADMIN)
 	void shouldKeepMemberActiveWhenTheyStillHoldADevice()
 	{
 		// given
@@ -444,7 +444,7 @@ class MemberResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "self.deactivator", roles = { "user", Roles.ADMIN })
+	@TestSecurity(user = "self.deactivator", roles = Roles.ADMIN)
 	void shouldKeepAdminActiveWhenTheyDeactivateThemselves()
 	{
 		// given
@@ -464,8 +464,8 @@ class MemberResourceTest
 	}
 
 	@Test
-	@TestSecurity(user = "maria", roles = "user")
-	void shouldForbidDeactivationWhenUserHasOnlyUserRole()
+	@TestSecurity(user = "maria")
+	void shouldForbidDeactivationWhenUserIsNotAdmin()
 	{
 		// given
 		Long id = createMember("protected.member", "protected.member@example.com", true);
