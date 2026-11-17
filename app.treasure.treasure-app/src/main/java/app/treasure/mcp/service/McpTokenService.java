@@ -72,8 +72,9 @@ public class McpTokenService
 	}
 
 	/**
-	 * The token the secret belongs to, or null when it is unknown or revoked.
-	 * Runs during authentication, where no request context is active yet.
+	 * The token the secret belongs to, or null when it is unknown or revoked or
+	 * its member is deactivated. Runs during authentication, where no request
+	 * context is active yet.
 	 */
 	@ActivateRequestContext
 	@Transactional
@@ -86,6 +87,11 @@ public class McpTokenService
 		McpToken token = tokenRepository.findByHash(hash(secret));
 		if (token == null)
 		{
+			return null;
+		}
+		if (!token.getMember().isActive())
+		{
+			LOG.warn("Rejected MCP token {}: {} is deactivated", token.id, token.getMember().getUserName());
 			return null;
 		}
 		LocalDateTime now = LocalDateTime.now();

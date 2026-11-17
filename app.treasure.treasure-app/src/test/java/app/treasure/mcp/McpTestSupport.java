@@ -58,7 +58,6 @@ public abstract class McpTestSupport extends BaseMemberTest
 		Device device = new Device();
 		device.setDeviceName(name);
 		device.setDeviceSerialNumber(serialNumber);
-		device.setStatus("available");
 		deviceRepository.persist(device);
 		return device.id;
 	}

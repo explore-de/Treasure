@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import io.quarkus.runtime.LaunchMode;
 import io.quarkus.runtime.StartupEvent;
+import io.quarkus.arc.profile.UnlessBuildProfile;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
@@ -13,6 +14,7 @@ import jakarta.inject.Inject;
  * Runs the bootstrap in a fixed order at startup: first the demo users and
  * their members, then (dev mode only) the seeded demo members.
  */
+@UnlessBuildProfile("prod")
 @ApplicationScoped
 public class StartupOrchestrator
 {

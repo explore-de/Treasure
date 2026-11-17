@@ -11,6 +11,8 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import app.treasure.device.domain.Device;
+import app.treasure.device.repository.DeviceRepository;
 import app.treasure.member.domain.Member;
 import app.treasure.member.repository.MemberRepository;
 import app.treasure.shared.security.Roles;
@@ -26,6 +28,9 @@ class MemberResourceTest
 {
 	@Inject
 	MemberRepository memberRepository;
+
+	@Inject
+	DeviceRepository deviceRepository;
 
 	@Test
 	@TestSecurity(user = "maria", roles = "user")
@@ -373,5 +378,145 @@ class MemberResourceTest
 	void deleteMember(String email)
 	{
 		memberRepository.delete("lower(email) = ?1", email.toLowerCase());
+	}
+
+	@Test
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	void shouldDeactivateMemberWhenAdminSubmitsDeactivation()
+	{
+		// given
+		Long id = createMember("leaver", "leaver@example.com", true);
+		try
+		{
+			// when
+			postRowAction("/members/" + id + "/deactivate");
+
+			// then
+			assertEquals("Deactivated", findById(id).getStatusLabel());
+		}
+		finally
+		{
+			deleteMember("leaver@example.com");
+		}
+	}
+
+	@Test
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	void shouldReactivateMemberWhenAdminSubmitsActivation()
+	{
+		// given
+		Long id = createMember("returner", "returner@example.com", true);
+		setActive(id, false);
+		try
+		{
+			// when
+			postRowAction("/members/" + id + "/activate");
+
+			// then
+			assertEquals("In the system", findById(id).getStatusLabel());
+		}
+		finally
+		{
+			deleteMember("returner@example.com");
+		}
+	}
+
+	@Test
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	void shouldKeepMemberActiveWhenTheyStillHoldADevice()
+	{
+		// given
+		Long id = createMember("holder.leaving", "holder.leaving@example.com", true);
+		Long device = createDeviceHeldBy("HeldByLeaver", id);
+		try
+		{
+			// when
+			postRowAction("/members/" + id + "/deactivate");
+
+			// then
+			assertEquals("In the system", findById(id).getStatusLabel());
+		}
+		finally
+		{
+			deleteDevice(device);
+			deleteMember("holder.leaving@example.com");
+		}
+	}
+
+	@Test
+	@TestSecurity(user = "self.deactivator", roles = { "user", Roles.ADMIN })
+	void shouldKeepAdminActiveWhenTheyDeactivateThemselves()
+	{
+		// given
+		Long id = createMember("self.deactivator", "self.deactivator@example.com", true);
+		try
+		{
+			// when
+			postRowAction("/members/" + id + "/deactivate");
+
+			// then
+			assertEquals("In the system", findById(id).getStatusLabel());
+		}
+		finally
+		{
+			deleteMember("self.deactivator@example.com");
+		}
+	}
+
+	@Test
+	@TestSecurity(user = "maria", roles = "user")
+	void shouldForbidDeactivationWhenUserHasOnlyUserRole()
+	{
+		// given
+		Long id = createMember("protected.member", "protected.member@example.com", true);
+		try
+		{
+			// when
+			Response response = postRowAction("/members/" + id + "/deactivate");
+
+			// then
+			response.then().statusCode(403);
+		}
+		finally
+		{
+			deleteMember("protected.member@example.com");
+		}
+	}
+
+	private Response postRowAction(String path)
+	{
+		String csrfToken = given()
+			.when().get("/members")
+			.then()
+			.statusCode(200)
+			.extract().cookie("csrf-token");
+		return given()
+			.redirects().follow(false)
+			.cookie("csrf-token", csrfToken)
+			.formParam("csrf-token", csrfToken)
+			.contentType("application/x-www-form-urlencoded; charset=UTF-8")
+			.when().post(path);
+	}
+
+	@Transactional(TxType.REQUIRES_NEW)
+	void setActive(Long id, boolean active)
+	{
+		memberRepository.findById(id).setActive(active);
+	}
+
+	@Transactional(TxType.REQUIRES_NEW)
+	Long createDeviceHeldBy(String name, Long memberId)
+	{
+		Device device = new Device();
+		device.setDeviceName(name);
+		device.setAssignedTo(memberRepository.findById(memberId));
+		deviceRepository.persist(device);
+		return device.id;
+	}
+
+	@Transactional(TxType.REQUIRES_NEW)
+	void deleteDevice(Long id)
+	{
+		deviceRepository.deleteById(id);
 	}
 }

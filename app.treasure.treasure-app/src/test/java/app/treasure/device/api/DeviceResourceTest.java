@@ -10,8 +10,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
@@ -23,6 +25,7 @@ import app.treasure.member.domain.Member;
 import app.treasure.member.repository.MemberRepository;
 import app.treasure.shared.repository.TagRepository;
 import app.treasure.shared.security.Roles;
+import app.treasure.shared.util.Pager;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.response.Response;
@@ -597,7 +600,6 @@ class DeviceResourceTest
 	{
 		Device device = new Device();
 		device.setDeviceName(name);
-		device.setStatus("not available");
 		device.setPickupTime(LocalDateTime.now());
 		device.setAssignedTo(memberRepository.findByUsername(username));
 		deviceRepository.persist(device);
@@ -609,7 +611,6 @@ class DeviceResourceTest
 	{
 		Device device = new Device();
 		device.setDeviceName(name);
-		device.setStatus("available");
 		deviceRepository.persist(device);
 		return device.id;
 	}
@@ -648,5 +649,189 @@ class DeviceResourceTest
 		assertNull(device.getAssignedTo());
 		assertNull(device.getPickupTime());
 		assertEquals("available", device.getStatus());
+	}
+
+	@Test
+	@TestSecurity(user = "maria", roles = "user")
+	void shouldShowRestOfListWhenSecondPageIsOpened()
+	{
+		// given
+		String marker = "Paged" + UUID.randomUUID();
+		List<Long> devices = createFreeDevices(marker, Pager.PAGE_SIZE + 1);
+		try
+		{
+			// when
+			Response response = given().queryParam("name", marker).queryParam("page", 2).when().get("/devices");
+
+			// then
+			response.then().body(containsString(marker + "-" + (Pager.PAGE_SIZE + 1) + "<"));
+		}
+		finally
+		{
+			deleteDevices(devices.toArray(Long[]::new));
+		}
+	}
+
+	@Test
+	@TestSecurity(user = "maria", roles = "user")
+	void shouldLeaveSecondPageDeviceOutWhenFirstPageIsOpened()
+	{
+		// given
+		String marker = "Paged" + UUID.randomUUID();
+		List<Long> devices = createFreeDevices(marker, Pager.PAGE_SIZE + 1);
+		try
+		{
+			// when
+			Response response = given().queryParam("name", marker).when().get("/devices");
+
+			// then
+			response.then().body(not(containsString(marker + "-" + (Pager.PAGE_SIZE + 1) + "<")));
+		}
+		finally
+		{
+			deleteDevices(devices.toArray(Long[]::new));
+		}
+	}
+
+	@Test
+	@TestSecurity(user = "maria", roles = "user")
+	void shouldShowLastPageWhenRequestedPageIsPastTheEnd()
+	{
+		// given
+		String marker = "Paged" + UUID.randomUUID();
+		List<Long> devices = createFreeDevices(marker, Pager.PAGE_SIZE + 1);
+		try
+		{
+			// when
+			Response response = given().queryParam("name", marker).queryParam("page", 99).when().get("/devices");
+
+			// then
+			response.then().body(containsString("Page 2 of 2"));
+		}
+		finally
+		{
+			deleteDevices(devices.toArray(Long[]::new));
+		}
+	}
+
+	@Test
+	@TestSecurity(user = "maria", roles = "user")
+	void shouldKeepFilterInNextPageLinkWhenListIsFiltered()
+	{
+		// given
+		String marker = "Paged" + UUID.randomUUID();
+		List<Long> devices = createFreeDevices(marker, Pager.PAGE_SIZE + 1);
+		try
+		{
+			// when
+			Response response = given().queryParam("name", marker).when().get("/devices");
+
+			// then
+			response.then().body(containsString("href=\"/devices?name=" + marker + "&amp;page=2\""));
+		}
+		finally
+		{
+			deleteDevices(devices.toArray(Long[]::new));
+		}
+	}
+
+	@Test
+	@TestSecurity(user = "maria", roles = "user")
+	void shouldCountAllMatchingDevicesWhenOnlyOnePageIsShown()
+	{
+		// given
+		String marker = "Paged" + UUID.randomUUID();
+		List<Long> devices = createFreeDevices(marker, Pager.PAGE_SIZE + 1);
+		try
+		{
+			// when
+			Response response = given().queryParam("name", marker).when().get("/devices");
+
+			// then
+			response.then().body(containsString((Pager.PAGE_SIZE + 1) + " devices in this list"));
+		}
+		finally
+		{
+			deleteDevices(devices.toArray(Long[]::new));
+		}
+	}
+
+	@Test
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	void shouldLeaveDeviceUnassignedWhenMemberIsDeactivated()
+	{
+		// given
+		Long device = createFreeDevice("DeactivatedHolderLaptop");
+		String username = "deactivated-" + UUID.randomUUID();
+		createDeactivatedMember(username);
+		try
+		{
+			// when
+			postAssign(device, username);
+
+			// then
+			assertNull(findDevice(device).getAssignedTo());
+		}
+		finally
+		{
+			deleteDevices(device);
+			deleteMember(username);
+		}
+	}
+
+	@Test
+	@TestSecurity(user = "maria", roles = { "user", Roles.ADMIN })
+	void shouldLeaveDeactivatedMemberOutOfAssignMenu()
+	{
+		// given
+		String marker = "MenuDevice" + UUID.randomUUID();
+		Long device = createFreeDevice(marker);
+		String username = "deactivated-" + UUID.randomUUID();
+		createDeactivatedMember(username);
+		try
+		{
+			// when
+			Response response = given().queryParam("name", marker).when().get("/devices");
+
+			// then
+			response.then().body(not(containsString("data-assign=\"" + username + "\"")));
+		}
+		finally
+		{
+			deleteDevices(device);
+			deleteMember(username);
+		}
+	}
+
+	/** Devices named marker-1 to marker-count, created in that order. */
+	@Transactional(TxType.REQUIRES_NEW)
+	List<Long> createFreeDevices(String marker, int count)
+	{
+		List<Long> ids = new ArrayList<>();
+		for (int number = 1; number <= count; number++)
+		{
+			Device device = new Device();
+			device.setDeviceName(marker + "-" + number);
+			deviceRepository.persist(device);
+			ids.add(device.id);
+		}
+		return ids;
+	}
+
+	@Transactional(TxType.REQUIRES_NEW)
+	void createDeactivatedMember(String username)
+	{
+		Member member = new Member();
+		member.setFirstName("Deactivated");
+		member.setLastName("Member");
+		member.setUserName(username);
+		member.setActive(false);
+		memberRepository.persist(member);
+	}
+
+	@Transactional(TxType.REQUIRES_NEW)
+	void deleteMember(String username)
+	{
+		memberRepository.delete("userName", username);
 	}
 }

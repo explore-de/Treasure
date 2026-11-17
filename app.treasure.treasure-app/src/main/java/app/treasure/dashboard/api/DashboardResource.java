@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 import app.treasure.device.domain.Device;
 import app.treasure.device.domain.DeviceHistory;
@@ -70,27 +69,19 @@ public class DashboardResource extends Controller
 	@Path("")
 	public TemplateInstance index()
 	{
-		List<Device> all = deviceRepository.listAll();
-		long assigned = all.stream().filter(d -> d.getAssignedTo() != null).count();
+		long total = deviceRepository.count();
+		long assigned = deviceRepository.countAssigned();
 
-		Map<String, Long> counts = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-		for (Device device : all)
-		{
-			String group = device.getGroup() == null || device.getGroup().isBlank() ? NO_GROUP
-				: device.getGroup().trim();
-			counts.merge(group, 1L, Long::sum);
-		}
+		Map<String, Long> counts = deviceRepository.countPerGroup();
 		long largest = counts.values().stream().mapToLong(Long::longValue).max().orElse(1);
 		List<GroupCount> groups = new ArrayList<>();
-		counts.forEach(
-			(name, count) -> groups.add(new GroupCount(name, count, (int)Math.round(count * 100.0 / largest))));
+		counts.forEach((name, count) -> groups
+			.add(new GroupCount(name.isEmpty() ? NO_GROUP : name, count, (int)Math.round(count * 100.0 / largest))));
 		groups.sort(Comparator.comparingLong((GroupCount g) -> g.count()).reversed().thenComparing(GroupCount::name));
 
-		List<Device> longestHeld = deviceRepository.findAssignedLongestFirst().stream()
-			.limit(LONGEST_HELD_LIMIT)
-			.toList();
+		List<Device> longestHeld = deviceRepository.findAssignedLongestFirst(LONGEST_HELD_LIMIT);
 		List<DeviceHistory> recent = deviceHistoryRepository.findRecent(RECENT_LIMIT);
 
-		return Templates.index(all.size(), all.size() - assigned, assigned, groups, longestHeld, recent);
+		return Templates.index(total, total - assigned, assigned, groups, longestHeld, recent);
 	}
 }

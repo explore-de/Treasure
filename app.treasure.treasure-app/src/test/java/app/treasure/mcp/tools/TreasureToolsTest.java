@@ -117,6 +117,40 @@ class TreasureToolsTest extends McpTestSupport
 	}
 
 	@Test
+	void shouldReturnToolErrorWhenAssignDeviceGetsDeactivatedMember()
+	{
+		// given
+		IssuedToken issued = adminWithToken("tools-deactivated");
+		Long deviceId = createFreeDevice(unique("ToolsMonitor"), unique("SN"));
+		String leaver = unique("leaver");
+		createDeactivatedMember(leaver);
+		McpStreamableTestClient client = connect(issued);
+		try
+		{
+			// when / then
+			client.when()
+				.toolsCall("assign_device", Map.of("deviceId", deviceId, "username", leaver),
+					r -> assertEquals(
+						"true: Test User is deactivated and cannot be given devices.",
+						r.isError() + ": " + r.firstContent().asText().text()))
+				.thenAssertResults();
+		}
+		finally
+		{
+			client.disconnect();
+			deleteDevice(deviceId);
+			deleteToken(issued);
+		}
+	}
+
+	@Transactional(TxType.REQUIRES_NEW)
+	void createDeactivatedMember(String username)
+	{
+		createTestMember(username);
+		memberRepository.findByUsername(username).setActive(false);
+	}
+
+	@Test
 	void shouldFindDeviceWhenSearchMatchesSerialNumber()
 	{
 		// given
@@ -353,7 +387,6 @@ class TreasureToolsTest extends McpTestSupport
 	{
 		Device device = new Device();
 		device.setDeviceName(name);
-		device.setStatus("not available");
 		device.setPickupTime(LocalDateTime.now());
 		device.setAssignedTo(memberRepository.findByUsername(username));
 		deviceRepository.persist(device);

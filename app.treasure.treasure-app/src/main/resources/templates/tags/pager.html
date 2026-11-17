@@ -1,0 +1,16 @@
+{@app.treasure.shared.util.Pager pager}
+{#if pager.pageCount > 1}
+<nav class="pager" aria-label="Pages">
+  {#if pager.prevUrl}
+  <a class="btn btn-secondary btn-sm" href="{pager.prevUrl}" rel="prev">Previous</a>
+  {#else}
+  <span class="btn btn-secondary btn-sm is-disabled" aria-disabled="true">Previous</span>
+  {/if}
+  <span class="pager-status">Page {pager.page} of {pager.pageCount}</span>
+  {#if pager.nextUrl}
+  <a class="btn btn-secondary btn-sm" href="{pager.nextUrl}" rel="next">Next</a>
+  {#else}
+  <span class="btn btn-secondary btn-sm is-disabled" aria-disabled="true">Next</span>
+  {/if}
+</nav>
+{/if}

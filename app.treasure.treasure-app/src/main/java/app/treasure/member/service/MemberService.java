@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import app.treasure.device.repository.DeviceRepository;
 import app.treasure.member.domain.Member;
 import app.treasure.member.repository.MemberRepository;
 import app.treasure.shared.security.Roles;
@@ -20,7 +21,8 @@ import jakarta.transaction.Transactional;
  * in: the member can hold devices right away and shows as never signed in until
  * their first login, when {@link MemberProvisioningService} links the login to
  * this row by email. Admins can change every member, everyone else only
- * themselves.
+ * themselves. Members are never deleted, because the device history refers to
+ * them; an admin deactivates a member who should no longer be given devices.
  */
 @ApplicationScoped
 public class MemberService
@@ -37,6 +39,9 @@ public class MemberService
 
 	@Inject
 	MemberRepository memberRepository;
+
+	@Inject
+	DeviceRepository deviceRepository;
 
 	/**
 	 * Creates a member who has not signed in yet. The username is the email
@@ -102,6 +107,42 @@ public class MemberService
 		member.setPhone(phoneNumber);
 		LOG.info("Member {} ({}) changed by {}", member.getDisplayName(), member.getUserName(), changedBy);
 		return member;
+	}
+
+	/**
+	 * Deactivates a member: they stay in the list and the history, but can no
+	 * longer be given devices and their API keys stop working. The caller
+	 * checks that the actor is an admin.
+	 *
+	 * @param actorName
+	 *            the username of the admin doing it
+	 * @throws MemberValidationException
+	 *             if the admin tries to deactivate themselves or the member
+	 *             still holds devices
+	 */
+	@Transactional
+	public void deactivate(Member member, String actorName)
+	{
+		if (Objects.equals(actorName, member.getUserName()))
+		{
+			throw new MemberValidationException("You cannot deactivate yourself.");
+		}
+		long held = deviceRepository.countAssignedTo(member);
+		if (held > 0)
+		{
+			throw new MemberValidationException(member.getDisplayName() + " still holds " + held
+				+ (held == 1 ? " device. Unassign it first." : " devices. Unassign them first."));
+		}
+		member.setActive(false);
+		LOG.info("Member {} ({}) deactivated by {}", member.getDisplayName(), member.getUserName(), actorName);
+	}
+
+	/** Makes a deactivated member available for devices again. */
+	@Transactional
+	public void reactivate(Member member, String actorName)
+	{
+		member.setActive(true);
+		LOG.info("Member {} ({}) reactivated by {}", member.getDisplayName(), member.getUserName(), actorName);
 	}
 
 	/** Admins may change every member, everyone else only their own. */

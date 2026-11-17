@@ -2,6 +2,8 @@ package app.treasure.member.api;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.jboss.resteasy.reactive.RestForm;
 import org.slf4j.Logger;
@@ -15,7 +17,10 @@ import app.treasure.member.service.MemberValidationException;
 import app.treasure.member.service.MemberService;
 import app.treasure.shared.security.Roles;
 import app.treasure.shared.util.FlashKeys;
+import app.treasure.shared.util.Pager;
 import io.quarkiverse.renarde.Controller;
+import io.quarkus.hibernate.orm.panache.PanacheQuery;
+import io.quarkus.panache.common.Page;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
@@ -29,12 +34,15 @@ import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.UriInfo;
 
 /**
  * Everyone who can hold a device, with the devices each of them holds.
  * Assigning and unassigning reuse the bulk endpoints of DeviceResource. Admins
- * can add people who have not signed in yet and change every member; everyone
- * else can change their own name, email and phone.
+ * can add people who have not signed in yet, change every member and deactivate
+ * or reactivate one; everyone else can change their own name, email and phone.
  */
 @Authenticated
 @Path("/members")
@@ -55,10 +63,10 @@ public class MemberResource extends Controller
 	SecurityIdentity securityIdentity;
 
 	/**
-	 * A member together with the devices currently assigned to them, and
-	 * whether the viewer may change the member.
+	 * A member together with the devices currently assigned to them, whether
+	 * the viewer may change the member, and whether the member is the viewer.
 	 */
-	public record MemberRow(Member member, List<Device> devices, boolean editable)
+	public record MemberRow(Member member, List<Device> devices, boolean editable, boolean self)
 	{
 	}
 
@@ -70,7 +78,8 @@ public class MemberResource extends Controller
 			// static
 		}
 
-		public static native TemplateInstance index(List<MemberRow> rows, List<Device> available, long heldTotal);
+		public static native TemplateInstance index(List<MemberRow> rows, List<Device> available, long heldTotal,
+			Pager pager);
 
 		public static native TemplateInstance create(String firstName, String lastName, String email, String error);
 
@@ -80,16 +89,23 @@ public class MemberResource extends Controller
 
 	@GET
 	@Path("")
-	public TemplateInstance index()
+	public TemplateInstance index(@QueryParam(Pager.PARAM) Integer page, @Context UriInfo uriInfo)
 	{
+		PanacheQuery<Member> query = memberRepository.findAllForList();
+		Pager pager = Pager.of(page, query.count(), uriInfo);
+		List<Member> members = query.page(Page.of(pager.index(), Pager.PAGE_SIZE)).list();
+
+		// one query for the devices of the whole page instead of one per member
+		Map<Long, List<Device>> held = deviceRepository.findAssignedToAny(members).stream()
+			.collect(Collectors.groupingBy(device -> device.getAssignedTo().getId()));
+		String viewer = securityIdentity.getPrincipal().getName();
 		List<MemberRow> rows = new ArrayList<>();
-		for (Member member : memberRepository.listByName())
+		for (Member member : members)
 		{
-			rows.add(new MemberRow(member, deviceRepository.findAssignedTo(member),
-				memberService.mayEdit(member, securityIdentity)));
+			rows.add(new MemberRow(member, held.getOrDefault(member.getId(), List.of()),
+				memberService.mayEdit(member, securityIdentity), viewer.equals(member.getUserName())));
 		}
-		long heldTotal = rows.stream().mapToLong(row -> row.devices().size()).sum();
-		return Templates.index(rows, deviceRepository.findAvailable(), heldTotal);
+		return Templates.index(rows, deviceRepository.findAvailable(), deviceRepository.countAssigned(), pager);
 	}
 
 	@GET
@@ -179,14 +195,61 @@ public class MemberResource extends Controller
 		return null;
 	}
 
-	/** The member, if it exists and the signed-in person may change it. */
-	private Member editableMember(Long id)
+	@POST
+	@RolesAllowed(Roles.ADMIN)
+	@Path("/{id}/deactivate")
+	@Transactional
+	public void deactivate(@PathParam("id") Long id, @RestForm String redirectUrl)
+	{
+		Member member = existingMember(id);
+		try
+		{
+			memberService.deactivate(member, securityIdentity.getPrincipal().getName());
+			flash(FlashKeys.SUCCESS, member.getDisplayName() + " is deactivated and can no longer be given devices.");
+		}
+		catch (MemberValidationException e)
+		{
+			LOG.warn("Refused to deactivate member {}: {}", id, e.getMessage());
+			flash(FlashKeys.ERROR, e.getMessage());
+		}
+		seeOther(membersPage(redirectUrl));
+	}
+
+	@POST
+	@RolesAllowed(Roles.ADMIN)
+	@Path("/{id}/activate")
+	@Transactional
+	public void activate(@PathParam("id") Long id, @RestForm String redirectUrl)
+	{
+		Member member = existingMember(id);
+		memberService.reactivate(member, securityIdentity.getPrincipal().getName());
+		flash(FlashKeys.SUCCESS, member.getDisplayName() + " is active again.");
+		seeOther(membersPage(redirectUrl));
+	}
+
+	/**
+	 * Where to go after a row action: back to the page of the Members list the
+	 * form was on, never anywhere else.
+	 */
+	private static String membersPage(String redirectUrl)
+	{
+		return redirectUrl != null && redirectUrl.matches("/members\\?page=\\d{1,9}") ? redirectUrl : "/members";
+	}
+
+	private Member existingMember(Long id)
 	{
 		Member member = memberRepository.findById(id);
 		if (member == null)
 		{
 			throw new NotFoundException();
 		}
+		return member;
+	}
+
+	/** The member, if it exists and the signed-in person may change it. */
+	private Member editableMember(Long id)
+	{
+		Member member = existingMember(id);
 		if (!memberService.mayEdit(member, securityIdentity))
 		{
 			LOG.warn("{} may not change member {}", securityIdentity.getPrincipal().getName(), id);

@@ -12,10 +12,17 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.quarkus.arc.profile.UnlessBuildProfile;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 
+/**
+ * Creates the demo users in the Keycloak of dev and test mode. Not part of a
+ * production build: a stand signs people in through Entra ID and has no
+ * Keycloak.
+ */
+@UnlessBuildProfile("prod")
 @ApplicationScoped
 public class KeycloakAdminService
 {
@@ -41,11 +48,7 @@ public class KeycloakAdminService
 		user.setFirstName(firstName);
 		user.setLastName(lastName);
 		user.setEnabled(true);
-		// TODO: Implement proper email verification flow
-		// For now, keeping emailVerified=false for security. Users created via
-		// bootstrap are for dev/test and don't need verification, but
-		// production
-		// users should verify.
+		// demo users of dev and test only, nobody verifies these addresses
 		user.setEmailVerified(false);
 		user.setCredentials(Collections.singletonList(credential));
 

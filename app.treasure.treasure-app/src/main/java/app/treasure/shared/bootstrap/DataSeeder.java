@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import app.treasure.member.domain.Member;
 import app.treasure.member.repository.MemberRepository;
+import io.quarkus.arc.profile.UnlessBuildProfile;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -13,6 +14,7 @@ import jakarta.transaction.Transactional;
  * Seeds demo members for development mode, so the assign menus have people in
  * them from the first start.
  */
+@UnlessBuildProfile("prod")
 @ApplicationScoped
 public class DataSeeder
 {

@@ -73,6 +73,7 @@ public class MemberProvisioningService
 			member.setUserName(username);
 			member.setSubject(firstClaim(token, "oid", "sub"));
 			member.setJoinedAt(Instant.now());
+			memberRepository.flush();
 			LOG.info("Member {} ({}) signed in for the first time", member.getDisplayName(), username);
 		}
 		knownUsernames.add(username);
@@ -120,7 +121,9 @@ public class MemberProvisioningService
 		member.setSubject(firstClaim(token, "oid", "sub"));
 		member.setInviteType(INVITE_TYPE_SSO);
 		member.setJoinedAt(Instant.now());
-		memberRepository.persist(member);
+		// written right away, so a second request of the same first sign-in
+		// fails here, where FirstLoginFilter can retry, and not at commit
+		memberRepository.persistAndFlush(member);
 		return member;
 	}
 

@@ -132,7 +132,8 @@ body.cds--g100 {
 }
 .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
 .btn:focus-visible { outline: 2px solid var(--treasure-primary); outline-offset: 2px; }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn:disabled,
+.btn.is-disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn-primary { background: var(--treasure-primary); color: var(--treasure-on-primary); }
 .btn-primary:hover { background: var(--treasure-primary-hover); }
@@ -833,3 +834,14 @@ a.bar-label:hover { color: var(--treasure-primary-text); }
 @media (max-width: 600px) {
   .tokens-create-row { flex-direction: column; }
 }
+
+/* ---------- pager under a paged table ---------- */
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 12px;
+}
+.pager-status { font-size: 13px; color: var(--muted); }

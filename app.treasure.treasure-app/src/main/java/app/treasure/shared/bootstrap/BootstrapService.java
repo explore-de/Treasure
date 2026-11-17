@@ -4,10 +4,10 @@ import app.treasure.member.domain.Member;
 import app.treasure.member.repository.MemberRepository;
 import app.treasure.member.service.KeycloakAdminService;
 import app.treasure.shared.bootstrap.BootstrapConfig.User;
+import io.quarkus.arc.profile.UnlessBuildProfile;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.transaction.Transactional.TxType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,8 +15,9 @@ import java.time.Instant;
 
 /**
  * Creates the demo users of dev and test mode in Keycloak and as Members, as
- * configured in {@link BootstrapConfig}.
+ * configured in {@link BootstrapConfig}. Not part of a production build.
  */
+@UnlessBuildProfile("prod")
 @ApplicationScoped
 public class BootstrapService
 {
@@ -128,7 +129,6 @@ public class BootstrapService
 		return null;
 	}
 
-	@Transactional(TxType.REQUIRES_NEW)
 	void createIfNotExisting(User user, String keycloakUserId)
 	{
 		Member existingByUsername = memberRepository.findByUsername(user.username());

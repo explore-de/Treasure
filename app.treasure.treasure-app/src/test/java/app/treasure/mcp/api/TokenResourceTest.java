@@ -14,6 +14,8 @@ import app.treasure.shared.security.Roles;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.response.Response;
+import jakarta.transaction.Transactional;
+import jakarta.transaction.Transactional.TxType;
 
 @QuarkusTest
 class TokenResourceTest extends McpTestSupport
@@ -39,6 +41,38 @@ class TokenResourceTest extends McpTestSupport
 		{
 			deleteToken(issued);
 		}
+	}
+
+	@Test
+	@TestSecurity(user = "token-creator", roles = { "user", Roles.ADMIN })
+	void shouldForbidStoringThePageWhenNewKeyIsShown()
+	{
+		// given
+		Long memberId = createTestMember("token-creator").getId();
+		String csrfToken = given().when().get("/tokens").then().statusCode(200).extract().cookie("csrf-token");
+		try
+		{
+			// when
+			Response response = given()
+				.cookie("csrf-token", csrfToken)
+				.formParam("csrf-token", csrfToken)
+				.formParam("name", unique("Key shown once"))
+				.contentType("application/x-www-form-urlencoded; charset=UTF-8")
+				.when().post("/tokens");
+
+			// then
+			response.then().header("Cache-Control", "no-store");
+		}
+		finally
+		{
+			deleteTokensOf(memberId);
+		}
+	}
+
+	@Transactional(TxType.REQUIRES_NEW)
+	void deleteTokensOf(Long memberId)
+	{
+		tokenRepository.delete("member.id", memberId);
 	}
 
 	@Test

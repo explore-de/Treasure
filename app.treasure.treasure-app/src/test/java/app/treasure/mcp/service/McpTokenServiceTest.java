@@ -69,6 +69,32 @@ class McpTokenServiceTest extends McpTestSupport
 		}
 	}
 
+	@Test
+	void shouldReturnNullWhenOwnerOfTokenIsDeactivated()
+	{
+		// given
+		IssuedToken issued = memberWithToken("svc-deactivated");
+		deactivate(issued.token().getMember().getId());
+		try
+		{
+			// when
+			McpToken token = tokenService.authenticate(issued.secret());
+
+			// then
+			assertNull(token);
+		}
+		finally
+		{
+			deleteToken(issued);
+		}
+	}
+
+	@Transactional(TxType.REQUIRES_NEW)
+	void deactivate(Long memberId)
+	{
+		memberRepository.findById(memberId).setActive(false);
+	}
+
 	@Transactional(TxType.REQUIRES_NEW)
 	McpToken findToken(Long id)
 	{

@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -185,8 +183,8 @@ public class TreasureTools
 	}
 
 	@Tool(name = "list_members", description = "Lists every member who can hold a device, with the devices "
-		+ "each one holds and their status: 'In the system' or 'Never signed in'. The username is what "
-		+ "assign_device expects.")
+		+ "each one holds and their status: 'In the system', 'Never signed in' or 'Deactivated'. The "
+		+ "username is what assign_device expects; a deactivated member cannot be given devices.")
 	MemberList listMembers()
 	{
 		List<MemberHoldings> result = new ArrayList<>();
@@ -262,31 +260,26 @@ public class TreasureTools
 		+ "devices held longest and the latest changes.")
 	Overview overview()
 	{
-		List<Device> all = deviceRepository.listAll();
-		long assigned = all.stream().filter(d -> d.getAssignedTo() != null).count();
+		long total = deviceRepository.count();
+		long assigned = deviceRepository.countAssigned();
 
-		Map<String, Long> perGroup = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-		for (Device d : all)
-		{
-			String group = trim(d.getGroup()).isEmpty() ? NO_GROUP : trim(d.getGroup());
-			perGroup.merge(group, 1L, Long::sum);
-		}
-		List<GroupCount> groups = perGroup.entrySet().stream()
-			.map(e -> new GroupCount(e.getKey(), e.getValue()))
+		List<GroupCount> groups = deviceRepository.countPerGroup().entrySet().stream()
+			.map(e -> new GroupCount(e.getKey().isEmpty() ? NO_GROUP : e.getKey(), e.getValue()))
 			.sorted(Comparator.comparingLong(GroupCount::devices).reversed().thenComparing(GroupCount::group))
 			.toList();
 
-		List<DeviceSummary> longestHeld = deviceRepository.findAssignedLongestFirst().stream()
-			.limit(OVERVIEW_LIST_LIMIT).map(this::summary).toList();
+		List<DeviceSummary> longestHeld = deviceRepository.findAssignedLongestFirst(OVERVIEW_LIST_LIMIT).stream()
+			.map(this::summary).toList();
 		List<HistoryEntry> recent = deviceHistoryRepository.findRecent(OVERVIEW_LIST_LIMIT).stream()
 			.map(this::historyEntry).toList();
 
-		return new Overview(all.size(), all.size() - assigned, assigned, groups, longestHeld, recent);
+		return new Overview(total, total - assigned, assigned, groups, longestHeld, recent);
 	}
 
 	@RolesAllowed(Roles.ADMIN)
 	@Tool(name = "assign_device", description = "Hands a device to a member. The change is recorded in the "
-		+ "device history under your name. A device held by someone else moves to the new member.")
+		+ "device history under your name. A device held by someone else moves to the new member. "
+		+ "Deactivated members are refused.")
 	DeviceSummary assignDevice(
 		@ToolArg(description = "Device id, see list_devices") long deviceId,
 		@ToolArg(description = "Username of the member, see list_members") String username)
@@ -298,9 +291,16 @@ public class TreasureTools
 			throw new ToolCallException("No member with username '" + username + "'. Use list_members to see "
 				+ "the usernames.");
 		}
-		if (assignmentService.assign(device, member, actor()))
+		try
 		{
-			LOG.info("MCP: device {} assigned to {} by {}", deviceId, member.getUserName(), actorName());
+			if (assignmentService.assign(device, member, actor()))
+			{
+				LOG.info("MCP: device {} assigned to {} by {}", deviceId, member.getUserName(), actorName());
+			}
+		}
+		catch (DeviceValidationException e)
+		{
+			throw new ToolCallException(e.getMessage());
 		}
 		return summary(device);
 	}

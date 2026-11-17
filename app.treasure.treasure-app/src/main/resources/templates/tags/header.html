@@ -1,8 +1,8 @@
 <cds-header aria-label="Treasure" style="background-color: var(--white)">
   <cds-header-menu-button
+    id="navToggle"
     button-label-active="Close menu"
-    button-label-inactive="Open menu"
-    onclick="toggleSideNav()">
+    button-label-inactive="Open menu">
   </cds-header-menu-button>
   <cds-header-name href="/" prefix="">
     <img src="/svg/final.svg" alt="Treasure" style="height: 34px; width: auto; display: block;">
@@ -11,8 +11,7 @@
     <cds-header-global-action
       id="themeToggle"
       aria-label="Switch between light and dark theme"
-      tooltip-text="Theme"
-      onclick="toggleTheme()">
+      tooltip-text="Theme">
       <svg slot="icon" id="themeIcon" viewBox="0 0 24 24" width="20" height="20">
         <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M12 3V5.25M18.364 5.63604L16.773 7.22703M21 12H18.75M18.364 18.364L16.773 16.773M12 18.75V21M7.22703 16.773L5.63604 18.364M5.25 12H3M7.22703 7.22703L5.63604 5.63604M15.75 12C15.75 14.0711 14.0711 15.75 12 15.75C9.92893 15.75 8.25 14.0711 8.25 12C8.25 9.92893 9.92893 8.25 12 8.25C14.0711 8.25 15.75 9.92893 15.75 12Z"/>
       </svg>
@@ -20,8 +19,7 @@
     <cds-header-global-action
       id="profileButton"
       aria-label="Account"
-      tooltip-text="Account"
-      onclick="togglePanel('profilePanel')">
+      tooltip-text="Account">
       <svg slot="icon" viewBox="0 0 32 32" width="20" height="20">
         <path d="M16 4a5 5 0 1 1-5 5 5 5 0 0 1 5-5m0-2a7 7 0 1 0 7 7 7 7 0 0 0-7-7ZM26 30h-2v-5a5 5 0 0 0-5-5h-6a5 5 0 0 0-5 5v5H6v-5a7 7 0 0 1 7-7h6a7 7 0 0 1 7 7Z"/>
       </svg>
@@ -66,49 +64,3 @@
     </a>
   </div>
 </div>
-
-<script>
-  // Account panel: one panel open at a time, closes on outside click and Escape.
-  let currentPanel = null;
-
-  function togglePanel(panelId) {
-    const panel = document.getElementById(panelId);
-
-    if (currentPanel && currentPanel !== panel) {
-      currentPanel.classList.remove('active');
-      currentPanel.style.display = 'none';
-    }
-
-    if (panel.classList.contains('active')) {
-      panel.classList.remove('active');
-      panel.style.display = 'none';
-      currentPanel = null;
-    } else {
-      panel.classList.add('active');
-      panel.style.display = 'block';
-      currentPanel = panel;
-    }
-  }
-
-  document.addEventListener('click', function(event) {
-    if (!currentPanel) return;
-
-    const profileButton = document.getElementById('profileButton');
-    const clickedInside = currentPanel.contains(event.target) ||
-                         profileButton.contains(event.target);
-
-    if (!clickedInside) {
-      currentPanel.classList.remove('active');
-      currentPanel.style.display = 'none';
-      currentPanel = null;
-    }
-  });
-
-  document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape' && currentPanel) {
-      currentPanel.classList.remove('active');
-      currentPanel.style.display = 'none';
-      currentPanel = null;
-    }
-  });
-</script>

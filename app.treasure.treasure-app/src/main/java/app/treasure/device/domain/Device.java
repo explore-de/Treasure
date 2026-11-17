@@ -15,8 +15,14 @@ import app.treasure.member.domain.Member;
 @Entity
 public class Device extends PanacheEntity
 {
+	/** What {@link #getStatus()} returns for a device nobody holds. */
+	public static final String STATUS_AVAILABLE = "available";
+
+	/** What {@link #getStatus()} returns for a device a member holds. */
+	public static final String STATUS_NOT_AVAILABLE = "not available";
+
+	@Column(nullable = false)
 	private String deviceName;
-	private String status;
 	private LocalDateTime pickupTime;
 	private String deviceSerialNumber;
 
@@ -120,14 +126,19 @@ public class Device extends PanacheEntity
 		this.deviceName = deviceName;
 	}
 
-	public String getStatus()
+	/** True when nobody holds the device. */
+	public boolean isAvailable()
 	{
-		return status;
+		return assignedTo == null;
 	}
 
-	public void setStatus(String status)
+	/**
+	 * "available" or "not available". Not stored: a device is available exactly
+	 * when nobody holds it.
+	 */
+	public String getStatus()
 	{
-		this.status = status;
+		return isAvailable() ? STATUS_AVAILABLE : STATUS_NOT_AVAILABLE;
 	}
 
 	public LocalDateTime getPickupTime()

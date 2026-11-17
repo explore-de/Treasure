@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Locale;
 
 import app.treasure.member.domain.Member;
+import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -15,6 +16,24 @@ public class MemberRepository implements PanacheRepository<Member>
 	public List<Member> listByName()
 	{
 		return listAll(Sort.by("lastName").and("firstName"));
+	}
+
+	/**
+	 * The members who can be given a device, by last name and then first name:
+	 * everyone who is not deactivated.
+	 */
+	public List<Member> listActiveByName()
+	{
+		return list("active", Sort.by("lastName").and("firstName"), true);
+	}
+
+	/**
+	 * Every member for the paged Members list: active ones first, then by last
+	 * name and first name.
+	 */
+	public PanacheQuery<Member> findAllForList()
+	{
+		return findAll(Sort.by("active", Sort.Direction.Descending).and("lastName").and("firstName").and("id"));
 	}
 
 	/**

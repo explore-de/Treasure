@@ -4,7 +4,7 @@
 <div class="page-head">
   <div>
     <h1>Devices</h1>
-    <p class="page-meta">{devices.size} {#if devices.size == 1}device{#else}devices{/if} in this list</p>
+    <p class="page-meta">{pager.total} {#if pager.total == 1}device{#else}devices{/if} in this list</p>
   </div>
   {#if inject:userContext.canEdit}
   <div class="page-head-actions">
@@ -157,7 +157,7 @@
                   data-details
                   data-id="{device.id}"
                   data-name="{device.deviceName ?: ''}"
-                  data-status="{device.status ?: ''}"
+                  data-status="{device.status}"
                   data-assigned="{device.bookedName}"
                   data-pickup="{device.formattedPickupTime}"
                   data-group="{device.group ?: ''}"
@@ -177,7 +177,7 @@
           {#if device.deviceSerialNumber}<span class="device-serial">{device.deviceSerialNumber}</span>{/if}
         </td>
         <td>
-          {#if device.status == 'available'}
+          {#if device.available}
           <span class="badge badge-available"><span class="badge-dot"></span>Available</span>
           {#else}
           <span class="badge badge-unavailable"><span class="badge-dot"></span>Not available</span>
@@ -232,6 +232,8 @@
   </table>
   {/if}
 </div>
+
+{#pager pager=pager /}
 
 <dialog id="detailsDialog" class="modal" aria-labelledby="detailsTitle">
   <div class="modal-head">

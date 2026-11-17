@@ -1,6 +1,7 @@
 package app.treasure.member.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -71,5 +72,40 @@ class MemberRepositoryTest extends BaseMemberTest
 		member.setEmail(member.getUserName() + "@test.local");
 		memberRepository.persist(member);
 		return member;
+	}
+
+	@TestTransaction
+	@Test
+	void shouldLeaveOutDeactivatedMemberWhenListingActiveMembers()
+	{
+		// given
+		Member leaver = persistMember("Leaver", "Zz-active-" + UUID.randomUUID());
+		leaver.setActive(false);
+
+		// when
+		List<Long> active = memberRepository.listActiveByName().stream().map(Member::getId).toList();
+
+		// then
+		assertFalse(active.contains(leaver.getId()));
+	}
+
+	@TestTransaction
+	@Test
+	void shouldListDeactivatedMemberAfterActiveOnesWhenListingForTheMembersPage()
+	{
+		// given
+		String family = "Aa-first-" + UUID.randomUUID();
+		Member leaver = persistMember("Anton", family);
+		leaver.setActive(false);
+		Member colleague = persistMember("Berta", family);
+
+		// when
+		List<Long> ordered = memberRepository.findAllForList().stream()
+			.filter(m -> m.getLastName().equals(family))
+			.map(Member::getId)
+			.toList();
+
+		// then
+		assertEquals(List.of(colleague.getId(), leaver.getId()), ordered);
 	}
 }

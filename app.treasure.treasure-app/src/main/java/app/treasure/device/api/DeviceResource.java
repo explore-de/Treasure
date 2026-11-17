@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -16,8 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import app.treasure.device.domain.Device;
 import app.treasure.device.domain.DeviceHistory;
-import app.treasure.device.filter.DeviceFieldFilter;
-import app.treasure.device.filter.DeviceFilter;
+import app.treasure.device.filter.DeviceSearch;
 import app.treasure.device.repository.DeviceHistoryRepository;
 import app.treasure.device.repository.DeviceRepository;
 import app.treasure.device.service.DeviceAssignmentService;
@@ -29,8 +27,10 @@ import app.treasure.member.repository.MemberRepository;
 import app.treasure.shared.repository.TagRepository;
 import app.treasure.shared.security.Roles;
 import app.treasure.shared.util.FlashKeys;
+import app.treasure.shared.util.Pager;
 import io.quarkiverse.renarde.Controller;
-import io.quarkus.panache.common.Sort;
+import io.quarkus.hibernate.orm.panache.PanacheQuery;
+import io.quarkus.panache.common.Page;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
@@ -45,6 +45,8 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.UriInfo;
 
 @Authenticated
 @Path("/devices")
@@ -81,7 +83,7 @@ public class DeviceResource extends Controller
 		{
 		}
 
-		public static native TemplateInstance index(List<Device> devices, List<Member> members);
+		public static native TemplateInstance index(List<Device> devices, List<Member> members, Pager pager);
 
 		public static native TemplateInstance index$row(Device device, List<Member> members);
 
@@ -151,42 +153,20 @@ public class DeviceResource extends Controller
 		@QueryParam("deviceProzessor") List<String> prozessors,
 		@QueryParam("deviceHDDStorage") List<String> hddStorages,
 		@QueryParam("deviceRAM") List<String> rams,
-		@QueryParam("deviceModelDate") List<String> modelDates)
+		@QueryParam("deviceModelDate") List<String> modelDates,
+		@QueryParam(Pager.PARAM) Integer page,
+		@Context UriInfo uriInfo)
 	{
-		List<String> nameTerms = normalize(names);
-		List<String> st = normalize(statuses);
-		List<String> bb = normalize(assignedTo);
-		List<String> se = normalize(serials);
-		List<String> gr = normalize(groups);
-		List<String> mo = normalize(models);
-		List<String> da = normalize(damages);
-		List<String> cp = normalize(companys);
-		List<String> nb = normalize(numbers);
-		List<String> pz = normalize(prozessors);
-		List<String> hd = normalize(hddStorages);
-		List<String> rm = normalize(rams);
-		List<String> md = normalize(modelDates);
+		DeviceSearch search = new DeviceSearch(normalize(names), normalize(statuses), normalize(assignedTo),
+			normalize(serials), normalize(groups), normalize(models), normalize(damages), normalize(companys),
+			normalize(numbers), normalize(prozessors), normalize(hddStorages), normalize(rams),
+			normalize(modelDates));
 
-		List<Device> all = deviceRepository.listAll(Sort.by("id").ascending());
-		List<DeviceFilter> filters = List.<DeviceFilter> of(
-			new DeviceFieldFilter(nameTerms, Device::getDeviceName, this::containsIgnoreCase),
-			new DeviceFieldFilter(st, Device::getStatus, this::equalsIgnoreCase),
-			new DeviceFieldFilter(bb, Device::getBookedName, this::containsIgnoreCase),
-			new DeviceFieldFilter(se, Device::getDeviceSerialNumber, this::containsIgnoreCase),
-			new DeviceFieldFilter(gr, Device::getGroup, this::containsIgnoreCase),
-			new DeviceFieldFilter(mo, Device::getDeviceModel, this::containsIgnoreCase),
-			new DeviceFieldFilter(da, Device::getDeviceDamage, this::equalsIgnoreCase),
-			new DeviceFieldFilter(cp, Device::getRegCompany, this::containsIgnoreCase),
-			new DeviceFieldFilter(nb, Device::getDeviceNumber, this::containsIgnoreCase),
-			new DeviceFieldFilter(pz, Device::getDeviceProzessor, this::containsIgnoreCase),
-			new DeviceFieldFilter(hd, Device::getDeviceHDDStorage, this::containsIgnoreCase),
-			new DeviceFieldFilter(rm, Device::getDeviceRAM, this::containsIgnoreCase),
-			new DeviceFieldFilter(md, d -> Objects.toString(d.getDeviceModelDate(), ""), this::containsIgnoreCase));
-		List<Device> filtered = all.stream()
-			.filter(d -> filters.stream().allMatch(f -> f.matches(d)))
-			.toList();
+		PanacheQuery<Device> query = deviceRepository.search(search);
+		Pager pager = Pager.of(page, query.count(), uriInfo);
+		List<Device> devices = query.page(Page.of(pager.index(), Pager.PAGE_SIZE)).list();
 
-		return Templates.index(filtered, memberRepository.listByName());
+		return Templates.index(devices, memberRepository.listActiveByName(), pager);
 	}
 
 	private List<String> normalize(List<String> in)
@@ -196,18 +176,6 @@ public class DeviceResource extends Controller
 			.map(s -> s == null ? "" : s.trim())
 			.filter(s -> !s.isBlank())
 			.toList();
-	}
-
-	private boolean containsIgnoreCase(String haystack, String needle)
-	{
-		if (haystack == null || needle == null) return false;
-		return haystack.toLowerCase().contains(needle.toLowerCase());
-	}
-
-	private boolean equalsIgnoreCase(String a, String b)
-	{
-		if (a == null || b == null) return false;
-		return a.equalsIgnoreCase(b);
 	}
 
 	@GET
@@ -393,13 +361,25 @@ public class DeviceResource extends Controller
 		Member actor = currentMember();
 		int assigned = 0;
 
-		for (Long id : parseIds(ids))
+		try
 		{
-			Device device = deviceRepository.findById(id);
-			if (device != null && assignmentService.assign(device, member, actor))
+			for (Long id : parseIds(ids))
 			{
-				assigned++;
+				Device device = deviceRepository.findById(id);
+				if (device != null && assignmentService.assign(device, member, actor))
+				{
+					assigned++;
+				}
 			}
+		}
+		catch (DeviceValidationException e)
+		{
+			// a deactivated member: the first device already refuses, so
+			// nothing was assigned
+			LOG.warn("Refused to assign devices to {}: {}", member.getUserName(), e.getMessage());
+			flash(FlashKeys.ERROR, e.getMessage());
+			seeOther(safeRedirect(redirectUrl));
+			return;
 		}
 		LOG.info("Assigned {} devices to {}", assigned, member.getUserName());
 		flash(FlashKeys.SUCCESS, countOf(assigned, "device") + " assigned to " + member.getDisplayName() + ".");
@@ -453,12 +433,20 @@ public class DeviceResource extends Controller
 			throw new BadRequestException("Unknown member: " + assignedTo);
 		}
 
-		if (assignmentService.assign(device, member, currentMember()))
+		try
 		{
-			LOG.info("Device {} assigned to {}", id, member.getUserName());
+			if (assignmentService.assign(device, member, currentMember()))
+			{
+				LOG.info("Device {} assigned to {}", id, member.getUserName());
+			}
+		}
+		catch (DeviceValidationException e)
+		{
+			LOG.warn("Refused to assign device {} to {}: {}", id, member.getUserName(), e.getMessage());
+			throw new BadRequestException(e.getMessage());
 		}
 
-		return Templates.index$row(device, memberRepository.listByName());
+		return Templates.index$row(device, memberRepository.listActiveByName());
 	}
 
 	@POST
@@ -479,7 +467,7 @@ public class DeviceResource extends Controller
 			LOG.info("Unassigned device {} from member {}", id, oldBooked);
 		}
 
-		return Templates.index$row(device, memberRepository.listByName());
+		return Templates.index$row(device, memberRepository.listActiveByName());
 	}
 
 	private String countOf(int count, String noun)

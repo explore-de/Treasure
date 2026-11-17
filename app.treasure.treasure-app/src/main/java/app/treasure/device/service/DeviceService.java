@@ -108,7 +108,6 @@ public class DeviceService
 		validate(data);
 
 		Device device = new Device();
-		device.setStatus("available");
 		device.setCreatedOn(LocalDateTime.now());
 		apply(device, data);
 		deviceRepository.persist(device);

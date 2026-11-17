@@ -8,7 +8,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 public class TagRepository implements PanacheRepository<Tag>
 {
 	/**
-	 * Finds the tag with this name or creates it.
+	 * Finds the tag with this name or creates it. The insert leaves an existing
+	 * row alone, so two requests saving the same new name at the same moment
+	 * both succeed instead of one failing on the unique name.
 	 *
 	 * @param name
 	 *            The tag name
@@ -16,13 +18,11 @@ public class TagRepository implements PanacheRepository<Tag>
 	 */
 	public Tag findOrCreate(String name)
 	{
-		Tag existing = find("name", name).firstResult();
-		if (existing != null)
-		{
-			return existing;
-		}
-		Tag tag = new Tag(name);
-		persist(tag);
-		return tag;
+		getEntityManager()
+			.createNativeQuery("insert into Tag (id, name) values (nextval('Tag_SEQ'), :name) "
+				+ "on conflict (name) do nothing")
+			.setParameter("name", name)
+			.executeUpdate();
+		return find("name", name).firstResult();
 	}
 }

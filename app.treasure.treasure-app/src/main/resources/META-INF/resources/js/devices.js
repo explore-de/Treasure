@@ -25,6 +25,8 @@
   function params() { return new URLSearchParams(window.location.search); }
   function currentPath() { return window.location.pathname + window.location.search; }
   function navigate(p) {
+    // a changed filter changes the list, so paging starts over
+    p.delete('page');
     var qs = p.toString();
     window.location.href = window.location.pathname + (qs ? '?' + qs : '');
   }
@@ -172,6 +174,9 @@
     });
     bar.hidden = total === 0;
     $('#clearChips').addEventListener('click', clearAllFilters);
+    $$('[data-clear-filters]').forEach(function (button) {
+      button.addEventListener('click', clearAllFilters);
+    });
 
     var emptyFiltered = $('#emptyFiltered');
     var emptyNone = $('#emptyNone');
@@ -245,6 +250,9 @@
         var wasOpen = menu && menu.classList.contains('is-open');
         closeMenus();
         if (menu && !wasOpen) {
+          // a menu shared by many rows is moved next to the button that opens
+          // it, so it is positioned there and its items find that row's form
+          if (menu.dataset.shared !== undefined) trigger.closest('.menu-wrap').appendChild(menu);
           menu.classList.add('is-open');
           trigger.setAttribute('aria-expanded', 'true');
           var first = menu.querySelector('button');
@@ -398,6 +406,28 @@
     }, 7000);
   }
 
+  /* ---------- failed htmx requests ---------- */
+
+  // An htmx response replaces a table row, so a request that fails (session
+  // expired, server error, no connection) would otherwise change nothing at
+  // all on screen. Say so in the same place the flash messages appear.
+  function initRequestErrors() {
+    var stack = $('#flashStack');
+    if (!stack) return;
+    function report() {
+      var notice = document.createElement('cds-inline-notification');
+      notice.setAttribute('kind', 'error');
+      notice.setAttribute('title', 'Not saved');
+      notice.setAttribute('subtitle', 'The change did not go through. Reload the page and try again.');
+      notice.setAttribute('low-contrast', '');
+      stack.appendChild(notice);
+      window.setTimeout(function () { notice.remove(); }, 7000);
+    }
+    ['htmx:responseError', 'htmx:sendError', 'htmx:timeout'].forEach(function (name) {
+      document.body.addEventListener(name, report);
+    });
+  }
+
   /* ---------- copy buttons (API keys page) ---------- */
 
   function initCopy() {
@@ -425,6 +455,7 @@
     initConfirm();
     initGroupChips();
     initFlash();
+    initRequestErrors();
     initCopy();
   });
 })();

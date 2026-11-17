@@ -1,21 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <script>
-      (function () {
-        try {
-          var t = localStorage.getItem('theme');
-          if (t !== 'dark' && t !== 'light') {
-            t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-          }
-          window.__theme = t;
-          if (t === 'dark') document.documentElement.classList.add('cds--g100');
-        } catch (e) {}
-        // Side nav: decide expanded/collapsed now, so the content never jumps after paint.
-        window.__navExpanded = window.innerWidth >= 1550;
-        if (window.__navExpanded) document.documentElement.classList.add('side-nav-expanded');
-      })();
-    </script>
+    <script src="/js/theme-init.js?v=1"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#ff8200">
@@ -26,8 +12,8 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
     <link rel="stylesheet" href="/css/carbon-styles.min.css?v=1.118.0">
-    <link rel="stylesheet" href="/css/treasure-core.css?v=23">
-    <link rel="stylesheet" href="/css/treasure-pages.css?v=26">
+    <link rel="stylesheet" href="/css/treasure-core.css?v=24">
+    <link rel="stylesheet" href="/css/treasure-pages.css?v=27">
     <style>
       cds-header:not(:defined) {
         display: block;
@@ -64,20 +50,24 @@
         visibility: hidden;
       }
     </style>
-    <!-- Carbon web components 2.66.0 (matches the vendored @carbon/styles 1.118.0): only the ones this app renders -->
-    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/version/v2.66.0/ui-shell.min.js"></script>
-    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/version/v2.66.0/notification.min.js"></script>
+    <!-- Carbon web components 2.66.0 (matches the vendored @carbon/styles 1.118.0): only the ones this app renders.
+         The integrity hashes pin the exact files; recompute them when a version changes:
+         curl -s <url> | openssl dgst -sha384 -binary | openssl base64 -A -->
+    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/version/v2.66.0/ui-shell.min.js"
+            integrity="sha384-sDgmpwSr1w2melIyOWSs0SHYC92jYP8C6Ofc6KUtBT1fKRKEzN2SggSArNO32QI/" crossorigin="anonymous"></script>
+    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/version/v2.66.0/notification.min.js"
+            integrity="sha384-pW272epeYrtElaEEu95k4uQRlljqE3aNjliqLkQlaIK9/YjLVWNi7VcG8ATeCtmi" crossorigin="anonymous"></script>
 
-    <script src="https://unpkg.com/htmx.org@2.0.11/dist/htmx.min.js"></script>
-    <script src="/js/devices.js?v=22" defer></script>
+    <script src="https://unpkg.com/htmx.org@2.0.11/dist/htmx.min.js"
+            integrity="sha384-2OatzQy1H+Zd/IIrjr1TcuDGqLXeHhbooAyJY1KdQMKnr4LZ22k31GBLdYKHmVjg" crossorigin="anonymous"></script>
+    <script src="/js/shell.js?v=1" defer></script>
+    <script src="/js/devices.js?v=23" defer></script>
 
     {#insert moreStyles /}
     {#insert moreScripts /}
   </head>
   <body>
-    <script>
-      if (window.__theme === 'dark') document.body.classList.add('cds--g100');
-    </script>
+    <script src="/js/body-theme.js?v=1"></script>
     {#include tags/header.html /}
 
     <cds-side-nav aria-label="Main navigation" collapse-mode="fixed">
@@ -102,10 +92,7 @@
         {/if}
       </cds-side-nav-items>
     </cds-side-nav>
-    <script>
-      // Runs before the ui-shell module upgrades the element, so it renders expanded right away.
-      if (window.__navExpanded) document.querySelector('cds-side-nav').setAttribute('expanded', '');
-    </script>
+    <script src="/js/nav-init.js?v=1"></script>
 
     <div class="app-container">
       {#include tags/flashNotifications.html /}
@@ -113,74 +100,5 @@
         {#insert /}
       </main>
     </div>
-
-    <script>
-      function toggleSideNav() {
-        var sideNav = document.querySelector('cds-side-nav');
-        if (sideNav) {
-          sideNav.expanded = !sideNav.expanded;
-        }
-      }
-
-      var THEME_ICON_DARK = '<path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M21.7519 15.0021C20.597 15.484 19.3296 15.7501 18 15.7501C12.6152 15.7501 8.25 11.3849 8.25 6.00011C8.25 4.67052 8.51614 3.40308 8.99806 2.24817C5.47566 3.71798 3 7.19493 3 11.2501C3 16.6349 7.36522 21.0001 12.75 21.0001C16.8052 21.0001 20.2821 18.5245 21.7519 15.0021Z"/>';
-      var THEME_ICON_LIGHT = '<path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M12 3V5.25M18.364 5.63604L16.773 7.22703M21 12H18.75M18.364 18.364L16.773 16.773M12 18.75V21M7.22703 16.773L5.63604 18.364M5.25 12H3M7.22703 7.22703L5.63604 5.63604M15.75 12C15.75 14.0711 14.0711 15.75 12 15.75C9.92893 15.75 8.25 14.0711 8.25 12C8.25 9.92893 9.92893 8.25 12 8.25C14.0711 8.25 15.75 9.92893 15.75 12Z"/>';
-
-      function applyTheme(theme) {
-        var isDark = theme === 'dark';
-        document.documentElement.classList.toggle('cds--g100', isDark);
-        document.body.classList.toggle('cds--g100', isDark);
-        var icon = document.getElementById('themeIcon');
-        if (icon) icon.innerHTML = isDark ? THEME_ICON_DARK : THEME_ICON_LIGHT;
-      }
-
-      function toggleTheme() {
-        var next = document.documentElement.classList.contains('cds--g100') ? 'light' : 'dark';
-        localStorage.setItem('theme', next);
-        window.__theme = next;
-        applyTheme(next);
-      }
-
-      document.addEventListener('DOMContentLoaded', function() {
-        applyTheme(window.__theme || localStorage.getItem('theme') || 'light');
-        var sideNav = document.querySelector('cds-side-nav');
-        if (sideNav) {
-          function updateLayout() {
-            document.documentElement.classList.toggle('side-nav-expanded', !!sideNav.expanded);
-          }
-
-          updateLayout();
-
-          var observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-              if (mutation.attributeName === 'expanded') {
-                updateLayout();
-              }
-            });
-          });
-          observer.observe(sideNav, { attributes: true });
-        }
-      });
-
-      (function responsiveSideNav() {
-        var BREAKPOINT = 1550;
-        var wasWide = window.innerWidth >= BREAKPOINT;
-
-        // The initial state is set in the head script. Afterwards only react when the
-        // window crosses the breakpoint, so a manual toggle survives small resizes.
-        function onResize() {
-          var isWide = window.innerWidth >= BREAKPOINT;
-          if (isWide === wasWide) return;
-          wasWide = isWide;
-          var sideNav = document.querySelector('cds-side-nav');
-          if (sideNav) sideNav.expanded = isWide;
-        }
-
-        var t;
-        window.addEventListener('resize', function() {
-          clearTimeout(t);
-          t = setTimeout(onResize, 100);
-        });
-      })();
-    </script>
   </body>
 </html>

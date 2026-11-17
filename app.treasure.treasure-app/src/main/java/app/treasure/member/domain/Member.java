@@ -58,6 +58,14 @@ public class Member extends PanacheEntity
 	@Column(name = "subject", unique = true)
 	private String subject;
 
+	/**
+	 * False once an admin deactivated the member, for example because they
+	 * left: they stay in the list and the history but can no longer be given
+	 * devices, and their API keys stop working.
+	 */
+	@Column(nullable = false)
+	private boolean active = true;
+
 	public Long getId()
 	{
 		return id;
@@ -138,7 +146,21 @@ public class Member extends PanacheEntity
 
 	public String getStatusLabel()
 	{
+		if (!active)
+		{
+			return "Deactivated";
+		}
 		return isNeverSignedIn() ? "Never signed in" : "In the system";
+	}
+
+	public boolean isActive()
+	{
+		return active;
+	}
+
+	public void setActive(boolean active)
+	{
+		this.active = active;
 	}
 
 	public Long getInvitedByMemberId()

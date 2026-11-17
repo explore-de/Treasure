@@ -9,7 +9,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 /**
- * Hands devices to members and takes them back. Status, pickup time and the
+ * Hands devices to members and takes them back. Holder, pickup time and the
  * history entry change together, so the web pages and the MCP tools behave the
  * same. Callers run inside a transaction.
  */
@@ -21,6 +21,9 @@ public class DeviceAssignmentService
 
 	/**
 	 * Assigns the device to the member; false when the member already holds it.
+	 *
+	 * @throws DeviceValidationException
+	 *             if the member is deactivated
 	 */
 	public boolean assign(Device device, Member member, Member actor)
 	{
@@ -28,16 +31,18 @@ public class DeviceAssignmentService
 		{
 			return false;
 		}
+		if (!member.isActive())
+		{
+			throw new DeviceValidationException(
+				member.getDisplayName() + " is deactivated and cannot be given devices.");
+		}
 		String oldBooked = device.getBookedName();
-		String oldStatus = n(device.getStatus());
 		String oldPickup = device.getPickupTime() != null ? device.getPickupTime().toString() : "";
 
 		device.setAssignedTo(member);
-		device.setStatus("not available");
 		device.setPickupTime(LocalDateTime.now());
 
-		String notes = "status: " + oldStatus + " -> not available, pickupTime: " + oldPickup + " -> "
-			+ device.getPickupTime();
+		String notes = "pickupTime: " + oldPickup + " -> " + device.getPickupTime();
 		deviceHistoryRepository.record(device, actor, "ASSIGNED", "assignedTo", n(oldBooked),
 			n(device.getBookedName()), notes);
 		return true;
@@ -51,14 +56,12 @@ public class DeviceAssignmentService
 			return false;
 		}
 		String oldBooked = device.getBookedName();
-		String oldStatus = n(device.getStatus());
 		String oldPickup = device.getPickupTime() != null ? device.getPickupTime().toString() : "";
 
 		device.setAssignedTo(null);
-		device.setStatus("available");
 		device.setPickupTime(null);
 
-		String notes = "status: " + oldStatus + " -> available, pickupTime: " + oldPickup + " -> ";
+		String notes = "pickupTime: " + oldPickup + " -> ";
 		deviceHistoryRepository.record(device, actor, "UNASSIGNED", "assignedTo", n(oldBooked), "", notes);
 		return true;
 	}

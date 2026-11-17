@@ -2,6 +2,7 @@ package app.treasure.mcp.api;
 
 import java.util.List;
 
+import org.jboss.resteasy.reactive.ResponseHeader;
 import org.jboss.resteasy.reactive.RestForm;
 
 import app.treasure.mcp.domain.McpToken;
@@ -69,6 +70,8 @@ public class TokenResource extends Controller
 	@POST
 	@Path("")
 	@Transactional
+	// the page shows the new key: no browser or proxy may keep a copy
+	@ResponseHeader(name = "Cache-Control", value = "no-store")
 	public TemplateInstance create(@RestForm String name, @Context UriInfo uriInfo)
 	{
 		Member member = currentMember();
