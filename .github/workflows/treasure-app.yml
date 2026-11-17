@@ -5,6 +5,14 @@ on:
     branches: [ main, deploy ]
     paths:
       - 'app.treasure.treasure-app/**'
+      - 'formatter/**'
+      - '.github/workflows/treasure-app.yml'
+  # Pull requests are built and tested too, so a failure shows before the merge.
+  # They never push an image.
+  pull_request:
+    paths:
+      - 'app.treasure.treasure-app/**'
+      - 'formatter/**'
       - '.github/workflows/treasure-app.yml'
   workflow_dispatch:
 
@@ -52,6 +60,7 @@ jobs:
       #       -Dsonar.projectKey=treasure-app_treasure-app
 
       - name: Log in to the Container registry
+        if: ${{ github.event_name != 'pull_request' }}
         uses: docker/login-action@v4
         with:
           registry: ghcr.io
@@ -59,12 +68,10 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
-        if: ${{ success() }}
+        if: ${{ success() && github.event_name != 'pull_request' }}
         uses: docker/build-push-action@v7
         with:
           context: app.treasure.treasure-app
           push: true
           file: app.treasure.treasure-app/src/main/docker/Dockerfile.jvm
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/treasure-app:latest
-            ghcr.io/${{ github.repository_owner }}/treasure-app:${{ github.run_number }}
+          tags: ghcr.io/${{ github.repository_owner }}/treasure-app:latest
