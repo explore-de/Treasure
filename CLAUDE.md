@@ -50,9 +50,11 @@ Java language server. That fills `target/` but does not start the app.
   versioned file.
 - **OIDC** authorization-code flow (`application-type=web-app`): Keycloak Dev
   Services in dev and test, Microsoft Entra ID under the `prod` profile (see
-  the `%prod.quarkus.oidc.*` block and the README's deployment section). Roles
-  come from the token: Keycloak realm roles in dev, Entra App Roles via
-  `roles.role-claim-path=roles` on a stand. The session cookie key comes from
+  the `%prod.quarkus.oidc.*` block and the README's deployment section). The
+  admin role comes from the token: a Keycloak realm role in dev; on a stand the
+  ID token's `groups` claim (`roles.role-claim-path=groups`) and
+  `AdminGroupAugmentor`, which grants `Roles.ADMIN` to members of the Entra
+  group `ENTRA_ADMIN_GROUP_ID` and drops the group ids. The session cookie key comes from
   `OIDC_SESSION_SECRET` on the stand and a fixed dev-only value in dev and test
 - **htmx 2.0.11** for row-level partial page updates; a failed htmx request
   shows a "Not saved" notice (`initRequestErrors` in `devices.js`)
@@ -91,7 +93,8 @@ shared/
   bootstrap          StartupOrchestrator -> BootstrapService (users, members) -> DataSeeder; only when treasure.bootstrap.enabled;
                      BootstrapConfig maps treasure.bootstrap.* (the demo users are a Map keyed by the segment after users.)
   domain/repository  Tag, TagRepository (the device-group registry)
-  security           Roles, FirstLoginFilter (creates the Member for an unknown OIDC principal),
+  security           Roles, AdminGroupAugmentor (Entra admin group -> admin role),
+                     FirstLoginFilter (creates the Member for an unknown OIDC principal),
                      SecurityHeadersFilter (Content-Security-Policy on every rendered page)
   template           UserContext (available in templates as inject:userContext)
   util               FlashKeys, Pager (page number, counts and prev/next links of a paged list)
@@ -147,7 +150,7 @@ from the ID token (`preferred_username`, `email`, `given_name`,
 `family_name`, `oid`), unless an admin already added them on the Members
 page: then the login is linked to that row by email. A member without
 `joinedAt` shows as "Never signed in", everyone else as "In the system".
-Only an admin (`Roles.ADMIN`, the role value `treasure-admin`) may change data
+Only an admin (`Roles.ADMIN`, the role value `admin`) may change data
 (`@RolesAllowed` on every POST and MCP write tool,
 `inject:userContext.canEdit` in templates); everyone else who is signed in only
 reads, except their own name, email and phone (`MemberService.mayEdit`, also used by
@@ -254,9 +257,10 @@ if (securityIdentity.hasRole(Roles.ADMIN)) {
 }
 ```
 
-- `Roles.ADMIN` = "treasure-admin" - changes devices, assignments and members,
+- `Roles.ADMIN` = "admin" - changes devices, assignments and members,
   creates API keys. The same value must be the Keycloak dev role in
-  `application.properties` and the App Role value in Entra.
+  `application.properties`. On a stand nobody sends this name: members of the
+  Entra admin group get it from `AdminGroupAugmentor`.
 - There is no other role: a signed-in person without `Roles.ADMIN` reads
   everything and changes only their own profile. In tests that is
   `@TestSecurity(user = "maria")` without `roles`.

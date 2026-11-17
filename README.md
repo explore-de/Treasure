@@ -24,7 +24,7 @@ changed what and when.
 - **Search & filters** — filter the device list by field
 - **Delete** — removes a device together with its history; there is no soft delete yet
 - **Members** — everyone who can hold a device, linked to their sign-in identity (Keycloak in dev, Entra ID on the stand), with the devices they currently hold. Admins can add a person before their first sign-in; everyone can edit their own name, email and phone
-- **Roles** — an admin (role `treasure-admin`) changes data; everyone else who is signed in reads everything and edits only their own profile
+- **Roles** — an admin (role `admin`) changes data; everyone else who is signed in reads everything and edits only their own profile
 - **API keys & MCP** — admins create personal API keys at `/tokens`; an MCP server at `/mcp` lets an AI assistant list, create, change and assign devices as that admin
 - **Dashboard** — landing page with an overview
 
@@ -63,8 +63,8 @@ needed; Flyway migrates the schema on boot.
 
 | Username | Password | Roles |
 |---|---|---|
-| `admin` | `password` | treasure-admin |
-| `maria` | `password` | treasure-admin |
+| `admin` | `password` | admin |
+| `maria` | `password` | admin |
 | `thomas` | `password` | none (reads only) |
 
 ### Dev endpoints
@@ -179,6 +179,7 @@ Environment variables the stand needs:
 | `ENTRA_TENANT_ID` | the directory (tenant) id of the company tenant |
 | `ENTRA_CLIENT_ID` | the application (client) id of the app registration |
 | `ENTRA_CLIENT_SECRET` | a client secret of that app registration |
+| `ENTRA_ADMIN_GROUP_ID` | the Object ID of the Entra security group whose members are admins |
 | `OIDC_SESSION_SECRET` | at least 32 random characters; encrypts the session cookie and must be identical on every instance |
 | `QUARKUS_DATASOURCE_JDBC_URL`, `QUARKUS_DATASOURCE_USERNAME`, `QUARKUS_DATASOURCE_PASSWORD` | the PostgreSQL database; Flyway migrates it on start |
 
@@ -195,19 +196,23 @@ In the Entra app registration:
 
 - add a **Web** redirect URI of `https://<host>/callback`
 - set the front-channel logout URL to `https://<host>/`
-- define one **App role** with the value `treasure-admin` and assign it to the admins
-  under *Enterprise applications → Users and groups*. It is shown in the account
-  panel after the next sign-in. Only an admin can change devices, assignments and
+- under **Token configuration**, add a **groups claim**: *Security groups*, and for the
+  ID token *Group ID*. The token then lists the object ids of the person's groups
+- put the admins into one security group and give its **Object ID** to the stand as
+  `ENTRA_ADMIN_GROUP_ID`. Members of that group get the admin badge in the account
+  panel after their next sign-in. Only an admin can change devices, assignments and
   other members or create API keys; everyone else who can sign in reads everything
-  and edits their own profile.
+  and edits their own profile. No App Roles are needed.
 
 **First sign-in checklist.** The Entra settings were written from the Quarkus
 documentation, not from a live tenant, so verify once with a real account:
 
 1. The login completes and lands on the page that was requested, not on `/callback`.
-2. The account panel (top right) shows the person's roles. If it is empty, the ID
-   token carries no `roles` claim: check that App Roles are assigned, or change
-   `quarkus.oidc.roles.role-claim-path` if your tenant emits `groups` instead.
+2. The account panel (top right) shows the `admin` badge for a member of the
+   admin group. If it is missing, check that the ID token has a `groups` claim (Token
+   configuration), that `ENTRA_ADMIN_GROUP_ID` is the group's Object ID, and that the
+   person signed out and in again. Someone in more than 200 groups gets no `groups`
+   claim from Entra; limit the claim to groups assigned to the application then.
 3. The Members page lists the person after that first login, with name and email
    filled from the token.
 4. Sign out returns to `/` and signing in again works without a second consent screen.
