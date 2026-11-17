@@ -81,6 +81,10 @@
 FROM registry.access.redhat.com/ubi9/openjdk-25:1.24
 
 ENV LANGUAGE='en_US:en'
+# Pickup times and the change history are stored and shown as local time, so the
+# JVM must run in the zone of the people using the app. Override TZ on a stand
+# in another zone.
+ENV TZ='Europe/Berlin'
 
 
 # We make four distinct layers so if there are application changes the library layers can be re-used
