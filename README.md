@@ -184,8 +184,10 @@ Environment variables the stand needs:
 
 CI (`.github/workflows/treasure-app.yml`) also builds a container image from
 `src/main/docker/Dockerfile.jvm` and pushes it to `ghcr.io/<owner>/treasure-app`
-(tags `latest` and the run number) on every push to `main` or `deploy`. The container
-takes the same environment variables. Under the `prod` profile the management
+(tag `latest`) on every push to `main` or `deploy`; pull requests are built and tested
+but publish nothing. The container takes the same environment variables. It runs in the
+time zone `Europe/Berlin`, because pickup times and the change history are stored as
+local time; set `TZ` to run a stand in another zone. Under the `prod` profile the management
 interface is enabled, so health checks are served at `http://<host>:9000/q/health`,
 not on port 8080.
 

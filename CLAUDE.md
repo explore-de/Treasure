@@ -54,7 +54,8 @@ Java language server. That fills `target/` but does not start the app.
   come from the token: Keycloak realm roles in dev, Entra App Roles via
   `roles.role-claim-path=roles` on a stand. The session cookie key comes from
   `OIDC_SESSION_SECRET` on the stand and a fixed dev-only value in dev and test
-- **htmx 2.0.11** for row-level partial page updates
+- **htmx 2.0.11** for row-level partial page updates; a failed htmx request
+  shows a "Not saved" notice (`initRequestErrors` in `devices.js`)
 - **Quarkus MCP Server** (`quarkus-mcp-server-http`) at `/mcp`: the tools in
   `TreasureTools`, authenticated by personal API keys
   (`McpTokenAuthenticationMechanism`, selected for `/mcp` in
@@ -68,8 +69,8 @@ dashboard/api        DashboardResource: "/" overview (counts, devices per group,
 device/
   api                DeviceResource: all /devices routes (list, create, edit, assign, bulk actions)
   domain             Device, DeviceHistory (every field change is recorded)
-  filter             DeviceFilter, DeviceFieldFilter (list filtering)
-  repository         DeviceRepository, DeviceHistoryRepository
+  filter             DeviceSearch (the filter values of the device list)
+  repository         DeviceRepository (search builds the filtered, paged query), DeviceHistoryRepository
   service            DeviceService (create/update with validation and history), DeviceAssignmentService
                      (assign/unassign with history); the web controller and the MCP tools both call these
 mcp/
@@ -84,15 +85,37 @@ member/
   domain             Member (userName = OIDC principal name; subject = provider user id)
   repository         MemberRepository
   service            KeycloakAdminService (dev bootstrap only), MemberProvisioningService (first-login Member creation),
-                     MemberService (add a member before their first sign-in, change one, mayEdit rule)
+                     MemberService (add a member before their first sign-in, change one, deactivate/reactivate,
+                     mayEdit rule)
 shared/
   bootstrap          StartupOrchestrator -> BootstrapService (users, members) -> DataSeeder; only when treasure.bootstrap.enabled;
                      BootstrapConfig maps treasure.bootstrap.* (the demo users are a Map keyed by the segment after users.)
   domain/repository  Tag, TagRepository (the device-group registry)
-  security           Roles, FirstLoginFilter (creates the Member for an unknown OIDC principal)
+  security           Roles, FirstLoginFilter (creates the Member for an unknown OIDC principal),
+                     SecurityHeadersFilter (Content-Security-Policy on every rendered page)
   template           UserContext (available in templates as inject:userContext)
-  util               FlashKeys
+  util               FlashKeys, Pager (page number, counts and prev/next links of a paged list)
 ```
+
+**Device status is derived, not stored.** A device is available exactly when
+`assignedTo` is null; `Device.getStatus()` and `isAvailable()` compute it and
+the `status` column was dropped in `V1.0.7`. Filter on `assignedTo`, never on a
+status string.
+
+**Paged lists:** the device list and the Members page show `Pager.PAGE_SIZE`
+(25) rows per page. Filtering happens in the database
+(`DeviceRepository.search(DeviceSearch)`), never by loading every device.
+Controllers count the query, build a `Pager` from the `page` query parameter
+and pass it to the template, which renders `{#pager pager=pager /}`. The
+dashboard and the MCP overview use count queries (`countAssigned`,
+`countPerGroup`).
+
+**Members are deactivated, never deleted** (`Member.active`, `V1.0.8`), because
+the device history refers to them. A deactivated member stays on the Members
+page (listed last), is missing from every assign menu, is refused by
+`DeviceAssignmentService.assign`, and their API keys stop working. A member who
+still holds devices cannot be deactivated, and nobody can deactivate
+themselves.
 
 **Device groups:** `Device.group` is a plain string. Every group that is
 saved through the form is also registered in the `Tag` table
@@ -143,8 +166,14 @@ empty `new Device()` as the form-backing object.
 
 **Static assets:** `src/main/resources/META-INF/resources/`. The behaviour of
 the device pages (search, filter panel, selection, assign menus, dialogs,
-flash auto-dismiss) lives in `js/devices.js`, loaded by `main.html`. Keep page
-JavaScript in static files: Qute parses `{` in inline scripts as expressions.
+flash auto-dismiss) lives in `js/devices.js`, the layout behaviour (side nav,
+theme toggle, account panel) in `js/shell.js`, and the three tiny scripts that
+must run before the first paint in `js/theme-init.js`, `js/body-theme.js` and
+`js/nav-init.js`; `main.html` loads them all. **Templates contain no inline
+`<script>` and no `on*` attributes:** the Content-Security-Policy
+(`SecurityHeadersFilter`) blocks them, and Qute would parse `{` in them as
+expressions anyway. Wire behaviour by id or `data-*` attribute from a static
+file.
 
 ## Renarde & Qute Conventions
 
@@ -279,15 +308,15 @@ class DeviceResourceTest
 }
 ```
 
-**Testing forms with CSRF:** POST endpoints require the CSRF token. Test GET
-endpoints and verify the form is present, and test business logic through the
-repositories or services directly.
+**Testing forms with CSRF:** POST endpoints require the CSRF token. Read the
+`csrf-token` cookie from a GET and send it back as cookie and form parameter,
+see `postBulk` in `DeviceResourceTest`.
 
 ## CI
 
-- `.github/workflows/treasure-app.yml` runs `./mvnw -B verify` and pushes a
-  Docker image to GHCR on every push to `main` or `deploy` that touches the
-  app
+- `.github/workflows/treasure-app.yml` runs `./mvnw -B verify` on every pull
+  request and on every push to `main` or `deploy` that touches the app; the
+  pushes also publish the Docker image to GHCR as `latest`
 - `.github/workflows/claude-code-review.yml` runs an automated review on every
   pull request
 - `.github/workflows/claude.yml` runs when `@claude` is mentioned in an issue
@@ -310,8 +339,10 @@ components the app renders from the IBM CDN, pinned to 2.66.0:
 `https://1.www.s81c.com/common/carbon/web-components/version/v2.66.0/<component>.min.js`
 for `ui-shell` (header and side nav) and `notification` (flash messages). Add a
 script there before using another `cds-*` element, and bump both the
-stylesheet and the pinned version together. htmx 2.0.11 and `/js/devices.js`
-are loaded the same way.
+stylesheet and the pinned version together. htmx 2.0.11 comes from unpkg.
+Every CDN script tag carries an `integrity` hash, so a changed version needs a
+new hash (the command is in a comment in `main.html`), and a new CDN host must
+be added to the policy in `SecurityHeadersFilter`.
 
 App styles live in `treasure-core.css` (brand tokens, UI shell layout, account
 panel) and `treasure-pages.css` (everything on the pages: buttons `.btn*`, toolbar,
@@ -388,9 +419,10 @@ static notice, reuse the same element:
 
 `main.html` renders `<cds-header>` and `<cds-side-nav collapse-mode="fixed">`.
 Carbon's side nav is `position: fixed` and does NOT offset the page content.
-The `.app-container` gets its `margin-left` from a `body.side-nav-expanded`
-class that a `MutationObserver` in `main.html` toggles when the nav's
-`expanded` attribute changes. Keep that mechanism when touching the layout.
+The `.app-container` gets its `margin-left` from a `side-nav-expanded` class
+on `<html>` that `theme-init.js` sets before the first paint and a
+`MutationObserver` in `shell.js` toggles when the nav's `expanded` attribute
+changes. Keep that mechanism when touching the layout.
 
 Use `collapse-mode="fixed"` for the main navigation, not `rail`, which
 collapses as soon as the mouse leaves.
@@ -444,12 +476,12 @@ primary series colour.
    Frontend section
 6. **Qute section blocks** - `{#moreStyles}` must close with `{/moreStyles}`,
    not `{/if}`. Mismatched closing tags cause template parser errors
-9. **Inline JavaScript in templates** - Qute treats `{name` as an expression,
-   so object literals and template strings in inline scripts break rendering.
-   Put page scripts in `META-INF/resources/js/` instead
-7. **Carbon collapse modes** - use `collapse-mode="fixed"` for the main
+7. **Inline JavaScript in templates** - the Content-Security-Policy blocks
+   inline scripts and `on*` attributes, and Qute treats `{name` as an
+   expression. Put page scripts in `META-INF/resources/js/` instead
+8. **Carbon collapse modes** - use `collapse-mode="fixed"` for the main
    navigation
-8. **Port 8080 already in use** - a previous dev-mode run is still alive; see
+9. **Port 8080 already in use** - a previous dev-mode run is still alive; see
    the Troubleshooting section of `README.md`
 
 ## Git
