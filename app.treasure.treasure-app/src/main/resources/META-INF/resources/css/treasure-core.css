@@ -212,6 +212,25 @@ cds-header-global-bar {
   border-top: 1px solid var(--cds-border-subtle-01);
 }
 
+/* language switch in the account panel */
+.panel-language {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+}
+
+.panel-language-label {
+  margin-right: auto;
+  font-size: 0.875rem;
+  color: var(--cds-text-secondary);
+}
+
+.panel-language .btn[aria-pressed="true"] {
+  background: var(--treasure-primary-light);
+  color: var(--treasure-primary-text);
+}
+
 /* ---------- dark theme aliases ---------- */
 
 body.cds--g100 {

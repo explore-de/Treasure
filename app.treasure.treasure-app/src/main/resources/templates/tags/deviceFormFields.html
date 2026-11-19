@@ -1,40 +1,40 @@
 {@app.treasure.device.domain.Device device}
 {@java.util.List<String> groups}
 <div class="form-section">
-  <h2 class="form-section-title">Basics</h2>
-  <p class="form-section-hint">How the device appears in the list. Only the name is required.</p>
+  <h2 class="form-section-title">{m:deviceForm.basics}</h2>
+  <p class="form-section-hint">{m:deviceForm.basicsHint}</p>
   <div class="form-grid">
     <div class="field span-2">
-      <label class="field-label" for="deviceName">Device name <span class="required" aria-hidden="true">*</span></label>
+      <label class="field-label" for="deviceName">{m:field.deviceName} <span class="required" aria-hidden="true">*</span></label>
       <input class="field-input" type="text" id="deviceName" name="deviceName" maxlength="50" required
-             autocomplete="off" placeholder="e.g. MacBook Pro 14" value="{device.deviceName ?: ''}">
-      <span class="field-error">A device name is required.</span>
+             autocomplete="off" placeholder="{m:common.eg('MacBook Pro 14')}" value="{device.deviceName ?: ''}">
+      <span class="field-error">{m:device.error.nameRequired}</span>
     </div>
     <div class="field">
-      <label class="field-label" for="deviceSerialNumber">Serial number</label>
+      <label class="field-label" for="deviceSerialNumber">{m:field.serialNumber}</label>
       <input class="field-input" type="text" id="deviceSerialNumber" name="deviceSerialNumber" maxlength="50"
-             autocomplete="off" placeholder="e.g. C02XK1ABJG5H" value="{device.deviceSerialNumber ?: ''}">
+             autocomplete="off" placeholder="{m:common.eg('C02XK1ABJG5H')}" value="{device.deviceSerialNumber ?: ''}">
     </div>
     <div class="field">
-      <label class="field-label" for="deviceNumber">Inventory number</label>
+      <label class="field-label" for="deviceNumber">{m:field.inventoryNumber}</label>
       <input class="field-input" type="text" id="deviceNumber" name="deviceNumber" maxlength="30"
-             autocomplete="off" placeholder="e.g. LT-001" value="{device.deviceNumber ?: ''}">
-      <span class="field-hint">Your own internal number for this device.</span>
+             autocomplete="off" placeholder="{m:common.eg('LT-001')}" value="{device.deviceNumber ?: ''}">
+      <span class="field-hint">{m:deviceForm.inventoryHint}</span>
     </div>
     <div class="field">
-      <label class="field-label" for="group">Group</label>
+      <label class="field-label" for="group">{m:field.group}</label>
       <input class="field-input" type="text" id="group" name="group" maxlength="50" list="groupOptions"
-             placeholder="e.g. Laptops" value="{device.group ?: ''}">
+             placeholder="{m:common.eg('Laptops')}" value="{device.group ?: ''}">
       <datalist id="groupOptions">
         {#for g in groups}
         <option value="{g}"></option>
         {/for}
       </datalist>
       {#if groups.isEmpty}
-      <span class="field-hint">No groups yet. The first one you type creates it; groups can be filtered in the list.</span>
+      <span class="field-hint">{m:deviceForm.noGroupsHint}</span>
       {#else}
-      <span class="field-hint">Type a new group or pick one you already use:</span>
-      <div class="group-chips" aria-label="Existing groups">
+      <span class="field-hint">{m:deviceForm.groupsHint}</span>
+      <div class="group-chips" aria-label="{m:deviceForm.existingGroups}">
         {#for g in groups}
         <button type="button" class="chip chip-button" data-group="{g}">{g}</button>
         {/for}
@@ -42,79 +42,79 @@
       {/if}
     </div>
     <div class="field">
-      <label class="field-label" for="deviceModel">Model</label>
+      <label class="field-label" for="deviceModel">{m:field.model}</label>
       <input class="field-input" type="text" id="deviceModel" name="deviceModel" maxlength="80"
-             autocomplete="off" placeholder="e.g. A2779" value="{device.deviceModel ?: ''}">
+             autocomplete="off" placeholder="{m:common.eg('A2779')}" value="{device.deviceModel ?: ''}">
     </div>
   </div>
 </div>
 
 <div class="form-section">
-  <h2 class="form-section-title">Hardware</h2>
-  <p class="form-section-hint">Specifications, useful when someone needs a device with a certain spec.</p>
+  <h2 class="form-section-title">{m:deviceForm.hardware}</h2>
+  <p class="form-section-hint">{m:deviceForm.hardwareHint}</p>
   <div class="form-grid">
     <div class="field">
-      <label class="field-label" for="deviceProzessor">Processor</label>
+      <label class="field-label" for="deviceProzessor">{m:field.processor}</label>
       <input class="field-input" type="text" id="deviceProzessor" name="deviceProzessor" maxlength="30"
-             autocomplete="off" placeholder="e.g. Apple M2 Pro" value="{device.deviceProzessor ?: ''}">
+             autocomplete="off" placeholder="{m:common.eg('Apple M2 Pro')}" value="{device.deviceProzessor ?: ''}">
     </div>
     <div class="field">
-      <label class="field-label" for="deviceRAM">Memory (RAM)</label>
+      <label class="field-label" for="deviceRAM">{m:field.ram}</label>
       <input class="field-input" type="text" id="deviceRAM" name="deviceRAM" maxlength="30"
-             autocomplete="off" placeholder="e.g. 16 GB" value="{device.deviceRAM ?: ''}">
+             autocomplete="off" placeholder="{m:common.eg('16 GB')}" value="{device.deviceRAM ?: ''}">
     </div>
     <div class="field">
-      <label class="field-label" for="deviceHDDStorage">Storage</label>
+      <label class="field-label" for="deviceHDDStorage">{m:field.storage}</label>
       <input class="field-input" type="text" id="deviceHDDStorage" name="deviceHDDStorage" maxlength="30"
-             autocomplete="off" placeholder="e.g. 1 TB SSD" value="{device.deviceHDDStorage ?: ''}">
+             autocomplete="off" placeholder="{m:common.eg('1 TB SSD')}" value="{device.deviceHDDStorage ?: ''}">
     </div>
     <div class="field">
-      <label class="field-label" for="deviceModelDate">Model year</label>
+      <label class="field-label" for="deviceModelDate">{m:field.modelYear}</label>
       <input class="field-input" type="number" id="deviceModelDate" name="deviceModelDate" min="1980" max="2100" step="1"
-             autocomplete="off" placeholder="e.g. 2023" value="{device.deviceModelDate ?: ''}">
-      <span class="field-hint">When this model was released.</span>
+             autocomplete="off" placeholder="{m:common.eg('2023')}" value="{device.deviceModelDate ?: ''}">
+      <span class="field-hint">{m:deviceForm.modelYearHint}</span>
     </div>
   </div>
 </div>
 
 <div class="form-section">
-  <h2 class="form-section-title">Purchase and condition</h2>
+  <h2 class="form-section-title">{m:deviceForm.purchase}</h2>
   <div class="form-grid">
     <div class="field">
-      <label class="field-label" for="deviceAge">Purchased on</label>
+      <label class="field-label" for="deviceAge">{m:field.purchasedOn}</label>
       <input class="field-input" type="date" id="deviceAge" name="deviceAge"
              autocomplete="off" value="{device.deviceAge ?: ''}">
     </div>
     <div class="field">
-      <label class="field-label" for="regCompany">Owning company</label>
+      <label class="field-label" for="regCompany">{m:field.company}</label>
       <input class="field-input" type="text" id="regCompany" name="regCompany" maxlength="30"
-             autocomplete="off" placeholder="e.g. EXP Software" value="{device.regCompany ?: ''}">
+             autocomplete="off" placeholder="{m:common.eg('EXP Software')}" value="{device.regCompany ?: ''}">
     </div>
     <div class="field">
-      <label class="field-label" for="deviceDamage">Condition</label>
+      <label class="field-label" for="deviceDamage">{m:field.condition}</label>
       <select class="field-input" id="deviceDamage" name="deviceDamage">
-        <option value="" {#if !device.deviceDamage}selected{/if}>Not recorded</option>
-        <option value="perfect" {#if device.deviceDamage == 'perfect'}selected{/if}>Perfect</option>
-        <option value="lightly damaged" {#if device.deviceDamage == 'lightly damaged'}selected{/if}>Lightly damaged</option>
-        <option value="heavily damaged" {#if device.deviceDamage == 'heavily damaged'}selected{/if}>Heavily damaged</option>
-        <option value="broken" {#if device.deviceDamage == 'broken'}selected{/if}>Broken</option>
+        <option value="" {#if !device.deviceDamage}selected{/if}>{m:condition.notRecorded}</option>
+        <option value="perfect" {#if device.deviceDamage == 'perfect'}selected{/if}>{m:condition.perfect}</option>
+        <option value="lightly damaged" {#if device.deviceDamage == 'lightly damaged'}selected{/if}>{m:condition.lightlyDamaged}</option>
+        <option value="heavily damaged" {#if device.deviceDamage == 'heavily damaged'}selected{/if}>{m:condition.heavilyDamaged}</option>
+        <option value="broken" {#if device.deviceDamage == 'broken'}selected{/if}>{m:condition.broken}</option>
       </select>
     </div>
   </div>
 </div>
 
 <div class="form-section">
-  <h2 class="form-section-title">Location and notes</h2>
+  <h2 class="form-section-title">{m:deviceForm.locationNotes}</h2>
   <div class="form-grid">
     <div class="field">
-      <label class="field-label" for="deviceLocation">Storage location</label>
+      <label class="field-label" for="deviceLocation">{m:field.location}</label>
       <textarea class="field-input" id="deviceLocation" name="deviceLocation" maxlength="500" rows="3"
-                placeholder="e.g. Room 1, locker 2">{device.deviceLocation ?: ''}</textarea>
+                placeholder="{m:deviceForm.locationPlaceholder}">{device.deviceLocation ?: ''}</textarea>
     </div>
     <div class="field">
-      <label class="field-label" for="extraInfo">Notes</label>
+      <label class="field-label" for="extraInfo">{m:field.notes}</label>
       <textarea class="field-input" id="extraInfo" name="extraInfo" maxlength="500" rows="3"
-                placeholder="Anything the next person should know">{device.extraInfo ?: ''}</textarea>
+                placeholder="{m:deviceForm.notesPlaceholder}">{device.extraInfo ?: ''}</textarea>
     </div>
   </div>
 </div>

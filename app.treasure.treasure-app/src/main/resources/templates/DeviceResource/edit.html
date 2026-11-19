@@ -1,24 +1,24 @@
 {#include main.html}
-{#title}{#if inject:userContext.canEdit}Edit {/if}{device.deviceName}{/title}
+{#title}{#if inject:userContext.canEdit}{m:common.editNamed(device.deviceName)}{#else}{device.deviceName}{/if}{/title}
 
-<nav class="breadcrumb" aria-label="Breadcrumb">
-  <a href="/devices">Devices</a>
+<nav class="breadcrumb" aria-label="{m:common.breadcrumb}">
+  <a href="/devices">{m:devices.title}</a>
   <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
   <span aria-current="page">{device.deviceName}</span>
 </nav>
 
 <div class="page-head">
   <div>
-    <h1>{#if inject:userContext.canEdit}Edit device{#else}Device{/if}</h1>
+    <h1>{#if inject:userContext.canEdit}{m:deviceForm.editTitle}{#else}{m:deviceForm.viewTitle}{/if}</h1>
     <p class="page-meta">
       {device.deviceName}
-      {#if device.assignedTo != null}· assigned to {device.bookedName}{#else}· available{/if}
+      {#if device.assignedTo != null}· {m:deviceForm.assignedTo(device.bookedName)}{#else}· {m:deviceForm.available}{/if}
     </p>
   </div>
   <div class="page-head-actions">
     <button type="button" class="btn btn-secondary" data-open="historyDialog">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      History ({history.size})
+      {m:history.button(history.size)}
     </button>
   </div>
 </div>
@@ -32,13 +32,13 @@
     {#if inject:userContext.canEdit}
     <button type="submit" class="btn btn-primary">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-      Save changes
+      {m:common.saveChanges}
     </button>
-    <a href="/devices" class="btn btn-secondary">Cancel</a>
-    <span class="hint">* required</span>
+    <a href="/devices" class="btn btn-secondary">{m:common.cancel}</a>
+    <span class="hint">{m:common.requiredHint}</span>
     {#else}
-    <a href="/devices" class="btn btn-secondary">Back to devices</a>
-    <span class="hint">You can view this device. Only admins can change it.</span>
+    <a href="/devices" class="btn btn-secondary">{m:deviceForm.back}</a>
+    <span class="hint">{m:deviceForm.readOnly}</span>
     {/if}
   </div>
 </form>
@@ -46,31 +46,31 @@
 <dialog id="historyDialog" class="modal" aria-labelledby="historyTitle">
   <div class="modal-head">
     <div>
-      <div class="modal-eyebrow">Change history</div>
+      <div class="modal-eyebrow">{m:history.title}</div>
       <h2 class="modal-title" id="historyTitle">{device.deviceName}</h2>
     </div>
-    <button type="button" class="btn btn-ghost btn-icon" data-close aria-label="Close">
+    <button type="button" class="btn btn-ghost btn-icon" data-close aria-label="{m:common.close}">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
     </button>
   </div>
   <div class="modal-body">
     {#if history == null || history.isEmpty}
-    <p class="modal-note muted">No changes recorded yet.</p>
+    <p class="modal-note muted">{m:history.none}</p>
     {#else}
     <ul class="history-list">
       {#for h in history}
       <li class="history-item">
         <div class="history-meta">
-          {#if h.eventType == 'UNASSIGNED'}<span class="pill pill-unassigned">Unassigned</span>
-          {#else if h.eventType == 'ASSIGNED'}<span class="pill pill-assigned">Assigned</span>
-          {#else if h.eventType == 'UPDATED'}<span class="pill pill-updated">Updated</span>
-          {#else if h.eventType == 'CREATED'}<span class="pill pill-created">Created</span>
+          {#if h.eventType == 'UNASSIGNED'}<span class="pill pill-unassigned">{m:history.unassigned}</span>
+          {#else if h.eventType == 'ASSIGNED'}<span class="pill pill-assigned">{m:history.assigned}</span>
+          {#else if h.eventType == 'UPDATED'}<span class="pill pill-updated">{m:history.updated}</span>
+          {#else if h.eventType == 'CREATED'}<span class="pill pill-created">{m:history.created}</span>
           {#else}<span class="pill pill-unassigned">{h.eventType}</span>{/if}
           <span>{h.formattedAt}</span>
-          <span>by {h.actorName}</span>
+          <span>{m:history.by(h.actorName)}</span>
         </div>
         {#if h.eventType == 'CREATED'}
-        <div class="history-text">Created with: {h.notes}</div>
+        <div class="history-text">{m:history.createdWith(h.notes)}</div>
         {#else}
         <div class="history-text">{h.fieldName}: "{h.oldValue}" → "{h.newValue}"</div>
         {#if h.notes != null && !h.notes.isEmpty}
@@ -83,7 +83,7 @@
     {/if}
   </div>
   <div class="modal-foot">
-    <button type="button" class="btn btn-secondary" data-close>Close</button>
+    <button type="button" class="btn btn-secondary" data-close>{m:common.close}</button>
   </div>
 </dialog>
 

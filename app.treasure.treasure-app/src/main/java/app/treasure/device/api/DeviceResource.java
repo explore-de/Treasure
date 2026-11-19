@@ -27,6 +27,7 @@ import app.treasure.member.repository.MemberRepository;
 import app.treasure.shared.repository.TagRepository;
 import app.treasure.shared.security.Roles;
 import app.treasure.shared.util.FlashKeys;
+import app.treasure.shared.util.LocalPath;
 import app.treasure.shared.util.Pager;
 import io.quarkiverse.renarde.Controller;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
@@ -105,7 +106,7 @@ public class DeviceResource extends Controller
 		return new ArrayList<>(names);
 	}
 
-	private static final String INVALID_DATES_MESSAGE = "Purchased on must be a date and model year a four-digit year.";
+	private static final String INVALID_DATES = "device.flash.invalidDates";
 
 	/** The two typed form fields; blank means "not recorded". */
 	private record DateFields(LocalDate purchasedOn, Integer modelYear)
@@ -222,7 +223,7 @@ public class DeviceResource extends Controller
 		DateFields dates = parseDateFields(deviceAge, deviceModelDate);
 		if (dates == null)
 		{
-			flash(FlashKeys.ERROR, INVALID_DATES_MESSAGE);
+			flash(FlashKeys.ERROR, i18n.getMessage(INVALID_DATES));
 			seeOther("/devices/new");
 			return;
 		}
@@ -236,11 +237,11 @@ public class DeviceResource extends Controller
 		}
 		catch (DeviceValidationException e)
 		{
-			flash(FlashKeys.ERROR, e.getMessage());
+			flash(FlashKeys.ERROR, i18n.formatMessage(e.getKey(), e.getArgs()));
 			seeOther("/devices/new");
 			return;
 		}
-		flash(FlashKeys.SUCCESS, "Device \"" + device.getDeviceName() + "\" was created.");
+		flash(FlashKeys.SUCCESS, i18n.formatMessage("device.flash.created", device.getDeviceName()));
 		seeOther("/devices");
 	}
 
@@ -268,7 +269,7 @@ public class DeviceResource extends Controller
 		DateFields dates = parseDateFields(deviceAge, deviceModelDate);
 		if (dates == null)
 		{
-			flash(FlashKeys.ERROR, INVALID_DATES_MESSAGE);
+			flash(FlashKeys.ERROR, i18n.getMessage(INVALID_DATES));
 			seeOther("/devices/" + id + "/edit");
 			return;
 		}
@@ -287,11 +288,11 @@ public class DeviceResource extends Controller
 		}
 		catch (DeviceValidationException e)
 		{
-			flash(FlashKeys.ERROR, e.getMessage());
+			flash(FlashKeys.ERROR, i18n.formatMessage(e.getKey(), e.getArgs()));
 			seeOther("/devices/" + id + "/edit");
 			return;
 		}
-		flash(FlashKeys.SUCCESS, "Changes to \"" + device.getDeviceName() + "\" were saved.");
+		flash(FlashKeys.SUCCESS, i18n.formatMessage("device.flash.saved", device.getDeviceName()));
 		seeOther("/devices");
 	}
 
@@ -306,14 +307,14 @@ public class DeviceResource extends Controller
 		Device device = deviceRepository.findById(id);
 		if (device == null)
 		{
-			flash(FlashKeys.ERROR, "That device no longer exists.");
+			flash(FlashKeys.ERROR, i18n.getMessage("device.flash.gone"));
 		}
 		else
 		{
 			String name = device.getDeviceName();
 			deviceRepository.delete(device);
 			LOG.info("Deleted device: {} (id={})", name, id);
-			flash(FlashKeys.SUCCESS, "Device \"" + name + "\" was deleted.");
+			flash(FlashKeys.SUCCESS, i18n.formatMessage("device.flash.deleted", name));
 		}
 		seeOther(safeRedirect(redirectUrl));
 	}
@@ -337,7 +338,7 @@ public class DeviceResource extends Controller
 			}
 		}
 		LOG.info("Deleted {} devices", deleted);
-		flash(FlashKeys.SUCCESS, countOf(deleted, "device") + " deleted.");
+		flash(FlashKeys.SUCCESS, i18n.formatMessage(counted("device.flash.deletedCount", deleted), deleted));
 		seeOther(safeRedirect(redirectUrl));
 	}
 
@@ -353,7 +354,7 @@ public class DeviceResource extends Controller
 		Member member = memberRepository.findByUsername(assignedTo);
 		if (member == null)
 		{
-			flash(FlashKeys.ERROR, "The selected member does not exist.");
+			flash(FlashKeys.ERROR, i18n.getMessage("device.flash.noMember"));
 			seeOther(safeRedirect(redirectUrl));
 			return;
 		}
@@ -377,12 +378,13 @@ public class DeviceResource extends Controller
 			// a deactivated member: the first device already refuses, so
 			// nothing was assigned
 			LOG.warn("Refused to assign devices to {}: {}", member.getUserName(), e.getMessage());
-			flash(FlashKeys.ERROR, e.getMessage());
+			flash(FlashKeys.ERROR, i18n.formatMessage(e.getKey(), e.getArgs()));
 			seeOther(safeRedirect(redirectUrl));
 			return;
 		}
 		LOG.info("Assigned {} devices to {}", assigned, member.getUserName());
-		flash(FlashKeys.SUCCESS, countOf(assigned, "device") + " assigned to " + member.getDisplayName() + ".");
+		flash(FlashKeys.SUCCESS,
+			i18n.formatMessage(counted("device.flash.assigned", assigned), assigned, member.getDisplayName()));
 		seeOther(safeRedirect(redirectUrl));
 	}
 
@@ -409,7 +411,7 @@ public class DeviceResource extends Controller
 				LOG.info("Unassigned device {} from member {}", id, oldBooked);
 			}
 		}
-		flash(FlashKeys.SUCCESS, countOf(unassigned, "device") + " unassigned.");
+		flash(FlashKeys.SUCCESS, i18n.formatMessage(counted("device.flash.unassigned", unassigned), unassigned));
 		seeOther(safeRedirect(redirectUrl));
 	}
 
@@ -470,23 +472,15 @@ public class DeviceResource extends Controller
 		return Templates.index$row(device, memberRepository.listActiveByName());
 	}
 
-	private String countOf(int count, String noun)
+	/** The singular or plural variant of a message key that counts devices. */
+	private static String counted(String key, int count)
 	{
-		return count + " " + noun + (count == 1 ? "" : "s");
+		return key + (count == 1 ? ".one" : ".many");
 	}
 
 	private String safeRedirect(String redirectUrl)
 	{
-		if (redirectUrl == null || redirectUrl.isBlank())
-		{
-			return "/devices";
-		}
-		// only paths on this site: must start with a single slash
-		if (!redirectUrl.startsWith("/") || redirectUrl.startsWith("//") || redirectUrl.startsWith("/\\"))
-		{
-			return "/devices";
-		}
-		return redirectUrl;
+		return LocalPath.orElse(redirectUrl, "/devices");
 	}
 
 	/**

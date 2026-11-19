@@ -135,11 +135,10 @@ public class MemberResource extends Controller
 		{
 			LOG.warn("Refused to add member '{}': {}", email, e.getMessage());
 			// rendered directly so the admin keeps what they typed
-			return Templates.create(n(firstName), n(lastName), n(email), e.getMessage());
+			return Templates.create(n(firstName), n(lastName), n(email), i18n.formatMessage(e.getKey(), e.getArgs()));
 		}
 
-		flash(FlashKeys.SUCCESS, member.getDisplayName() + " is added. They show as never signed in until "
-			+ "they sign in with " + member.getEmail() + ".");
+		flash(FlashKeys.SUCCESS, i18n.formatMessage("member.flash.added", member.getDisplayName(), member.getEmail()));
 		seeOther("/members");
 		return null;
 	}
@@ -152,7 +151,7 @@ public class MemberResource extends Controller
 		Member member = currentMember();
 		if (member == null)
 		{
-			flash(FlashKeys.ERROR, "Your member profile does not exist yet.");
+			flash(FlashKeys.ERROR, i18n.getMessage("member.flash.noProfile"));
 			seeOther("/members");
 			return;
 		}
@@ -188,9 +187,10 @@ public class MemberResource extends Controller
 		{
 			LOG.warn("Refused to change member {}: {}", id, e.getMessage());
 			// rendered directly so the form keeps what was typed
-			return Templates.edit(member, n(firstName), n(lastName), n(email), n(phone), e.getMessage());
+			return Templates.edit(member, n(firstName), n(lastName), n(email), n(phone),
+				i18n.formatMessage(e.getKey(), e.getArgs()));
 		}
-		flash(FlashKeys.SUCCESS, "Saved the details of " + member.getDisplayName() + ".");
+		flash(FlashKeys.SUCCESS, i18n.formatMessage("member.flash.saved", member.getDisplayName()));
 		seeOther("/members");
 		return null;
 	}
@@ -205,12 +205,12 @@ public class MemberResource extends Controller
 		try
 		{
 			memberService.deactivate(member, securityIdentity.getPrincipal().getName());
-			flash(FlashKeys.SUCCESS, member.getDisplayName() + " is deactivated and can no longer be given devices.");
+			flash(FlashKeys.SUCCESS, i18n.formatMessage("member.flash.deactivated", member.getDisplayName()));
 		}
 		catch (MemberValidationException e)
 		{
 			LOG.warn("Refused to deactivate member {}: {}", id, e.getMessage());
-			flash(FlashKeys.ERROR, e.getMessage());
+			flash(FlashKeys.ERROR, i18n.formatMessage(e.getKey(), e.getArgs()));
 		}
 		seeOther(membersPage(redirectUrl));
 	}
@@ -223,7 +223,7 @@ public class MemberResource extends Controller
 	{
 		Member member = existingMember(id);
 		memberService.reactivate(member, securityIdentity.getPrincipal().getName());
-		flash(FlashKeys.SUCCESS, member.getDisplayName() + " is active again.");
+		flash(FlashKeys.SUCCESS, i18n.formatMessage("member.flash.reactivated", member.getDisplayName()));
 		seeOther(membersPage(redirectUrl));
 	}
 

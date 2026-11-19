@@ -1,16 +1,16 @@
 {#include main.html}
-{#title}Overview{/title}
+{#title}{m:dashboard.title}{/title}
 
 <div class="page-head">
   <div>
-    <h1>Overview</h1>
-    <p class="page-meta">What is in the inventory and who holds it right now.</p>
+    <h1>{m:dashboard.title}</h1>
+    <p class="page-meta">{m:dashboard.meta}</p>
   </div>
   {#if inject:userContext.canEdit}
   <div class="page-head-actions">
     <a href="/devices/new" class="btn btn-primary">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-      New device
+      {m:devices.create}
     </a>
   </div>
   {/if}
@@ -18,32 +18,32 @@
 
 <div class="stat-grid">
   <a class="stat" href="/devices">
-    <span class="stat-label">Devices</span>
+    <span class="stat-label">{m:devices.title}</span>
     <span class="stat-value">{total}</span>
-    <span class="stat-sub">in the inventory</span>
+    <span class="stat-sub">{m:dashboard.devicesSub}</span>
   </a>
   <a class="stat stat-ok" href="/devices?status=available">
-    <span class="stat-label">Available</span>
+    <span class="stat-label">{m:status.available}</span>
     <span class="stat-value">{available}</span>
-    <span class="stat-sub">ready to hand out</span>
+    <span class="stat-sub">{m:dashboard.availableSub}</span>
   </a>
   <a class="stat stat-busy" href="/devices?status=not+available">
-    <span class="stat-label">Assigned</span>
+    <span class="stat-label">{m:dashboard.assigned}</span>
     <span class="stat-value">{assigned}</span>
-    <span class="stat-sub">currently with a member</span>
+    <span class="stat-sub">{m:dashboard.assignedSub}</span>
   </a>
 </div>
 
 <div class="two-col">
   <section class="card">
-    <h2 class="card-title">Devices per group</h2>
+    <h2 class="card-title">{m:dashboard.perGroup}</h2>
     {#if groups.isEmpty}
-    <p class="muted">No devices yet.</p>
+    <p class="muted">{m:dashboard.noDevices}</p>
     {#else}
     <ul class="bar-list">
       {#for g in groups}
       <li>
-        {#if g.name == 'No group'}
+        {#if !g.grouped}
         <span class="bar-label muted">{g.name}</span>
         {#else}
         <a class="bar-label" href="/devices?group={g.encodedName}">{g.name}</a>
@@ -57,13 +57,13 @@
   </section>
 
   <section class="card">
-    <h2 class="card-title">Held the longest</h2>
+    <h2 class="card-title">{m:dashboard.longestHeld}</h2>
     {#if longestHeld.isEmpty}
-    <p class="muted">Nothing is assigned right now.</p>
+    <p class="muted">{m:dashboard.nothingAssigned}</p>
     {#else}
     <table class="mini-table">
       <thead>
-        <tr><th>Device</th><th>Held by</th><th>Since</th><th class="num">Days</th></tr>
+        <tr><th>{m:dashboard.colDevice}</th><th>{m:dashboard.colHeldBy}</th><th>{m:dashboard.colSince}</th><th class="num">{m:dashboard.colDays}</th></tr>
       </thead>
       <tbody>
         {#for d in longestHeld}
@@ -81,29 +81,29 @@
 </div>
 
 <section class="card">
-  <h2 class="card-title">Recent activity</h2>
+  <h2 class="card-title">{m:dashboard.recent}</h2>
   {#if recent.isEmpty}
-  <p class="muted">No changes recorded yet.</p>
+  <p class="muted">{m:history.none}</p>
   {#else}
   <ul class="history-list">
     {#for h in recent}
     <li class="history-item">
       <div class="history-meta">
-        {#if h.eventType == 'UNASSIGNED'}<span class="pill pill-unassigned">Unassigned</span>
-        {#else if h.eventType == 'ASSIGNED'}<span class="pill pill-assigned">Assigned</span>
-        {#else if h.eventType == 'UPDATED'}<span class="pill pill-updated">Updated</span>
-        {#else if h.eventType == 'CREATED'}<span class="pill pill-created">Created</span>
+        {#if h.eventType == 'UNASSIGNED'}<span class="pill pill-unassigned">{m:history.unassigned}</span>
+        {#else if h.eventType == 'ASSIGNED'}<span class="pill pill-assigned">{m:history.assigned}</span>
+        {#else if h.eventType == 'UPDATED'}<span class="pill pill-updated">{m:history.updated}</span>
+        {#else if h.eventType == 'CREATED'}<span class="pill pill-created">{m:history.created}</span>
         {#else}<span class="pill pill-unassigned">{h.eventType}</span>{/if}
         <a class="history-link" href="/devices/{h.device.id}/edit">{h.device.deviceName}</a>
         <span>{h.formattedAt}</span>
-        <span>by {h.actorName}</span>
+        <span>{m:history.by(h.actorName)}</span>
       </div>
       {#if h.eventType == 'CREATED'}
-      <div class="history-text muted">Added to the inventory</div>
+      <div class="history-text muted">{m:history.added}</div>
       {#else if h.eventType == 'ASSIGNED'}
-      <div class="history-text">Handed to {h.newValue}</div>
+      <div class="history-text">{m:history.handedTo(h.newValue)}</div>
       {#else if h.eventType == 'UNASSIGNED'}
-      <div class="history-text">Returned by {h.oldValue}</div>
+      <div class="history-text">{m:history.returnedBy(h.oldValue)}</div>
       {#else}
       <div class="history-text">{h.fieldName}: "{h.oldValue}" → "{h.newValue}"</div>
       {/if}

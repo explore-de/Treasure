@@ -144,6 +144,10 @@ public class Member extends PanacheEntity
 		return joinedAt == null;
 	}
 
+	/**
+	 * The status in English, for the MCP tools. Pages show the translated
+	 * member.status.* texts instead.
+	 */
 	public String getStatusLabel()
 	{
 		if (!active)

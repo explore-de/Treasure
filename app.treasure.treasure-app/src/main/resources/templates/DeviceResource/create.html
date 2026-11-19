@@ -1,16 +1,16 @@
 {#include main.html}
-{#title}New device{/title}
+{#title}{m:devices.create}{/title}
 
-<nav class="breadcrumb" aria-label="Breadcrumb">
-  <a href="/devices">Devices</a>
+<nav class="breadcrumb" aria-label="{m:common.breadcrumb}">
+  <a href="/devices">{m:devices.title}</a>
   <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-  <span aria-current="page">New device</span>
+  <span aria-current="page">{m:devices.create}</span>
 </nav>
 
 <div class="page-head">
   <div>
-    <h1>New device</h1>
-    <p class="page-meta">Only the name is required. Everything else can be added later.</p>
+    <h1>{m:devices.create}</h1>
+    <p class="page-meta">{m:deviceForm.createMeta}</p>
   </div>
 </div>
 
@@ -20,10 +20,10 @@
   <div class="form-actions">
     <button type="submit" class="btn btn-primary">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-      Save device
+      {m:deviceForm.save}
     </button>
-    <a href="/devices" class="btn btn-secondary">Cancel</a>
-    <span class="hint">* required</span>
+    <a href="/devices" class="btn btn-secondary">{m:common.cancel}</a>
+    <span class="hint">{m:common.requiredHint}</span>
   </div>
 </form>
 

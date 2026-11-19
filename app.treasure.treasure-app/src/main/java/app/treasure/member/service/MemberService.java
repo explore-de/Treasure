@@ -53,8 +53,8 @@ public class MemberService
 	@Transactional
 	public Member add(String firstName, String lastName, String email, Member addedBy)
 	{
-		String first = required(firstName, "first name");
-		String last = required(lastName, "last name");
+		String first = required(firstName, "firstName");
+		String last = required(lastName, "lastName");
 		String address = validEmail(email);
 		requireEmailFree(address, null);
 
@@ -84,15 +84,14 @@ public class MemberService
 	public Member update(Member member, String firstName, String lastName, String email, String phone,
 		String changedBy)
 	{
-		String first = required(firstName, "first name");
-		String last = required(lastName, "last name");
+		String first = required(firstName, "firstName");
+		String last = required(lastName, "lastName");
 		String address = validEmail(email);
 		requireEmailFree(address, member);
 		String phoneNumber = phone == null || phone.isBlank() ? null : phone.trim();
 		if (phoneNumber != null && phoneNumber.length() > MAX_PHONE_LENGTH)
 		{
-			throw new MemberValidationException("The phone number can have at most " + MAX_PHONE_LENGTH
-				+ " characters.");
+			throw new MemberValidationException("member.error.phoneTooLong", MAX_PHONE_LENGTH);
 		}
 
 		// someone who never signed in is known by their email until the first
@@ -125,13 +124,13 @@ public class MemberService
 	{
 		if (Objects.equals(actorName, member.getUserName()))
 		{
-			throw new MemberValidationException("You cannot deactivate yourself.");
+			throw new MemberValidationException("member.error.deactivateSelf");
 		}
 		long held = deviceRepository.countAssignedTo(member);
 		if (held > 0)
 		{
-			throw new MemberValidationException(member.getDisplayName() + " still holds " + held
-				+ (held == 1 ? " device. Unassign it first." : " devices. Unassign them first."));
+			throw new MemberValidationException(held == 1 ? "member.error.holds.one" : "member.error.holds.many",
+				member.getDisplayName(), held);
 		}
 		member.setActive(false);
 		LOG.info("Member {} ({}) deactivated by {}", member.getDisplayName(), member.getUserName(), actorName);
@@ -161,7 +160,7 @@ public class MemberService
 		Member byUserName = memberRepository.findByUsername(address);
 		if ((byEmail != null && byEmail != self) || (byUserName != null && byUserName != self))
 		{
-			throw new MemberValidationException("A member with the email " + address + " already exists.");
+			throw new MemberValidationException("member.error.emailTaken", address);
 		}
 	}
 
@@ -170,22 +169,25 @@ public class MemberService
 		String address = email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
 		if (!EMAIL.matcher(address).matches())
 		{
-			throw new MemberValidationException("Enter a valid email address.");
+			throw new MemberValidationException("member.error.emailInvalid");
 		}
 		return address;
 	}
 
-	private static String required(String value, String label)
+	/**
+	 * @param field
+	 *            "firstName" or "lastName", the middle part of the message keys
+	 */
+	private static String required(String value, String field)
 	{
 		String trimmed = value == null ? "" : value.trim();
 		if (trimmed.isEmpty())
 		{
-			throw new MemberValidationException("Enter a " + label + ".");
+			throw new MemberValidationException("member.error." + field + "Required");
 		}
 		if (trimmed.length() > MAX_NAME_LENGTH)
 		{
-			throw new MemberValidationException("The " + label + " can have at most " + MAX_NAME_LENGTH
-				+ " characters.");
+			throw new MemberValidationException("member.error." + field + "TooLong", MAX_NAME_LENGTH);
 		}
 		return trimmed;
 	}

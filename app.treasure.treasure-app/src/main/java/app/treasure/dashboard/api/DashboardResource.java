@@ -29,7 +29,6 @@ public class DashboardResource extends Controller
 {
 	private static final int LONGEST_HELD_LIMIT = 5;
 	private static final int RECENT_LIMIT = 8;
-	private static final String NO_GROUP = "No group";
 
 	@Inject
 	DeviceRepository deviceRepository;
@@ -40,9 +39,16 @@ public class DashboardResource extends Controller
 	/**
 	 * One row of the "devices per group" list. percent is relative to the
 	 * largest group so the bars can be drawn without maths in the template.
+	 * grouped is false for the row of devices without a group, whose name is
+	 * the "No group" text in the reader's language and not a link.
 	 */
-	public record GroupCount(String name, long count, int percent)
+	public record GroupCount(String name, long count, int percent, boolean grouped)
 	{
+		public GroupCount(String name, long count, int percent)
+		{
+			this(name, count, percent, true);
+		}
+
 		/**
 		 * The name as a query-string value, so "R&D" or "Home office" survive
 		 * the link to the filtered device list.
@@ -75,8 +81,9 @@ public class DashboardResource extends Controller
 		Map<String, Long> counts = deviceRepository.countPerGroup();
 		long largest = counts.values().stream().mapToLong(Long::longValue).max().orElse(1);
 		List<GroupCount> groups = new ArrayList<>();
-		counts.forEach((name, count) -> groups
-			.add(new GroupCount(name.isEmpty() ? NO_GROUP : name, count, (int)Math.round(count * 100.0 / largest))));
+		String noGroup = i18n.getMessage("dashboard.noGroup");
+		counts.forEach((name, count) -> groups.add(new GroupCount(name.isEmpty() ? noGroup : name, count,
+			(int)Math.round(count * 100.0 / largest), !name.isEmpty())));
 		groups.sort(Comparator.comparingLong((GroupCount g) -> g.count()).reversed().thenComparing(GroupCount::name));
 
 		List<Device> longestHeld = deviceRepository.findAssignedLongestFirst(LONGEST_HELD_LIMIT);

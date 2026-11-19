@@ -27,6 +27,7 @@ changed what and when.
 - **Roles** — an admin (role `admin`) changes data; everyone else who is signed in reads everything and edits only their own profile
 - **API keys & MCP** — admins create personal API keys at `/tokens`; an MCP server at `/mcp` lets an AI assistant list, create, change and assign devices as that admin
 - **Dashboard** — landing page with an overview
+- **English and German** — pages follow the browser language (English when it is neither); the account panel switches and remembers the choice in a cookie
 
 ---
 
@@ -139,6 +140,7 @@ Authentication is required everywhere; every `POST` under `/devices` and the
 | `GET`, `POST` | `/members/new`, `/members/create` | admins add a member before their first sign-in |
 | `GET`, `POST` | `/members/{id}/edit`, `/members/{id}/update` | change a member: admins any, everyone else only themselves (`/members/me` redirects there) |
 | `GET`, `POST` | `/tokens`, `/tokens/{id}/revoke` | an admin's personal API keys for the MCP endpoint |
+| `POST` | `/language` | switch the page language (`lang=en` or `lang=de`), then back to `redirectUrl` |
 | MCP | `/mcp` | Streamable HTTP MCP server; `Authorization: Bearer trs_…` with a key from `/tokens` |
 
 ---

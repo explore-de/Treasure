@@ -93,11 +93,13 @@ shared/
   bootstrap          StartupOrchestrator -> BootstrapService (users, members) -> DataSeeder; only when treasure.bootstrap.enabled;
                      BootstrapConfig maps treasure.bootstrap.* (the demo users are a Map keyed by the segment after users.)
   domain/repository  Tag, TagRepository (the device-group registry)
+  api                LanguageResource: POST /language, the language switch of the account panel
   security           Roles, AdminGroupAugmentor (Entra admin group -> admin role),
                      FirstLoginFilter (creates the Member for an unknown OIDC principal),
                      SecurityHeadersFilter (Content-Security-Policy on every rendered page)
   template           UserContext (available in templates as inject:userContext)
-  util               FlashKeys, Pager (page number, counts and prev/next links of a paged list)
+  util               FlashKeys, Pager (page number, counts and prev/next links of a paged list),
+                     Messages (English text of a message key), LocalPath (redirects stay on this site)
 ```
 
 **Device status is derived, not stored.** A device is available exactly when
@@ -472,6 +474,37 @@ primary series colour.
 <button type="button" data-assign="{member.userName}">{member.firstName} {member.lastName}</button>
 {/for}
 ```
+
+## Languages (English and German)
+
+Every text a person reads comes from `src/main/resources/messages.properties`
+(English, the default locale) and `messages_de.properties` (German), through
+Renarde's i18n. **Never write literal UI text in a template, controller or
+script**; add a key to both files (`MessagesTest` fails when one is missing).
+
+- **Templates:** `{m:devices.title}`, with arguments `{m:pager.status(pager.page, pager.pageCount)}`.
+  `%s` marks an argument. Singular and plural are two keys (`.one`, `.many`)
+  chosen with `{#if count == 1}`. Do not end a key in `raw`, `safe` or `or`
+  (Qute would read them as its own operators).
+- **Controllers:** `flash(FlashKeys.SUCCESS, i18n.formatMessage("device.flash.created", name))`;
+  `i18n` is a field of Renarde's `Controller`.
+- **Services** throw `DeviceValidationException` / `MemberValidationException`
+  with a key and arguments. Controllers translate them with
+  `i18n.formatMessage(e.getKey(), e.getArgs())`; `getMessage()` is the English
+  text, which the MCP tools and the log use. MCP always answers in English.
+- **Scripts:** `devices.js` reads its texts from the `data-*` attributes of
+  `#i18n` in `main.html` with `t('key', args)`; add the attribute there.
+- **Which language:** the `_renarde_locale` cookie set by `POST /language`
+  (`LanguageResource`, the buttons in the account panel), else the browser's
+  `Accept-Language`, else English. `quarkus.locales` in
+  `application.properties` lists the languages; a new one needs a
+  `messages_<lang>.properties`, an entry in `LanguageResource.LANGUAGES` and a
+  button in `tags/header.html`.
+- **Not translated:** stored values (condition values such as `lightly damaged`,
+  history field names, group names), role names, MCP tool texts and log lines.
+  The condition is shown through `{#condition value=... /}`.
+- Tests send no `Accept-Language`, so they see English; send the header or the
+  cookie to test German (`LanguageResourceTest`).
 
 ## Common Gotchas
 

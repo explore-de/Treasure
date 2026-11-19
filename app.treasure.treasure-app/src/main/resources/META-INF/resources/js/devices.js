@@ -4,21 +4,32 @@
 (function () {
   'use strict';
 
+  // query parameter and the key of its chip label in the #i18n texts
   var FILTERS = [
-    ['name', 'Name'],
-    ['status', 'Status'],
-    ['assignedTo', 'Assigned to'],
-    ['serial', 'Serial'],
-    ['group', 'Group'],
-    ['model', 'Model'],
-    ['damage', 'Condition'],
-    ['company', 'Company'],
-    ['deviceNumber', 'Device no.'],
-    ['deviceProzessor', 'Processor'],
-    ['deviceHDDStorage', 'Storage'],
-    ['deviceRAM', 'RAM'],
-    ['deviceModelDate', 'Model date']
+    ['name', 'filterName'],
+    ['status', 'filterStatus'],
+    ['assignedTo', 'filterAssignedTo'],
+    ['serial', 'filterSerial'],
+    ['group', 'filterGroup'],
+    ['model', 'filterModel'],
+    ['damage', 'filterDamage'],
+    ['company', 'filterCompany'],
+    ['deviceNumber', 'filterDeviceNumber'],
+    ['deviceProzessor', 'filterProcessor'],
+    ['deviceHDDStorage', 'filterStorage'],
+    ['deviceRAM', 'filterRam'],
+    ['deviceModelDate', 'filterModelDate']
   ];
+
+  // Every text this script shows comes from the data attributes of #i18n in
+  // main.html, already in the language of the page (messages*.properties).
+  // t('key', a, b) fills the %s places of the text in order.
+  function t(key) {
+    var holder = document.getElementById('i18n');
+    var text = holder && holder.dataset[key] ? holder.dataset[key] : key;
+    var args = Array.prototype.slice.call(arguments, 1);
+    return text.replace(/%s/g, function () { return args.length ? String(args.shift()) : ''; });
+  }
 
   function $(selector, root) { return (root || document).querySelector(selector); }
   function $$(selector, root) { return Array.prototype.slice.call((root || document).querySelectorAll(selector)); }
@@ -132,7 +143,18 @@
 
   /* ---------- active filter chips ---------- */
 
+  // A filter chosen in a select (status, condition) is shown with the text of
+  // its option, so the chip reads like the panel and not like the URL value.
+  function displayValue(key, value) {
+    var options = $$('select[data-filter="' + key + '"] option');
+    for (var i = 0; i < options.length; i++) {
+      if (options[i].value === value) return options[i].textContent.trim();
+    }
+    return value;
+  }
+
   function makeChip(label, key, value) {
+    var shown = displayValue(key, value);
     var chip = document.createElement('span');
     chip.className = 'chip';
 
@@ -141,11 +163,11 @@
     keyEl.textContent = label + ':';
 
     var valueEl = document.createElement('span');
-    valueEl.textContent = value;
+    valueEl.textContent = shown;
 
     var remove = document.createElement('button');
     remove.type = 'button';
-    remove.setAttribute('aria-label', 'Remove filter ' + label + ' ' + value);
+    remove.setAttribute('aria-label', t('removeFilter', label, shown));
     remove.textContent = '×';
     remove.addEventListener('click', function () {
       var p = params();
@@ -169,7 +191,7 @@
     FILTERS.forEach(function (f) {
       p.getAll(f[0]).forEach(function (value) {
         total++;
-        list.appendChild(makeChip(f[1], f[0], value));
+        list.appendChild(makeChip(t(f[1]), f[0], value));
       });
     });
     bar.hidden = total === 0;
@@ -318,7 +340,7 @@
       var status = $('#detailStatus');
       if (status) {
         var available = (btn.dataset.status || '').trim() === 'available';
-        status.textContent = available ? 'Available' : 'Not available';
+        status.textContent = t(available ? 'available' : 'notAvailable');
         status.className = 'badge ' + (available ? 'badge-available' : 'badge-unavailable');
       }
       $('#detailsEdit').setAttribute('href', '/devices/' + btn.dataset.id + '/edit');
@@ -352,11 +374,11 @@
           var name = row ? row.querySelector('.device-name') : null;
           return name ? name.textContent.trim() : id;
         });
-        text = 'Delete ' + ids.length + (ids.length === 1 ? ' device' : ' devices') + ': ' + names.join(', ') + '?\nThis cannot be undone.';
+        text = t(ids.length === 1 ? 'confirmBulkOne' : 'confirmBulkMany', ids.length, names.join(', '));
       } else {
-        text = 'Delete "' + (form.dataset.deviceName || 'this device') + '"?\nThis cannot be undone.';
+        text = t('confirmSingle', form.dataset.deviceName || t('thisDevice'));
       }
-      $('#confirmText').textContent = text;
+      $('#confirmText').textContent = text + '\n' + t('cannotUndo');
       pending = form;
       dlg.showModal();
     });
@@ -417,8 +439,8 @@
     function report() {
       var notice = document.createElement('cds-inline-notification');
       notice.setAttribute('kind', 'error');
-      notice.setAttribute('title', 'Not saved');
-      notice.setAttribute('subtitle', 'The change did not go through. Reload the page and try again.');
+      notice.setAttribute('title', t('notSavedTitle'));
+      notice.setAttribute('subtitle', t('notSavedText'));
       notice.setAttribute('low-contrast', '');
       stack.appendChild(notice);
       window.setTimeout(function () { notice.remove(); }, 7000);
@@ -438,7 +460,7 @@
       if (!source || !navigator.clipboard) return;
       navigator.clipboard.writeText(source.textContent.trim()).then(function () {
         var label = button.textContent;
-        button.textContent = 'Copied';
+        button.textContent = t('copied');
         window.setTimeout(function () { button.textContent = label; }, 1500);
       });
     });

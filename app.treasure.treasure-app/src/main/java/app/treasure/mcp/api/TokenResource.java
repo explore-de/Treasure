@@ -77,13 +77,13 @@ public class TokenResource extends Controller
 		Member member = currentMember();
 		if (member == null)
 		{
-			flash(FlashKeys.ERROR, "Your member profile does not exist yet, so no API key can be created.");
+			flash(FlashKeys.ERROR, i18n.getMessage("token.flash.noProfile"));
 			seeOther("/tokens");
 			return null;
 		}
 		if (name == null || name.isBlank() || name.trim().length() > MAX_NAME_LENGTH)
 		{
-			flash(FlashKeys.ERROR, "Give the API key a name of at most " + MAX_NAME_LENGTH + " characters.");
+			flash(FlashKeys.ERROR, i18n.formatMessage("token.flash.badName", MAX_NAME_LENGTH));
 			seeOther("/tokens");
 			return null;
 		}
@@ -100,11 +100,11 @@ public class TokenResource extends Controller
 	{
 		if (tokenService.revoke(id, currentMember()))
 		{
-			flash(FlashKeys.SUCCESS, "API key revoked. Clients using it can no longer connect.");
+			flash(FlashKeys.SUCCESS, i18n.getMessage("token.flash.revoked"));
 		}
 		else
 		{
-			flash(FlashKeys.ERROR, "That API key does not exist.");
+			flash(FlashKeys.ERROR, i18n.getMessage("token.flash.gone"));
 		}
 		seeOther("/tokens");
 	}

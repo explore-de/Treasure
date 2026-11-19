@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{inject:i18n.language}">
   <head>
     <script src="/js/theme-init.js?v=3"></script>
     <meta charset="UTF-8">
@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
     <link rel="stylesheet" href="/css/carbon-styles.min.css?v=1.118.0">
-    <link rel="stylesheet" href="/css/treasure-core.css?v=25">
+    <link rel="stylesheet" href="/css/treasure-core.css?v=26">
     <link rel="stylesheet" href="/css/treasure-pages.css?v=27">
     <style>
       cds-header:not(:defined) {
@@ -61,7 +61,7 @@
     <script src="https://unpkg.com/htmx.org@2.0.11/dist/htmx.min.js"
             integrity="sha384-2OatzQy1H+Zd/IIrjr1TcuDGqLXeHhbooAyJY1KdQMKnr4LZ22k31GBLdYKHmVjg" crossorigin="anonymous"></script>
     <script src="/js/shell.js?v=3" defer></script>
-    <script src="/js/devices.js?v=23" defer></script>
+    <script src="/js/devices.js?v=24" defer></script>
 
     {#insert moreStyles /}
     {#insert moreScripts /}
@@ -70,29 +70,56 @@
     <script src="/js/body-theme.js?v=1"></script>
     {#include tags/header.html /}
 
-    <cds-side-nav aria-label="Main navigation" collapse-mode="fixed">
+    <cds-side-nav aria-label="{m:nav.label}" collapse-mode="fixed">
       <cds-side-nav-items style="background-color: var(--white)">
         <cds-side-nav-link href="/" {#if inject:vertxRequest.path == '/'}active{/if}>
-          Overview
+          {m:nav.overview}
           <svg slot="title-icon" viewBox="0 0 32 32" width="20" height="20"><path d="M4 4h10v12H4zm14 0h10v8H18zM4 18h10v10H4zm14-4h10v14H18zM6 6v8h6V6zm14 0v4h6V6zM6 20v6h6v-6zm14-4v10h6V16z" fill="var(--text)"/></svg>
         </cds-side-nav-link>
         <cds-side-nav-link href="/devices" {#if inject:vertxRequest.path.startsWith('/devices')}active{/if}>
-          Devices
+          {m:nav.devices}
           <svg slot="title-icon" viewBox="0 0 32 32" width="20" height="20"><path d="M28 5H4a2 2 0 0 0-2 2v18a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Zm0 20H4V7h24ZM9 10h14v2H9zm0 5h14v2H9zm0 5h14v2H9z" fill="var(--text)"/></svg>
         </cds-side-nav-link>
         <cds-side-nav-link href="/members" {#if inject:vertxRequest.path.startsWith('/members')}active{/if}>
-          Members
+          {m:nav.members}
           <svg slot="title-icon" viewBox="0 0 32 32" width="20" height="20"><path d="M16 4a5 5 0 1 1-5 5 5 5 0 0 1 5-5m0-2a7 7 0 1 0 7 7 7 7 0 0 0-7-7ZM26 30h-2v-5a5 5 0 0 0-5-5h-6a5 5 0 0 0-5 5v5H6v-5a7 7 0 0 1 7-7h6a7 7 0 0 1 7 7Z" fill="var(--text)"/></svg>
         </cds-side-nav-link>
         {#if inject:userContext.canEdit}
         <cds-side-nav-link href="/tokens" {#if inject:vertxRequest.path.startsWith('/tokens')}active{/if}>
-          API keys
+          {m:nav.tokens}
           <svg slot="title-icon" viewBox="0 0 32 32" width="20" height="20"><path d="M21 2a9 9 0 0 0-8.61 11.61L2 24v6h6l10.39-10.39A9 9 0 1 0 21 2Zm0 16a7 7 0 0 1-2.03-.3l-1.15-.35-.85.85-3.18 3.18L12.41 20 11 21.41l1.38 1.38-1.59 1.59L9.41 23 8 24.41l1.38 1.38L7.17 28H4v-3.17l9.8-9.8.85-.85-.35-1.15A7 7 0 1 1 21 18Zm1-6a2 2 0 1 0-2-2 2 2 0 0 0 2 2Z" fill="var(--text)"/></svg>
         </cds-side-nav-link>
         {/if}
       </cds-side-nav-items>
     </cds-side-nav>
     <script src="/js/nav-init.js?v=1"></script>
+
+    <!-- The texts devices.js builds itself, in the language of the page. -->
+    <div id="i18n" hidden
+         data-filter-name="{m:js.filter.name}"
+         data-filter-status="{m:js.filter.status}"
+         data-filter-assigned-to="{m:js.filter.assignedTo}"
+         data-filter-serial="{m:js.filter.serial}"
+         data-filter-group="{m:js.filter.group}"
+         data-filter-model="{m:js.filter.model}"
+         data-filter-damage="{m:js.filter.damage}"
+         data-filter-company="{m:js.filter.company}"
+         data-filter-device-number="{m:js.filter.deviceNumber}"
+         data-filter-processor="{m:js.filter.processor}"
+         data-filter-storage="{m:js.filter.storage}"
+         data-filter-ram="{m:js.filter.ram}"
+         data-filter-model-date="{m:js.filter.modelDate}"
+         data-remove-filter="{m:js.removeFilter}"
+         data-available="{m:status.available}"
+         data-not-available="{m:status.notAvailable}"
+         data-confirm-bulk-one="{m:js.confirmBulk.one}"
+         data-confirm-bulk-many="{m:js.confirmBulk.many}"
+         data-confirm-single="{m:js.confirmSingle}"
+         data-this-device="{m:js.thisDevice}"
+         data-cannot-undo="{m:js.cannotUndo}"
+         data-not-saved-title="{m:common.notSaved}"
+         data-not-saved-text="{m:js.notSavedText}"
+         data-copied="{m:js.copied}"></div>
 
     <div class="app-container">
       {#include tags/flashNotifications.html /}

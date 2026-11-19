@@ -84,23 +84,26 @@ public class DeviceService
 		}
 	}
 
-	/** One text field and the longest value the form accepts for it. */
-	private record Limit(String label, Function<DeviceData, String> value, int max)
+	/**
+	 * One text field, the longest value the form accepts for it, and the
+	 * message key of the "too long" text.
+	 */
+	private record Limit(String key, Function<DeviceData, String> value, int max)
 	{
 	}
 
 	private static final List<Limit> LIMITS = List.of(
-		new Limit("Name", DeviceData::name, 50),
-		new Limit("Serial number", DeviceData::serialNumber, 50),
-		new Limit("Inventory number", DeviceData::inventoryNumber, 30),
-		new Limit("Group", DeviceData::group, 50),
-		new Limit("Model", DeviceData::model, 80),
-		new Limit("Processor", DeviceData::processor, 30),
-		new Limit("Memory", DeviceData::ram, 30),
-		new Limit("Storage", DeviceData::storage, 30),
-		new Limit("Owning company", DeviceData::company, 30),
-		new Limit("Location", DeviceData::location, 500),
-		new Limit("Extra info", DeviceData::extraInfo, 500));
+		new Limit("device.error.tooLong.name", DeviceData::name, 50),
+		new Limit("device.error.tooLong.serialNumber", DeviceData::serialNumber, 50),
+		new Limit("device.error.tooLong.inventoryNumber", DeviceData::inventoryNumber, 30),
+		new Limit("device.error.tooLong.group", DeviceData::group, 50),
+		new Limit("device.error.tooLong.model", DeviceData::model, 80),
+		new Limit("device.error.tooLong.processor", DeviceData::processor, 30),
+		new Limit("device.error.tooLong.memory", DeviceData::ram, 30),
+		new Limit("device.error.tooLong.storage", DeviceData::storage, 30),
+		new Limit("device.error.tooLong.company", DeviceData::company, 30),
+		new Limit("device.error.tooLong.location", DeviceData::location, 500),
+		new Limit("device.error.tooLong.extraInfo", DeviceData::extraInfo, 500));
 
 	public Device create(DeviceData raw, Member actor)
 	{
@@ -166,25 +169,23 @@ public class DeviceService
 	{
 		if (data.name() == null || data.name().codePoints().noneMatch(Character::isLetterOrDigit))
 		{
-			throw new DeviceValidationException("A device name is required.");
+			throw new DeviceValidationException("device.error.nameRequired");
 		}
 		for (Limit limit : LIMITS)
 		{
 			String value = limit.value().apply(data);
 			if (value != null && value.length() > limit.max())
 			{
-				throw new DeviceValidationException(
-					limit.label() + " can be at most " + limit.max() + " characters long.");
+				throw new DeviceValidationException(limit.key(), limit.max());
 			}
 		}
 		if (data.condition() != null && !CONDITIONS.contains(data.condition()))
 		{
-			throw new DeviceValidationException("Condition must be one of: " + String.join(", ", CONDITIONS) + ".");
+			throw new DeviceValidationException("device.error.condition", String.join(", ", CONDITIONS));
 		}
 		if (data.modelYear() != null && (data.modelYear() < MIN_MODEL_YEAR || data.modelYear() > MAX_MODEL_YEAR))
 		{
-			throw new DeviceValidationException(
-				"Model year must be between " + MIN_MODEL_YEAR + " and " + MAX_MODEL_YEAR + ".");
+			throw new DeviceValidationException("device.error.modelYear", MIN_MODEL_YEAR, MAX_MODEL_YEAR);
 		}
 	}
 

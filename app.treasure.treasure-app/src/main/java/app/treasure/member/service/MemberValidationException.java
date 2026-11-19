@@ -1,10 +1,32 @@
 package app.treasure.member.service;
 
-/** A new member that breaks a rule; the message is shown to the user as is. */
+import app.treasure.shared.util.Messages;
+
+/**
+ * Member data that breaks a rule. Carries the key of its text in
+ * messages.properties and the arguments, so a page can show it in the reader's
+ * language; {@link #getMessage()} is the English text, which the MCP tools and
+ * the log use.
+ */
 public class MemberValidationException extends RuntimeException
 {
-	public MemberValidationException(String message)
+	private final String key;
+	private final transient Object[] args;
+
+	public MemberValidationException(String key, Object... args)
 	{
-		super(message);
+		super(Messages.english(key, args));
+		this.key = key;
+		this.args = args;
+	}
+
+	public String getKey()
+	{
+		return key;
+	}
+
+	public Object[] getArgs()
+	{
+		return args;
 	}
 }

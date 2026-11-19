@@ -1,16 +1,16 @@
 {#include main.html}
-{#title}Devices{/title}
+{#title}{m:devices.title}{/title}
 
 <div class="page-head">
   <div>
-    <h1>Devices</h1>
-    <p class="page-meta">{pager.total} {#if pager.total == 1}device{#else}devices{/if} in this list</p>
+    <h1>{m:devices.title}</h1>
+    <p class="page-meta">{#if pager.total == 1}{m:devices.count.one(pager.total)}{#else}{m:devices.count.many(pager.total)}{/if}</p>
   </div>
   {#if inject:userContext.canEdit}
   <div class="page-head-actions">
     <a href="/devices/new" class="btn btn-primary">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-      New device
+      {m:devices.create}
     </a>
   </div>
   {/if}
@@ -20,75 +20,75 @@
   <form method="get" action="/devices" class="search-form" id="quickSearchForm" role="search">
     <svg class="search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
     <input type="search" class="search-input" id="quickSearchInput" name="name" autocomplete="off"
-           placeholder="Search by name and press Enter" aria-label="Search devices by name">
-    <button type="button" class="search-clear" id="quickSearchClear" aria-label="Clear search">
+           placeholder="{m:devices.searchPlaceholder}" aria-label="{m:devices.searchLabel}">
+    <button type="button" class="search-clear" id="quickSearchClear" aria-label="{m:devices.searchClear}">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
     </button>
   </form>
   <button type="button" class="btn btn-secondary" id="filterToggle" aria-expanded="false" aria-controls="filterPanel">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18l-7 8v6l-4 2v-8L3 4z"/></svg>
-    Filters
+    {m:devices.filters}
     <span class="filter-count" id="filterCount"></span>
   </button>
 </div>
 
-<section class="filter-panel" id="filterPanel" aria-label="Filters">
+<section class="filter-panel" id="filterPanel" aria-label="{m:devices.filters}">
   <div class="filter-grid">
-    <label>Name <input type="text" data-filter="name" placeholder="e.g. MacBook"></label>
-    <label>Status
+    <label>{m:common.name} <input type="text" data-filter="name" placeholder="{m:common.eg('MacBook')}"></label>
+    <label>{m:common.status}
       <select data-filter="status">
-        <option value="">Any</option>
-        <option value="available">Available</option>
-        <option value="not available">Not available</option>
+        <option value="">{m:common.any}</option>
+        <option value="available">{m:status.available}</option>
+        <option value="not available">{m:status.notAvailable}</option>
       </select>
     </label>
-    <label>Assigned to <input type="text" data-filter="assignedTo" placeholder="e.g. Maria"></label>
-    <label>Group <input type="text" data-filter="group" placeholder="e.g. Laptops"></label>
-    <label>Serial number <input type="text" data-filter="serial" placeholder="e.g. C02"></label>
-    <label>Inventory number <input type="text" data-filter="deviceNumber" placeholder="e.g. LT-001"></label>
-    <label>Model <input type="text" data-filter="model" placeholder="e.g. A2779"></label>
-    <label>Condition
+    <label>{m:field.assignedTo} <input type="text" data-filter="assignedTo" placeholder="{m:common.eg('Maria')}"></label>
+    <label>{m:field.group} <input type="text" data-filter="group" placeholder="{m:common.eg('Laptops')}"></label>
+    <label>{m:field.serialNumber} <input type="text" data-filter="serial" placeholder="{m:common.eg('C02')}"></label>
+    <label>{m:field.inventoryNumber} <input type="text" data-filter="deviceNumber" placeholder="{m:common.eg('LT-001')}"></label>
+    <label>{m:field.model} <input type="text" data-filter="model" placeholder="{m:common.eg('A2779')}"></label>
+    <label>{m:field.condition}
       <select data-filter="damage">
-        <option value="">Any</option>
-        <option value="perfect">Perfect</option>
-        <option value="lightly damaged">Lightly damaged</option>
-        <option value="heavily damaged">Heavily damaged</option>
-        <option value="broken">Broken</option>
+        <option value="">{m:common.any}</option>
+        <option value="perfect">{m:condition.perfect}</option>
+        <option value="lightly damaged">{m:condition.lightlyDamaged}</option>
+        <option value="heavily damaged">{m:condition.heavilyDamaged}</option>
+        <option value="broken">{m:condition.broken}</option>
       </select>
     </label>
-    <label>Owning company <input type="text" data-filter="company" placeholder="e.g. EXP Software"></label>
-    <label>Processor <input type="text" data-filter="deviceProzessor" placeholder="e.g. M2"></label>
-    <label>Memory (RAM) <input type="text" data-filter="deviceRAM" placeholder="e.g. 16 GB"></label>
-    <label>Storage <input type="text" data-filter="deviceHDDStorage" placeholder="e.g. 1 TB"></label>
-    <label>Model year <input type="text" data-filter="deviceModelDate" placeholder="e.g. 2023"></label>
+    <label>{m:field.company} <input type="text" data-filter="company" placeholder="{m:common.eg('EXP Software')}"></label>
+    <label>{m:field.processor} <input type="text" data-filter="deviceProzessor" placeholder="{m:common.eg('M2')}"></label>
+    <label>{m:field.ram} <input type="text" data-filter="deviceRAM" placeholder="{m:common.eg('16 GB')}"></label>
+    <label>{m:field.storage} <input type="text" data-filter="deviceHDDStorage" placeholder="{m:common.eg('1 TB')}"></label>
+    <label>{m:field.modelYear} <input type="text" data-filter="deviceModelDate" placeholder="{m:common.eg('2023')}"></label>
   </div>
   <div class="filter-actions">
-    <button type="button" class="btn btn-primary btn-sm" id="applyFilters">Apply filters</button>
-    <button type="button" class="btn btn-ghost btn-sm" id="clearFilters">Clear all</button>
-    <span class="hint">A device must match every active filter.</span>
+    <button type="button" class="btn btn-primary btn-sm" id="applyFilters">{m:devices.filterApply}</button>
+    <button type="button" class="btn btn-ghost btn-sm" id="clearFilters">{m:devices.clearAll}</button>
+    <span class="hint">{m:devices.filterHint}</span>
   </div>
 </section>
 
 <div class="chips" id="activeFilters" hidden>
-  <span class="muted">Filtered by</span>
+  <span class="muted">{m:devices.filteredBy}</span>
   <span class="chip-list" id="chipList"></span>
-  <button type="button" class="btn btn-ghost btn-sm" id="clearChips">Clear all</button>
+  <button type="button" class="btn btn-ghost btn-sm" id="clearChips">{m:devices.clearAll}</button>
 </div>
 
 {#if inject:userContext.canEdit}
-<div class="bulk-bar" id="bulkBar" role="region" aria-label="Actions for selected devices">
-  <span class="bulk-count"><span id="bulkCount">0</span> selected</span>
+<div class="bulk-bar" id="bulkBar" role="region" aria-label="{m:devices.bulkLabel}">
+  <span class="bulk-count"><span id="bulkCount">0</span> {m:devices.selected}</span>
   <form method="post" action="/devices/assign-many" id="bulkAssignForm" class="menu-wrap">
     {#authenticityToken /}
     <input type="hidden" name="ids">
     <input type="hidden" name="redirectUrl">
     <input type="hidden" name="assignedTo">
     <button type="button" class="btn btn-secondary btn-sm" data-menu="bulkAssignMenu" aria-haspopup="menu" aria-expanded="false">
-      Assign to
+      {m:devices.assignTo}
       <svg class="caret" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
     </button>
     <div class="menu" id="bulkAssignMenu" role="menu">
-      <div class="menu-title">Members</div>
+      <div class="menu-title">{m:devices.members}</div>
       {#for member in members}
       <button type="button" role="menuitem" data-assign="{member.userName}">{member.firstName} {member.lastName}</button>
       {/for}
@@ -98,15 +98,15 @@
     {#authenticityToken /}
     <input type="hidden" name="ids">
     <input type="hidden" name="redirectUrl">
-    <button type="submit" class="btn btn-secondary btn-sm">Unassign</button>
+    <button type="submit" class="btn btn-secondary btn-sm">{m:devices.unassign}</button>
   </form>
   <form method="post" action="/devices/delete-many" id="bulkDeleteForm" data-confirm="bulk">
     {#authenticityToken /}
     <input type="hidden" name="ids">
     <input type="hidden" name="redirectUrl">
-    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+    <button type="submit" class="btn btn-danger btn-sm">{m:common.delete}</button>
   </form>
-  <button type="button" class="btn btn-ghost btn-sm push-right" id="clearSelection">Clear selection</button>
+  <button type="button" class="btn btn-ghost btn-sm push-right" id="clearSelection">{m:devices.clearSelection}</button>
 </div>
 {/if}
 
@@ -114,32 +114,32 @@
   {#if devices.isEmpty}
   <div class="empty-state" id="emptyNone">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-    <h2>No devices yet</h2>
-    <p>Add your first device to start tracking who has it.</p>
+    <h2>{m:devices.emptyTitle}</h2>
+    <p>{m:devices.emptyText}</p>
     {#if inject:userContext.canEdit}
-    <a href="/devices/new" class="btn btn-primary">New device</a>
+    <a href="/devices/new" class="btn btn-primary">{m:devices.create}</a>
     {/if}
   </div>
   <div class="empty-state" id="emptyFiltered" hidden>
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
-    <h2>No devices match these filters</h2>
-    <p>Try removing a filter or searching for a different name.</p>
-    <button type="button" class="btn btn-secondary" id="clearFromEmpty" data-clear-filters>Clear all filters</button>
+    <h2>{m:devices.noMatchTitle}</h2>
+    <p>{m:devices.noMatchText}</p>
+    <button type="button" class="btn btn-secondary" id="clearFromEmpty" data-clear-filters>{m:devices.clearAllFilters}</button>
   </div>
   {#else}
   <table class="device-table">
     <thead>
       <tr>
         {#if inject:userContext.canEdit}
-        <th class="col-select"><input type="checkbox" class="checkbox" id="selectAll" aria-label="Select all devices"></th>
+        <th class="col-select"><input type="checkbox" class="checkbox" id="selectAll" aria-label="{m:devices.selectAll}"></th>
         {/if}
-        <th>Name</th>
-        <th>Status</th>
-        <th>Assigned to</th>
-        <th class="col-optional">Pickup time</th>
-        <th class="col-optional">Group</th>
+        <th>{m:common.name}</th>
+        <th>{m:common.status}</th>
+        <th>{m:field.assignedTo}</th>
+        <th class="col-optional">{m:field.pickupTime}</th>
+        <th class="col-optional">{m:field.group}</th>
         {#if inject:userContext.canEdit}
-        <th class="col-actions"><span class="sr-only">Actions</span></th>
+        <th class="col-actions"><span class="sr-only">{m:common.actions}</span></th>
         {/if}
       </tr>
     </thead>
@@ -149,11 +149,11 @@
       <tr id="device-row-{device.id}">
         {#if inject:userContext.canEdit}
         <td class="col-select">
-          <input type="checkbox" class="checkbox row-select" data-id="{device.id}" aria-label="Select {device.deviceName}">
+          <input type="checkbox" class="checkbox row-select" data-id="{device.id}" aria-label="{m:devices.selectNamed(device.deviceName)}">
         </td>
         {/if}
         <td>
-          <button type="button" class="device-name" title="Show details"
+          <button type="button" class="device-name" title="{m:devices.showDetails}"
                   data-details
                   data-id="{device.id}"
                   data-name="{device.deviceName ?: ''}"
@@ -168,7 +168,7 @@
                   data-prozessor="{device.deviceProzessor ?: ''}"
                   data-ram="{device.deviceRAM ?: ''}"
                   data-hdd="{device.deviceHDDStorage ?: ''}"
-                  data-damage="{device.deviceDamage ?: ''}"
+                  data-damage="{#condition value=device.deviceDamage /}"
                   data-age="{device.formattedDeviceAge}"
                   data-company="{device.regCompany ?: ''}"
                   data-location="{device.deviceLocation ?: ''}"
@@ -178,9 +178,9 @@
         </td>
         <td>
           {#if device.available}
-          <span class="badge badge-available"><span class="badge-dot"></span>Available</span>
+          <span class="badge badge-available"><span class="badge-dot"></span>{m:status.available}</span>
           {#else}
-          <span class="badge badge-unavailable"><span class="badge-dot"></span>Not available</span>
+          <span class="badge badge-unavailable"><span class="badge-dot"></span>{m:status.notAvailable}</span>
           {/if}
         </td>
         <td>{#if device.assignedTo != null}{device.bookedName}{#else}<span class="muted">—</span>{/if}</td>
@@ -193,7 +193,7 @@
             <form method="post" action="/devices/{device.id}/unassign"
                   hx-post="/devices/{device.id}/unassign" hx-target="closest tr" hx-swap="outerHTML">
               {#authenticityToken /}
-              <button type="submit" class="btn btn-secondary btn-sm">Unassign</button>
+              <button type="submit" class="btn btn-secondary btn-sm">{m:devices.unassign}</button>
             </form>
             {#else}
             <form method="post" action="/devices/{device.id}/assign" class="menu-wrap"
@@ -201,24 +201,24 @@
               {#authenticityToken /}
               <input type="hidden" name="assignedTo">
               <button type="button" class="btn btn-primary btn-sm" data-menu="assignMenu-{device.id}" aria-haspopup="menu" aria-expanded="false">
-                Assign
+                {m:devices.assign}
                 <svg class="caret" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
               </button>
               <div class="menu" id="assignMenu-{device.id}" role="menu">
-                <div class="menu-title">Assign to</div>
+                <div class="menu-title">{m:devices.assignTo}</div>
                 {#for member in members}
                 <button type="button" role="menuitem" data-assign="{member.userName}">{member.firstName} {member.lastName}</button>
                 {/for}
               </div>
             </form>
             {/if}
-            <a href="/devices/{device.id}/edit" class="btn btn-ghost btn-icon" title="Edit" aria-label="Edit {device.deviceName}">
+            <a href="/devices/{device.id}/edit" class="btn btn-ghost btn-icon" title="{m:common.edit}" aria-label="{m:common.editNamed(device.deviceName)}">
               <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
             </a>
             <form method="post" action="/devices/{device.id}/delete" data-confirm="single" data-device-name="{device.deviceName}">
               {#authenticityToken /}
               <input type="hidden" name="redirectUrl">
-              <button type="submit" class="btn btn-danger btn-icon" title="Delete" aria-label="Delete {device.deviceName}">
+              <button type="submit" class="btn btn-danger btn-icon" title="{m:common.delete}" aria-label="{m:devices.deleteNamed(device.deviceName)}">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
               </button>
             </form>
@@ -238,61 +238,61 @@
 <dialog id="detailsDialog" class="modal" aria-labelledby="detailsTitle">
   <div class="modal-head">
     <div>
-      <div class="modal-eyebrow">Device details</div>
+      <div class="modal-eyebrow">{m:devices.details}</div>
       <h2 class="modal-title" id="detailsTitle" data-field="name"></h2>
     </div>
-    <button type="button" class="btn btn-ghost btn-icon" data-close aria-label="Close">
+    <button type="button" class="btn btn-ghost btn-icon" data-close aria-label="{m:common.close}">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
     </button>
   </div>
   <div class="modal-body">
-    <div class="modal-section">Assignment</div>
+    <div class="modal-section">{m:devices.sectionAssignment}</div>
     <div class="detail-grid">
-      <div class="detail-item"><span class="detail-label">Status</span><span id="detailStatus" class="badge"></span></div>
-      <div class="detail-item"><span class="detail-label">Assigned to</span><span class="detail-value" data-field="assigned"></span></div>
-      <div class="detail-item"><span class="detail-label">Pickup time</span><span class="detail-value" data-field="pickup"></span></div>
-      <div class="detail-item"><span class="detail-label">Storage location</span><span class="detail-value" data-field="location"></span></div>
+      <div class="detail-item"><span class="detail-label">{m:common.status}</span><span id="detailStatus" class="badge"></span></div>
+      <div class="detail-item"><span class="detail-label">{m:field.assignedTo}</span><span class="detail-value" data-field="assigned"></span></div>
+      <div class="detail-item"><span class="detail-label">{m:field.pickupTime}</span><span class="detail-value" data-field="pickup"></span></div>
+      <div class="detail-item"><span class="detail-label">{m:field.location}</span><span class="detail-value" data-field="location"></span></div>
     </div>
-    <div class="modal-section">Identification</div>
+    <div class="modal-section">{m:devices.sectionIdentification}</div>
     <div class="detail-grid">
-      <div class="detail-item"><span class="detail-label">Serial number</span><span class="detail-value" data-field="serial"></span></div>
-      <div class="detail-item"><span class="detail-label">Inventory number</span><span class="detail-value" data-field="number"></span></div>
-      <div class="detail-item"><span class="detail-label">Group</span><span class="detail-value" data-field="group"></span></div>
-      <div class="detail-item"><span class="detail-label">Owning company</span><span class="detail-value" data-field="company"></span></div>
+      <div class="detail-item"><span class="detail-label">{m:field.serialNumber}</span><span class="detail-value" data-field="serial"></span></div>
+      <div class="detail-item"><span class="detail-label">{m:field.inventoryNumber}</span><span class="detail-value" data-field="number"></span></div>
+      <div class="detail-item"><span class="detail-label">{m:field.group}</span><span class="detail-value" data-field="group"></span></div>
+      <div class="detail-item"><span class="detail-label">{m:field.company}</span><span class="detail-value" data-field="company"></span></div>
     </div>
-    <div class="modal-section">Hardware</div>
+    <div class="modal-section">{m:deviceForm.hardware}</div>
     <div class="detail-grid">
-      <div class="detail-item"><span class="detail-label">Model</span><span class="detail-value" data-field="model"></span></div>
-      <div class="detail-item"><span class="detail-label">Model year</span><span class="detail-value" data-field="modeldate"></span></div>
-      <div class="detail-item"><span class="detail-label">Processor</span><span class="detail-value" data-field="prozessor"></span></div>
-      <div class="detail-item"><span class="detail-label">Memory (RAM)</span><span class="detail-value" data-field="ram"></span></div>
-      <div class="detail-item"><span class="detail-label">Storage</span><span class="detail-value" data-field="hdd"></span></div>
-      <div class="detail-item"><span class="detail-label">Condition</span><span class="detail-value" data-field="damage"></span></div>
-      <div class="detail-item"><span class="detail-label">Purchased on</span><span class="detail-value" data-field="age"></span></div>
-      <div class="detail-item"><span class="detail-label">Added on</span><span class="detail-value" data-field="created"></span></div>
+      <div class="detail-item"><span class="detail-label">{m:field.model}</span><span class="detail-value" data-field="model"></span></div>
+      <div class="detail-item"><span class="detail-label">{m:field.modelYear}</span><span class="detail-value" data-field="modeldate"></span></div>
+      <div class="detail-item"><span class="detail-label">{m:field.processor}</span><span class="detail-value" data-field="prozessor"></span></div>
+      <div class="detail-item"><span class="detail-label">{m:field.ram}</span><span class="detail-value" data-field="ram"></span></div>
+      <div class="detail-item"><span class="detail-label">{m:field.storage}</span><span class="detail-value" data-field="hdd"></span></div>
+      <div class="detail-item"><span class="detail-label">{m:field.condition}</span><span class="detail-value" data-field="damage"></span></div>
+      <div class="detail-item"><span class="detail-label">{m:field.purchasedOn}</span><span class="detail-value" data-field="age"></span></div>
+      <div class="detail-item"><span class="detail-label">{m:field.addedOn}</span><span class="detail-value" data-field="created"></span></div>
     </div>
-    <div class="modal-section">Notes</div>
+    <div class="modal-section">{m:field.notes}</div>
     <p class="modal-note detail-value" data-field="extra"></p>
   </div>
   <div class="modal-foot">
-    <button type="button" class="btn btn-secondary" data-close>Close</button>
-    <a id="detailsEdit" href="#" class="btn btn-primary">{#if inject:userContext.canEdit}Edit device{#else}Show history{/if}</a>
+    <button type="button" class="btn btn-secondary" data-close>{m:common.close}</button>
+    <a id="detailsEdit" href="#" class="btn btn-primary">{#if inject:userContext.canEdit}{m:deviceForm.editTitle}{#else}{m:devices.showHistory}{/if}</a>
   </div>
 </dialog>
 
 <dialog id="confirmDialog" class="modal modal-sm" aria-labelledby="confirmTitle">
   <div class="modal-head">
     <div>
-      <div class="modal-eyebrow">Please confirm</div>
-      <h2 class="modal-title" id="confirmTitle">Delete device?</h2>
+      <div class="modal-eyebrow">{m:devices.confirmEyebrow}</div>
+      <h2 class="modal-title" id="confirmTitle">{m:devices.confirmTitle}</h2>
     </div>
   </div>
   <div class="modal-body">
     <p class="modal-note" id="confirmText"></p>
   </div>
   <div class="modal-foot">
-    <button type="button" class="btn btn-secondary" data-close>Cancel</button>
-    <button type="button" class="btn btn-danger-solid" id="confirmOk">Delete</button>
+    <button type="button" class="btn btn-secondary" data-close>{m:common.cancel}</button>
+    <button type="button" class="btn btn-danger-solid" id="confirmOk">{m:common.delete}</button>
   </div>
 </dialog>
 

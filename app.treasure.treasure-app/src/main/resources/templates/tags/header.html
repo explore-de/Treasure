@@ -1,8 +1,8 @@
 <cds-header aria-label="Treasure" style="background-color: var(--white)">
   <cds-header-menu-button
     id="navToggle"
-    button-label-active="Close menu"
-    button-label-inactive="Open menu">
+    button-label-active="{m:header.menuClose}"
+    button-label-inactive="{m:header.menuOpen}">
   </cds-header-menu-button>
   <cds-header-name href="/" prefix="">
     <img src="/svg/final.svg" alt="Treasure" style="height: 34px; width: auto; display: block;">
@@ -10,16 +10,16 @@
   <cds-header-global-bar>
     <cds-header-global-action
       id="themeToggle"
-      aria-label="Switch between light and dark theme"
-      tooltip-text="Theme">
+      aria-label="{m:header.themeLabel}"
+      tooltip-text="{m:header.theme}">
       <svg slot="icon" id="themeIcon" viewBox="0 0 24 24" width="20" height="20">
         <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M12 3V5.25M18.364 5.63604L16.773 7.22703M21 12H18.75M18.364 18.364L16.773 16.773M12 18.75V21M7.22703 16.773L5.63604 18.364M5.25 12H3M7.22703 7.22703L5.63604 5.63604M15.75 12C15.75 14.0711 14.0711 15.75 12 15.75C9.92893 15.75 8.25 14.0711 8.25 12C8.25 9.92893 9.92893 8.25 12 8.25C14.0711 8.25 15.75 9.92893 15.75 12Z"/>
       </svg>
     </cds-header-global-action>
     <cds-header-global-action
       id="profileButton"
-      aria-label="Account"
-      tooltip-text="Account">
+      aria-label="{m:header.account}"
+      tooltip-text="{m:header.account}">
       <svg slot="icon" viewBox="0 0 32 32" width="20" height="20">
         <path d="M16 4a5 5 0 1 1-5 5 5 5 0 0 1 5-5m0-2a7 7 0 1 0 7 7 7 7 0 0 0-7-7ZM26 30h-2v-5a5 5 0 0 0-5-5h-6a5 5 0 0 0-5 5v5H6v-5a7 7 0 0 1 7-7h6a7 7 0 0 1 7 7Z"/>
       </svg>
@@ -35,7 +35,7 @@
         {inject:userContext.firstLetter}
       </div>
       <div class="profile-details">
-        <div class="profile-name">{inject:userContext.username ?: 'User'}</div>
+        <div class="profile-name">{#if inject:userContext.username}{inject:userContext.username}{#else}{m:header.user}{/if}</div>
         <div class="profile-email">{inject:userContext.email ?: ''}</div>
       </div>
     </div>
@@ -48,19 +48,30 @@
     {/if}
   </div>
 
+  <!-- Language: the choice is kept in a cookie (LanguageResource); without one the browser language decides. -->
+  <form method="post" action="/language" class="panel-language">
+    {#authenticityToken /}
+    <input type="hidden" name="redirectUrl" value="{#if inject:vertxRequest.method.name == 'GET'}{inject:vertxRequest.uri}{#else}/{/if}">
+    <span class="panel-language-label">{m:header.language}</span>
+    <button type="submit" name="lang" value="en" lang="en" class="btn btn-ghost btn-sm"
+            aria-pressed="{#if inject:i18n.language == 'en'}true{#else}false{/if}">English</button>
+    <button type="submit" name="lang" value="de" lang="de" class="btn btn-ghost btn-sm"
+            aria-pressed="{#if inject:i18n.language == 'de'}true{#else}false{/if}">Deutsch</button>
+  </form>
+
   <div class="panel-footer">
     <a href="/members/me">
       <svg viewBox="0 0 32 32" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 0.5rem;">
         <path d="M2 26h28v2H2zM25.4 9c.8-.8.8-2 0-2.8l-3.6-3.6c-.8-.8-2-.8-2.8 0l-15 15V24h6.4l15-15zm-5-5L24 7.6l-3 3L17.4 7l3-3zM6 22v-3.6l10-10 3.6 3.6-10 10H6z"/>
       </svg>
-      Edit profile
+      {m:header.editProfile}
     </a>
     <a href="/logout">
       <svg viewBox="0 0 32 32" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 0.5rem;">
         <path d="M6 30h12a2 2 0 0 0 2-2v-3h-2v3H6V4h12v3h2V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v24a2 2 0 0 0 2 2Z"/>
         <path d="M20.586 20.586L24.172 17H10v-2h14.172l-3.586-3.586L22 10l6 6-6 6-1.414-1.414z"/>
       </svg>
-      Sign out
+      {m:header.signOut}
     </a>
   </div>
 </div>

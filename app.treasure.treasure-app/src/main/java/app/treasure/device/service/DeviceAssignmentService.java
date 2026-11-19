@@ -33,8 +33,7 @@ public class DeviceAssignmentService
 		}
 		if (!member.isActive())
 		{
-			throw new DeviceValidationException(
-				member.getDisplayName() + " is deactivated and cannot be given devices.");
+			throw new DeviceValidationException("device.error.memberDeactivated", member.getDisplayName());
 		}
 		String oldBooked = device.getBookedName();
 		String oldPickup = device.getPickupTime() != null ? device.getPickupTime().toString() : "";

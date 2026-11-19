@@ -1,37 +1,37 @@
 {#include main.html}
-{#title}API keys{/title}
+{#title}{m:tokens.title}{/title}
 
 <div class="tokens-page">
   <div class="page-head">
-    <h1>API keys</h1>
+    <h1>{m:tokens.title}</h1>
   </div>
   <p class="tokens-intro">
-    API keys let tools use Treasure without a browser session: an AI assistant over MCP, or a script. Each key acts as you.
+    {m:tokens.intro}
   </p>
 
   {#if newSecret}
   <section class="table-card tokens-card tokens-new" aria-labelledby="newKeyTitle">
-    <h2 class="tokens-title" id="newKeyTitle">Copy your new key now</h2>
-    <p class="tokens-hint">It is shown only once. Treasure keeps just a fingerprint of it.</p>
+    <h2 class="tokens-title" id="newKeyTitle">{m:tokens.newTitle}</h2>
+    <p class="tokens-hint">{m:tokens.newHint}</p>
     <div class="token-code">
       <code id="newKey">{newSecret}</code>
-      <button type="button" class="btn btn-secondary btn-sm" data-copy="newKey">Copy</button>
+      <button type="button" class="btn btn-secondary btn-sm" data-copy="newKey">{m:common.copy}</button>
     </div>
   </section>
   {/if}
 
-  <section class="table-card" aria-label="Your API keys">
+  <section class="table-card" aria-label="{m:tokens.listLabel}">
     {#if tokens.isEmpty}
-    <p class="tokens-empty">No API keys yet. Create one below.</p>
+    <p class="tokens-empty">{m:tokens.empty}</p>
     {#else}
     <table class="device-table">
       <thead>
         <tr>
-          <th>Name</th>
-          <th>Key</th>
-          <th>Created</th>
-          <th>Last used</th>
-          <th class="col-actions"><span class="sr-only">Actions</span></th>
+          <th>{m:common.name}</th>
+          <th>{m:tokens.colKey}</th>
+          <th>{m:tokens.colCreated}</th>
+          <th>{m:tokens.colLastUsed}</th>
+          <th class="col-actions"><span class="sr-only">{m:common.actions}</span></th>
         </tr>
       </thead>
       <tbody>
@@ -40,11 +40,11 @@
           <td>{token.name}</td>
           <td><span class="token-mono muted">{token.tokenPrefix}…</span></td>
           <td>{token.formattedCreatedAt}</td>
-          <td>{token.formattedLastUsedAt}</td>
+          <td>{#if token.lastUsedAt != null}{token.formattedLastUsedAt}{#else}{m:tokens.never}{/if}</td>
           <td class="col-actions">
             <form method="post" action="/tokens/{token.id}/revoke">
               {#authenticityToken /}
-              <button type="submit" class="btn btn-danger btn-sm" aria-label="Revoke key {token.name}">Revoke</button>
+              <button type="submit" class="btn btn-danger btn-sm" aria-label="{m:tokens.revokeNamed(token.name)}">{m:tokens.revoke}</button>
             </form>
           </td>
         </tr>
@@ -55,31 +55,28 @@
   </section>
 
   <section class="table-card tokens-card" aria-labelledby="createKeyTitle">
-    <h2 class="tokens-title" id="createKeyTitle">Create an API key</h2>
-    <p class="tokens-hint">Name it after where you will use it, so you know which one to revoke later.</p>
+    <h2 class="tokens-title" id="createKeyTitle">{m:tokens.createTitle}</h2>
+    <p class="tokens-hint">{m:tokens.createHint}</p>
     <form method="post" action="/tokens" class="tokens-create-row">
       {#authenticityToken /}
-      <label class="sr-only" for="tokenName">Key name</label>
+      <label class="sr-only" for="tokenName">{m:tokens.nameLabel}</label>
       <input class="field-input" type="text" id="tokenName" name="name" maxlength="100" required
-             placeholder="Claude Code on my laptop">
-      <button type="submit" class="btn btn-primary">Create key</button>
+             placeholder="{m:tokens.namePlaceholder}">
+      <button type="submit" class="btn btn-primary">{m:tokens.createSubmit}</button>
     </form>
   </section>
 
   <section class="table-card tokens-card" aria-labelledby="connectTitle">
-    <h2 class="tokens-title" id="connectTitle">Use Treasure from Claude</h2>
+    <h2 class="tokens-title" id="connectTitle">{m:tokens.connectTitle}</h2>
     <p class="tokens-hint">
-      Register Treasure as an MCP server and Claude can look up, create and change devices and assign them, as you.
-      Replace YOUR_KEY with a key created above.
+      {m:tokens.connectHint}
     </p>
     <div class="token-code">
       <code id="mcpCommand">claude mcp add --transport http treasure {mcpUrl} --header "Authorization: Bearer YOUR_KEY"</code>
-      <button type="button" class="btn btn-secondary btn-sm" data-copy="mcpCommand">Copy</button>
+      <button type="button" class="btn btn-secondary btn-sm" data-copy="mcpCommand">{m:common.copy}</button>
     </div>
     <p class="tokens-hint">
-      Claude then has list_devices, get_device, device_history, list_members, overview, create_device,
-      update_device, assign_device, unassign_device, add_member and update_member. API keys are for admins only;
-      a key stops working when it does not carry the admin role.
+      {m:tokens.connectTools}
     </p>
   </section>
 </div>
