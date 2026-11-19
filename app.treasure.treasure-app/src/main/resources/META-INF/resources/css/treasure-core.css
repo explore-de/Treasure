@@ -88,9 +88,21 @@ body {
 }
 
 /* the class is put on <html> before the first paint, see main.html */
-.side-nav-expanded .app-container {
-  margin-left: 256px;
-  width: calc(100vw - 256px);
+@media (min-width: 66rem) {
+  .side-nav-expanded .app-container {
+    margin-left: 256px;
+    width: calc(100vw - 256px);
+  }
+}
+
+/* Carbon hides the header's menu button whenever the side nav uses
+   collapse-mode="fixed". Below 66rem the nav starts collapsed (theme-init.js),
+   so the button must be there to open it; the open nav then lies over the
+   page instead of pushing it. */
+@media (max-width: 65.99rem) {
+  cds-header-menu-button {
+    display: block;
+  }
 }
 
 html.cds--g100 {

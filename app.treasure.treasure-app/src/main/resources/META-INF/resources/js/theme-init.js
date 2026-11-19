@@ -11,9 +11,9 @@
     window.__theme = t;
     if (t === 'dark') document.documentElement.classList.add('cds--g100');
   } catch (e) {}
-  // 1056px (66rem) is where Carbon starts showing the menu button in the
-  // header. Above it the button is hidden, so the side nav must stay open
-  // there or nobody could bring it back. Keep in step with shell.js.
+  // Below 1056px (66rem) the header shows the menu button (treasure-core.css).
+  // Above it the button is hidden, so the side nav must stay open there or
+  // nobody could bring it back. Keep in step with shell.js.
   window.__navExpanded = window.innerWidth >= 1056;
   if (window.__navExpanded) document.documentElement.classList.add('side-nav-expanded');
 })();
